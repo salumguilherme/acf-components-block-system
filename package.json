@@ -1,0 +1,27 @@
+{
+  "name": "acbs-assets",
+  "version": "1.0.33",
+  "description": "Source assets for the ACF Components Block System. Compiled by webpack into assets/js and assets/css. Only the sources under ./src are built - the hand-written JS already in assets/js is left alone.",
+  "private": true,
+  "scripts": {
+    "dev": "webpack --mode development --watch",
+    "build:dev": "webpack --mode development",
+    "build": "webpack --mode production"
+  },
+  "dependencies": {
+    "mengram-ai": "^2.25.3"
+  },
+  "devDependencies": {
+    "css-loader": "^7.1.2",
+    "css-minimizer-webpack-plugin": "^7.0.0",
+    "mini-css-extract-plugin": "^2.9.2",
+    "postcss": "^8.4.49",
+    "postcss-loader": "^8.1.1",
+    "postcss-preset-env": "^10.1.3",
+    "sass": "^1.83.0",
+    "sass-loader": "^16.0.4",
+    "webpack": "^5.97.1",
+    "webpack-cli": "^6.0.1",
+    "webpack-remove-empty-scripts": "^1.0.4"
+  }
+}

@@ -1,0 +1,78 @@
+/**
+ * ACF Copy to clipboard
+ *
+ * @version 1.0.28
+ * @since   1.0.28
+ */
+
+.erdc-acf-copy-field-name {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+	margin-left: 6px;
+	position: relative;
+	vertical-align: middle;
+	cursor: pointer;
+	opacity: 0;
+	transition: opacity .15s ease;
+}
+
+/* .-left is ACF's own class for the "left" label placement layout - the icon
+   still lives inside .acf-label in both layouts, so no extra rule is needed
+   beyond making it visible whenever its own .acf-field is hovered. */
+.acf-field:hover > .acf-label .erdc-acf-copy-field-name,
+.erdc-acf-copy-field-name:focus-visible {
+	opacity: 1;
+}
+
+.erdc-acf-copy-field-name:focus-visible {
+	outline: 2px solid #008DD3;
+	outline-offset: 1px;
+	border-radius: 2px;
+}
+
+.erdc-acf-copy-field-name svg {
+	display: block;
+	width: 18px;
+	height: 18px;
+}
+
+.erdc-acf-copy-field-name .erdc-acf-copy-field-name__glyph {
+	fill: #008DD3;
+	transition: fill .6s ease;
+}
+
+/* Rapidly in, slowly back out - the .is-copied class only stays on the element
+   for a short moment (see acf-copy-to-clipboard.js), so the fast transition
+   below is what plays going TO green; removing the class falls back to the
+   slow transition declared above for the fade back to the original colour. */
+.erdc-acf-copy-field-name.is-copied .erdc-acf-copy-field-name__glyph {
+	fill: #46b450;
+	transition: fill .08s ease;
+}
+
+.erdc-acf-copy-field-name::after {
+	content: attr(data-erdc-tooltip);
+	position: absolute;
+	bottom: calc(100% + 6px);
+	left: 50%;
+	transform: translateX(-50%);
+	background: #1d2327;
+	color: #fff;
+	font-size: 11px;
+	line-height: 1.4;
+	font-weight: 400;
+	white-space: nowrap;
+	padding: 4px 8px;
+	border-radius: 3px;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity .15s ease;
+	z-index: 10;
+}
+
+.erdc-acf-copy-field-name:hover::after {
+	opacity: 1;
+}

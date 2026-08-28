@@ -1,0 +1,281 @@
+// Drilldown Menu widget
+//
+// Compiled to assets/css/drilldown-menu.css and registered as the
+// `erdc-drilldown-menu` handle. Only enqueued when the widget is on the page.
+//
+// Two halves:
+//   1. Structure  - the rules Foundation.Drilldown needs to function. Do not
+//                   remove these, the menu will not slide without them.
+//   2. Appearance - every value reads from a custom property, so each Elementor
+//                   style control just writes one property onto {{WRAPPER}} and
+//                   global colours / typography flow straight through.
+//
+// IMPORTANT - do not add a `--erdc-dd-*: <default>` declaration block to
+// .erdc-drilldown-menu, or to anything else inside the widget. Elementor writes
+// control values onto {{WRAPPER}}, the .elementor-element wrapper *outside*
+// this markup. Custom properties inherit, so the nearest declaring ancestor
+// wins: a declaration block on an inner element silently shadows every control
+// value, in the editor preview and on the frontend alike. That was the bug this
+// file was rewritten to fix - the controls appeared to do nothing at all.
+//
+// Defaults therefore live in the var() fallback at each point of use, which is
+// the pattern Elementor Pro's own widgets use (see --e-nav-menu-* in
+// elementor-pro/assets/css/widget-nav-menu.css, declared nowhere and always
+// read as `var(--e-nav-menu-divider-color, #000)`). The Sass variables below
+// only keep those expressions readable; they are compile-time and emit nothing.
+//
+// The same rules also ship unscoped in assets/css/frontend.css as a fallback
+// for markup that is not rendered by this widget.
+
+// --- Items ---
+$item-color: var(--erdc-dd-item-color, #ffffff)
+$item-bg: var(--erdc-dd-item-bg, var(--brand-primary, #093280))
+$item-hover-color: var(--erdc-dd-item-hover-color, #ffffff)
+$item-hover-bg: var(--erdc-dd-item-hover-bg, var(--brand-secondary, #2554b0))
+$item-padding: var(--erdc-dd-item-padding, 13px 16px)
+$divider-color: var(--erdc-dd-divider-color, rgba(255, 255, 255, 0.1))
+$divider-width: var(--erdc-dd-divider-width, 1px)
+
+// --- Submenus ---
+// These fall through to the top-level item values when unset, so styling the
+// menu once styles the panels with it.
+$submenu-bg: var(--erdc-dd-submenu-bg, var(--brand-primary, #093280))
+$submenu-item-color: var(--erdc-dd-submenu-item-color, #{$item-color})
+$submenu-item-bg: var(--erdc-dd-submenu-item-bg, transparent)
+$submenu-item-hover-color: var(--erdc-dd-submenu-item-hover-color, #{$item-hover-color})
+$submenu-item-hover-bg: var(--erdc-dd-submenu-item-hover-bg, #{$item-hover-bg})
+
+// --- Arrows ---
+$arrow-color: var(--erdc-dd-arrow-color, #ffffff)
+$arrow-bg: var(--erdc-dd-arrow-bg, rgba(0, 0, 0, 0.15))
+$arrow-hover-color: var(--erdc-dd-arrow-hover-color, var(--brand-primary, #093280))
+$arrow-hover-bg: var(--erdc-dd-arrow-hover-bg, #ffffff)
+$arrow-size: var(--erdc-dd-arrow-size, 16px)
+$arrow-box-width: var(--erdc-dd-arrow-box-width, 37px)
+$arrow-box-inset: var(--erdc-dd-arrow-box-inset, 5px)
+$arrow-radius: var(--erdc-dd-arrow-radius, 5px)
+
+// --- Motion ---
+$slide-duration: var(--erdc-dd-slide-duration, 0.6s)
+$slide-easing: var(--erdc-dd-slide-easing, cubic-bezier(0.4, 0, 0.2, 1))
+$height-duration: var(--erdc-dd-height-duration, 0.5s)
+
+// Arrow glyphs. Applied with mask-image, not background-image, so the arrow
+// colour stays a plain background-color the editor can set.
+$arrow-forward: url('data:image/svg+xml;utf-8,<svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.05847 0.212754C9.36081 -0.0709006 9.8509 -0.0709356 10.1532 0.212754L15.7732 5.48634C15.9183 5.62256 16 5.80735 16 5.99999C16 6.19264 15.9183 6.37739 15.7732 6.51363L10.1532 11.7872C9.85088 12.0709 9.36081 12.0709 9.05847 11.7872C8.75618 11.5035 8.75614 11.0436 9.05847 10.7599L13.3569 6.72646H0.774194C0.346618 6.72646 -3.39806e-08 6.40121 0 5.99999C5.99329e-05 5.59881 0.346655 5.27351 0.774194 5.27351H13.3569L9.05847 1.24004C8.75613 0.956333 8.75613 0.496462 9.05847 0.212754Z" fill="black"/></svg>')
+$arrow-back: url('data:image/svg+xml;utf-8,<svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.94153 0.212754C6.63919 -0.0709006 6.1491 -0.0709356 5.84677 0.212754L0.226815 5.48634C0.0816519 5.62256 3.01468e-05 5.80735 4.76837e-07 5.99999C4.90822e-07 6.19264 0.0816605 6.37739 0.226815 6.51363L5.84677 11.7872C6.14912 12.0709 6.63919 12.0709 6.94153 11.7872C7.24382 11.5035 7.24386 11.0436 6.94153 10.7599L2.64315 6.72646H15.2258C15.6534 6.72646 16 6.40121 16 5.99999C15.9999 5.59881 15.6533 5.27351 15.2258 5.27351H2.64315L6.94153 1.24004C7.24387 0.956333 7.24387 0.496462 6.94153 0.212754Z" fill="black"/></svg>')
+
+.erdc-drilldown-menu
+
+  // --------------------------------------------------------------------- //
+  // 1. Structure
+  // --------------------------------------------------------------------- //
+
+  .is-drilldown
+    position: relative
+    overflow: hidden
+
+  .is-drilldown li
+    display: block
+
+  .is-drilldown.animate-height
+    transition: height #{$height-duration}
+
+  ul.menu,
+  ul.menu ul
+    padding: 0
+    margin: 0
+    list-style: none
+
+  .drilldown a
+    display: block
+
+  .drilldown .is-drilldown-submenu
+    position: absolute
+    top: 0
+    left: 100%
+    z-index: -1
+    width: 100%
+    transition: transform 0.25s linear
+
+  .drilldown .is-drilldown-submenu.is-active
+    z-index: 1
+    display: block
+    transform: translateX(-100%)
+
+  .drilldown .is-drilldown-submenu.is-closing
+    transform: translateX(100%)
+
+  .drilldown .nested.is-drilldown-submenu
+    margin-right: 0
+    margin-left: 0
+
+  .drilldown .drilldown-submenu-cover-previous
+    min-height: 100%
+
+  .drilldown .is-drilldown-submenu-parent > a,
+  .drilldown .js-drilldown-back > a
+    position: relative
+    cursor: pointer
+
+  ul.drilldown
+    transition-duration: #{$slide-duration}
+    transition-timing-function: #{$slide-easing}
+
+  // --------------------------------------------------------------------- //
+  // 2. Appearance
+  // --------------------------------------------------------------------- //
+
+  .drilldown a
+    padding: #{$item-padding}
+    color: #{$item-color}
+    background-color: #{$item-bg}
+    border-top: #{$divider-width} solid #{$divider-color}
+    text-decoration: none
+
+  .drilldown a:hover,
+  .drilldown a:focus-visible
+    color: #{$item-hover-color}
+    background-color: #{$item-hover-bg}
+
+  .is-drilldown
+    border-bottom: #{$divider-width} solid #{$divider-color}
+
+  .drilldown .is-drilldown-submenu
+    background-color: #{$submenu-bg}
+
+  .drilldown .is-drilldown-submenu a
+    color: #{$submenu-item-color}
+    background-color: #{$submenu-item-bg}
+
+  .drilldown .is-drilldown-submenu a:hover,
+  .drilldown .is-drilldown-submenu a:focus-visible
+    color: #{$submenu-item-hover-color}
+    background-color: #{$submenu-item-hover-bg}
+
+  // Foundation clones the parent anchor into the submenu when "Show parent
+  // links" is on. That clone carries aria-haspopup, which Elementor's kit
+  // stylesheet styles independently - so its colours are pinned here rather
+  // than left to whatever the surrounding theme does with that attribute.
+  .drilldown .is-drilldown-submenu .is-submenu-parent-item > a
+    color: #{$submenu-item-color}
+    background-color: #{$submenu-item-bg}
+
+  .drilldown .is-drilldown-submenu .is-submenu-parent-item > a:hover,
+  .drilldown .is-drilldown-submenu .is-submenu-parent-item > a:focus-visible
+    color: #{$submenu-item-hover-color}
+    background-color: #{$submenu-item-hover-bg}
+
+  // Forward / back affordances.
+  //
+  // Each is drawn with two pseudo-elements sharing the same box: ::before is
+  // the plate, ::after is the glyph. The glyph is a mask rather than a
+  // background image, so its colour is a plain background-color and therefore
+  // controllable from the editor - a background-image would bake the fill in.
+  .drilldown .is-drilldown-submenu-parent > a::before,
+  .drilldown .is-drilldown-submenu-parent > a::after,
+  .drilldown .js-drilldown-back > a::before,
+  .drilldown .js-drilldown-back > a::after
+    content: ''
+    position: absolute
+    top: #{$arrow-box-inset}
+    width: #{$arrow-box-width}
+    height: calc(100% - (#{$arrow-box-inset} * 2))
+    border: none
+    pointer-events: none
+
+  // Plates
+  .drilldown .is-drilldown-submenu-parent > a::before,
+  .drilldown .js-drilldown-back > a::before
+    border-radius: #{$arrow-radius}
+    background-color: #{$arrow-bg}
+
+  // Glyphs
+  .drilldown .is-drilldown-submenu-parent > a::after,
+  .drilldown .js-drilldown-back > a::after
+    background-color: #{$arrow-color}
+    mask-repeat: no-repeat
+    mask-position: 50%
+    mask-size: #{$arrow-size} auto
+    -webkit-mask-repeat: no-repeat
+    -webkit-mask-position: 50%
+    -webkit-mask-size: #{$arrow-size} auto
+
+  .drilldown .is-drilldown-submenu-parent > a::before,
+  .drilldown .is-drilldown-submenu-parent > a::after
+    right: #{$arrow-box-inset}
+
+  .drilldown .is-drilldown-submenu-parent > a
+    padding-right: calc(#{$arrow-box-width} + (#{$arrow-box-inset} * 2) + 8px)
+
+  .drilldown .is-drilldown-submenu-parent > a::after
+    mask-image: $arrow-forward
+    -webkit-mask-image: $arrow-forward
+
+  .drilldown .js-drilldown-back > a::before,
+  .drilldown .js-drilldown-back > a::after
+    left: #{$arrow-box-inset}
+
+  .drilldown .js-drilldown-back > a
+    padding-left: calc(#{$arrow-box-width} + (#{$arrow-box-inset} * 2) + 12px)
+
+  .drilldown .js-drilldown-back > a::after
+    mask-image: $arrow-back
+    -webkit-mask-image: $arrow-back
+
+  .drilldown .is-drilldown-submenu-parent > a:hover::before,
+  .drilldown .js-drilldown-back > a:hover::before
+    background-color: #{$arrow-hover-bg}
+
+  .drilldown .is-drilldown-submenu-parent > a:hover::after,
+  .drilldown .js-drilldown-back > a:hover::after
+    background-color: #{$arrow-hover-color}
+
+  // --------------------------------------------------------------------- //
+  // 3. Custom arrow icons
+  // --------------------------------------------------------------------- //
+  //
+  // When the Arrow Icon / Back Icon controls are set, the widget injects the
+  // chosen icon into the anchor and the masked glyph steps aside. The plate
+  // (::before) stays, so every arrow style control still applies.
+
+  .erdc-drilldown-menu__icon
+    position: absolute
+    top: #{$arrow-box-inset}
+    width: #{$arrow-box-width}
+    height: calc(100% - (#{$arrow-box-inset} * 2))
+    display: flex
+    align-items: center
+    justify-content: center
+    color: #{$arrow-color}
+    font-size: #{$arrow-size}
+    line-height: 1
+    pointer-events: none
+
+  .erdc-drilldown-menu__icon svg
+    width: #{$arrow-size}
+    height: auto
+    fill: currentColor
+
+  .drilldown .is-drilldown-submenu-parent > a > .erdc-drilldown-menu__icon
+    right: #{$arrow-box-inset}
+
+  .drilldown .js-drilldown-back > a > .erdc-drilldown-menu__icon
+    left: #{$arrow-box-inset}
+
+  .drilldown .is-drilldown-submenu-parent > a:hover > .erdc-drilldown-menu__icon,
+  .drilldown .js-drilldown-back > a:hover > .erdc-drilldown-menu__icon
+    color: #{$arrow-hover-color}
+
+  // Stand the default glyph down when a custom icon is in play. The plate
+  // (::before) is left alone so it still sits behind the new icon.
+  &--has-arrow-icon .drilldown .is-drilldown-submenu-parent > a::after
+    content: none
+
+  &--has-back-icon .drilldown .js-drilldown-back > a::after
+    content: none
+
+  // Top level items that do not open a submenu read lighter than the ones
+  // that do, matching the original hand-written stylesheet.
+  .menu.drilldown > li:not(.is-drilldown-submenu-parent) > a
+    font-weight: normal

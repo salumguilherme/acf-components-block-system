@@ -1,0 +1,21 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/
+
+# Dependencies
+node_modules/
+
+# Build artefacts kept in the repo deliberately - assets/ is committed so the
+# plugin runs from a checkout without a build step.
+
+# Local tooling
+composer.json
+composer.lock
+demo_sdk_vault/
+
+# Session primer is TRACKED in this repo - see CLAUDE.md's own note.
+#CLAUDE.md
