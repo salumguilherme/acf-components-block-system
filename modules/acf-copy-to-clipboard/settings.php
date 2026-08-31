@@ -1,6 +1,6 @@
 <?php
 
-	namespace ERDC\Modules\AcfCopyToClipboard;
+	namespace ACBS\Modules\AcfCopyToClipboard;
 
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -14,7 +14,7 @@
 	 *
 	 * @version 1.0.28
 	 * @since   1.0.28
-	 * @package ERDC\Modules\AcfCopyToClipboard
+	 * @package ACBS\Modules\AcfCopyToClipboard
 	 */
 	class Settings {
 
@@ -26,7 +26,7 @@
 		const ENABLED_OPTION = 'erdc_acf_copy_to_clipboard_enabled';
 
 		/**
-		 * Tab this section is added to, owned by ERDC\Modules\Settings.
+		 * Tab this section is added to, owned by ACBS\Modules\Settings.
 		 */
 		const TAB_ID = 'erdc-flexible-content';
 
@@ -49,12 +49,12 @@
 		/**
 		 * register function
 		 *
-		 * Hooked after ERDC\Modules\Settings has created the tab.
+		 * Hooked after ACBS\Modules\Settings has created the tab.
 		 *
 		 * @version 1.0.28
 		 * @since   1.0.28
 		 *
-		 * @param \ERDC\Core\Admin\Settings_Page $settings
+		 * @param \ACBS\Core\Admin\Settings_Page $settings
 		 */
 		public static function register($settings) {
 

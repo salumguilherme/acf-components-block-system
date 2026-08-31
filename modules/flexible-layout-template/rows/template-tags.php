@@ -17,7 +17,10 @@
 	 * @since   1.0.0
 	 */
 
-	use ERDC\Plugin;
+	use ACBS\Plugin;
+	use ACBS\Modules\FlexibleLayoutTemplate\Rows\Items_Source;
+	use ACBS\Modules\FlexibleLayoutTemplate\Rows\Row;
+	use ACBS\Modules\FlexibleLayoutTemplate\Rows\Template_Loader;
 
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -91,6 +94,59 @@
 				'source' => '' !== $atts['source'] ? sanitize_text_field($atts['source']) : null,
 			]);
 
+		}
+
+	}
+
+	if(!function_exists('acbs_row_items')) {
+
+		/**
+		 * acbs_row_items function
+		 *
+		 * The items of a row whose `source` field selects repeater, taxonomy or post type.
+		 *
+		 *     $items = acbs_row_items($row);
+		 *
+		 *     while($items->have_item()) {
+		 *         $item = $items->the_item();
+		 *     }
+		 *
+		 * Row templates go through this rather than naming Items_Source directly, so a
+		 * template - including one a site has copied into its theme - never carries the
+		 * plugin's namespace. That matters more than it looks: the namespace is still
+		 * ACBS\ pending a rename to ACBS\, and a theme's copied templates are the one
+		 * place a rename cannot reach.
+		 *
+		 * @version 1.0.0
+		 * @since   1.0.0
+		 *
+		 * @param Row    $row
+		 * @param string $variant 'items', or 'featured' for image_cards_multi_grid.
+		 *
+		 * @return Items_Source
+		 */
+		function acbs_row_items(Row $row, $variant = 'items') {
+			return Items_Source::for_row($row, $variant);
+		}
+
+	}
+
+	if(!function_exists('acbs_row_part')) {
+
+		/**
+		 * acbs_row_part function
+		 *
+		 * Renders a shared template part - parts/{name}.php - with $row in scope. A
+		 * missing part prints nothing.
+		 *
+		 * @version 1.0.0
+		 * @since   1.0.0
+		 *
+		 * @param string $name
+		 * @param Row    $row
+		 */
+		function acbs_row_part($name, Row $row) {
+			Template_Loader::render_part($name, $row);
 		}
 
 	}

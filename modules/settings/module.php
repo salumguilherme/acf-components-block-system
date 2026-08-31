@@ -1,9 +1,9 @@
 <?php
 
-	namespace ERDC\Modules\Settings;
+	namespace ACBS\Modules\Settings;
 
-	use ERDC\Core\Module_Base as Base_Module;
-	use ERDC\Core\Admin\Settings_Page;
+	use ACBS\Core\Module_Base as Base_Module;
+	use ACBS\Core\Admin\Settings_Page;
 
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -21,7 +21,7 @@
 	 *
 	 * @version 1.0.0
 	 * @since   1.0.11
-	 * @package ERDC\Modules\Settings
+	 * @package ACBS\Modules\Settings
 	 */
 	class Module extends Base_Module {
 

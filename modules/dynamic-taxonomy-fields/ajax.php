@@ -1,6 +1,6 @@
 <?php
 
-	namespace ERDC\Modules\DynamicTaxonomyFields;
+	namespace ACBS\Modules\DynamicTaxonomyFields;
 
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -19,7 +19,7 @@
 	 *
 	 * @version 1.0.28
 	 * @since   1.0.18
-	 * @package ERDC\Modules\DynamicTaxonomyFields
+	 * @package ACBS\Modules\DynamicTaxonomyFields
 	 */
 	class Ajax {
 

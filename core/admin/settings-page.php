@@ -1,6 +1,6 @@
 <?php
 
-	namespace ERDC\Core\Admin;
+	namespace ACBS\Core\Admin;
 
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -25,7 +25,7 @@
 	 *
 	 * @version 1.0.0
 	 * @since   1.0.0
-	 * @package ERDC\Core\Admin
+	 * @package ACBS\Core\Admin
 	 */
 	class Settings_Page {
 

@@ -1,6 +1,6 @@
 <?php
 
-	namespace ERDC\Modules\FlexibleLayoutTemplate\Fields;
+	namespace ACBS\Modules\FlexibleLayoutTemplate\Fields;
 
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -15,13 +15,13 @@
 	 * iterates MODULES instead, so adding a component is one class plus one line here.
 	 *
 	 * MODULES is a hand-maintained flat array rather than filesystem auto-discovery, on
-	 * purpose: it matches ERDC\Core\Modules_Manager's own `const MODULES = [...]` one
+	 * purpose: it matches ACBS\Core\Modules_Manager's own `const MODULES = [...]` one
 	 * level up, keeps load order explicit and greppable, and means a half-finished class
 	 * sitting in the fields directory can't accidentally register itself.
 	 *
 	 * @version 1.0.27
 	 * @since   1.0.27
-	 * @package ERDC\Modules\FlexibleLayoutTemplate\Fields
+	 * @package ACBS\Modules\FlexibleLayoutTemplate\Fields
 	 */
 	class Flexible_Layout_Components {
 

@@ -1,8 +1,8 @@
 <?php
 
-	namespace ERDC\Modules\DynamicTaxonomyFields;
+	namespace ACBS\Modules\DynamicTaxonomyFields;
 
-	use ERDC\Core\Module_Base as Base_Module;
+	use ACBS\Core\Module_Base as Base_Module;
 
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -13,7 +13,7 @@
 	 *
 	 * Powers the "Source: Repeater / Taxonomy / Post Type" pattern used by several
 	 * Flexible Layout layouts (see
-	 * ERDC\Modules\FlexibleLayoutTemplate\Fields\Page_Content) - when "Taxonomy" is
+	 * ACBS\Modules\FlexibleLayoutTemplate\Fields\Page_Content) - when "Taxonomy" is
 	 * selected, a Taxonomy select field is shown, and picking a taxonomy there reloads
 	 * a Terms field's choices via AJAX; when "Post Type" is selected, the same happens
 	 * between a Post Type select field and a Posts field. Migrated from the
@@ -29,7 +29,7 @@
 	 *
 	 * @version 1.0.28
 	 * @since   1.0.18
-	 * @package ERDC\Modules\DynamicTaxonomyFields
+	 * @package ACBS\Modules\DynamicTaxonomyFields
 	 */
 	class Module extends Base_Module {
 
@@ -74,9 +74,9 @@
 
 			wp_enqueue_script(
 				'erdc-dynamic-taxonomy-fields',
-				ERDC_URL.'assets/js/dynamic-taxonomy-fields.js',
+				ACBS_URL.'assets/js/dynamic-taxonomy-fields.js',
 				['jquery', 'acf-input'],
-				ERDC_VERSION,
+				ACBS_VERSION,
 				true
 			);
 

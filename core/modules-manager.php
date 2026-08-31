@@ -1,6 +1,6 @@
 <?php
 	
-	namespace ERDC\Core;
+	namespace ACBS\Core;
 	
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -13,7 +13,7 @@
 	 *
 	 * @version 1.0.0
 	 * @since   1.0.0
-	 * @package ERDC\Core
+	 * @package ACBS\Core
 	 */
 	final class Modules_Manager {
 		
@@ -95,7 +95,7 @@
 		/**
 		 * module_class_name function
 		 *
-		 * 'flexible-layout-template' => '\ERDC\Modules\FlexibleLayoutTemplate\Module'
+		 * 'flexible-layout-template' => '\ACBS\Modules\FlexibleLayoutTemplate\Module'
 		 *
 		 * @version 1.0.0
 		 * @since   1.0.0
@@ -109,7 +109,7 @@
 			$class_name = str_replace('-', ' ', $module_name);
 			$class_name = str_replace(' ', '', ucwords($class_name));
 			
-			return '\ERDC\Modules\\'.$class_name.'\Module';
+			return '\ACBS\Modules\\'.$class_name.'\Module';
 			
 		}
 		

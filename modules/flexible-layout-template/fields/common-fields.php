@@ -1,6 +1,6 @@
 <?php
 
-	namespace ERDC\Modules\FlexibleLayoutTemplate\Fields;
+	namespace ACBS\Modules\FlexibleLayoutTemplate\Fields;
 
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -35,7 +35,7 @@
 	 *
 	 * @version 1.0.28
 	 * @since   1.0.6
-	 * @package ERDC\Modules\FlexibleLayoutTemplate\Fields
+	 * @package ACBS\Modules\FlexibleLayoutTemplate\Fields
 	 */
 	class Common_Fields {
 
@@ -125,7 +125,7 @@
 
 				$layout_row_fields = self::get_layout_row_fields($layout_name);
 
-				$layout['sub_fields'] = array_merge($leading_tab, $layout['sub_fields'], $intro, $layout_row_fields, self::get_common_fields());
+				$layout['sub_fields'] = array_merge($leading_tab, $layout['sub_fields'], $layout_row_fields, $intro, self::get_common_fields());
 
 			}
 
@@ -147,9 +147,13 @@
 		 * Contributor_Groups::matches()), so a site can add a field to every layout
 		 * except one without tagging every other layout individually.
 		 *
-		 * Landed in a layout's own sub_fields immediately before "Other Settings" (see
-		 * inject_common_fields()), so these fields appear under that layout's own
-		 * "Content" tab alongside its own fields.
+		 * Landed in a layout's own sub_fields immediately after the layout's own fields
+		 * and before the Intro tab (see inject_common_fields()), so these fields appear
+		 * under that layout's own "Content" tab alongside its own fields. The position
+		 * matters: the first field Intro contributes is a tab, and ACF assigns every
+		 * field following a tab to that tab until the next one, so appending these after
+		 * Intro - as this did when carried over from ERDC - filed a site's row fields
+		 * under "Intro" rather than under the layout's own tab.
 		 *
 		 * @version 1.0.24
 		 * @since   1.0.24

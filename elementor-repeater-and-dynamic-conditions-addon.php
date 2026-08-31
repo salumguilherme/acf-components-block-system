@@ -3,7 +3,7 @@
 	/*
 	 * Plugin Name:       ACF Components Block System
 	 * Plugin URI:        https://fivecreative.com.au
-	 * Description:       Compoennt block system for ACF Pro
+	 * Description:       Component block system for ACF Pro
 	 * Version:           1.0.0
 	 * Requires at least: 6.0
 	 * Requires PHP:      8.0
@@ -26,6 +26,16 @@
 	define('ACBS__FILE__', __FILE__);
 	define('ACBS_PATH', plugin_dir_path(ACBS__FILE__));
 	define('ACBS_URL', plugin_dir_url(ACBS__FILE__));
+	
+	// The repository Plugin::updater() checks. Guarded, so a site can point a particular
+	// install somewhere else from wp-config.php - which is loaded before this file - without
+	// tripping a "constant already defined" warning on every request. Read the comment on
+	// Plugin::updater() before changing this: it must be THIS fork, never the upstream ERDC
+	// repository, and the version above must stay ahead of every tag that repository has
+	// published.
+	if(!defined('ACBS_UPDATE_REPO')) {
+		define('ACBS_UPDATE_REPO', 'https://github.com/salumguilherme/acf-components-block-system');
+	}
 	
 	define('ERDC_VERSION', ACBS_VERSION);
 	define('ERDC__FILE__', ACBS__FILE__);

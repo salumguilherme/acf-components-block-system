@@ -17,7 +17,7 @@ const path = require( 'path' );
 const { execFileSync } = require( 'child_process' );
 
 const ROOT = path.resolve( __dirname, '..' );
-const SLUG = 'elementor-repeater-and-dynamic-conditions-addon';
+const SLUG = 'acf-components-block-system';
 const MAIN_FILE = `${ SLUG }.php`;
 
 // Everything the shipped plugin needs, and nothing else.
@@ -25,7 +25,7 @@ const SHIP_DIRS = [ 'assets', 'modules', 'core', 'templates', 'vendor' ];
 const SHIP_FILES = [ MAIN_FILE, 'plugin.php', 'readme.txt' ];
 
 // Cruft that lives inside the shipped folders but must not be packaged.
-const EXCLUDE = [ '.DS_Store', '*.map', '.git*', 'node_modules/', '*.log' ];
+const EXCLUDE = [ '.DS_Store', '*.map', '.git*', 'node_modules/', '*.log', 'src', 'CLAUDE.md', 'bin/', 'bin', '.idea*', 'package.json', 'webpack.config.js'];
 
 const read = ( file ) => fs.readFileSync( path.join( ROOT, file ), 'utf8' );
 const write = ( file, body ) => fs.writeFileSync( path.join( ROOT, file ), body );

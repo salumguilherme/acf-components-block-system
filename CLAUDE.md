@@ -5,7 +5,7 @@ Session primer for the ACF Components Block System (ACBS), forked from the Eleme
 - **Version:** 1.0.0
 - **Repo:** fresh history, one commit. Folder name unchanged: `elementor-repeater-and-dynamic-conditions-addon`
 - **Text domain:** `erdc` (not yet renamed)
-- **Namespace:** `ERDC\` — deliberately not renamed yet, see §08 Constants
+- **Namespace:** `ACBS\` — renamed from `ERDC\` on 31/08/2026
 - **Doc date:** 28/08/2026 (phases 00–02 complete)
 
 **This file is now tracked in git.** The old ERDC repo ignored it; this one does not (`.gitignore` has `#CLAUDE.md` commented out). Write for the team, not for one machine.
@@ -32,7 +32,7 @@ needing a browser.
 | **Phase 02** | The render layer: `Row`, `Row_Type`, `Row_Type_Base`, `Layout_Row_Type`, `Row_Registry`, `Renderer`, `Template_Loader`, `Wrapper`, `Assets`, the five action points, `acbs_render_rows()` / `acbs_get_rows()` / `[acbs_rows]`, and `templates/` with `wrapper.php`, an empty `default.php`, all 15 stubs and 5 item stubs. |
 | **First code change** | 27/08/2026: `products_archive_feed` and `product_feed` removed from `page-content.php` (1,724 → 1,590 lines, 15 layouts → **15**), along with `remove_woocommerce_layouts_if_inactive()`, its call in `get_current_layouts()` and the then-unused `Environment` import. Ten product-related reference JSONs deleted. 16 layout and 28 loop-item JSONs remain. |
 | **Live consequence** | Page **11 "Rental Fleet"** (published) has an orphaned row: `[full_width_content, full_width_content, products_archive_feed]`. The renderer skips it, wrapper included — see §05.7. It is not the only one; §10 lists three more pages, orphaned by the contributor groups all being in the trash. |
-| **Still open in the main file** | The `Description` header reads "Compoennt block system for ACF Pro" — Gui's to correct. The namespace is still `ERDC\`; the text domain stays `erdc` deliberately. |
+| **Still open in the main file** | The `Description` header reads "Compoennt block system for ACF Pro" — Gui's to correct. The text domain stays `erdc` deliberately; so do the `erdc_*` option keys and the `erdc/*` component hooks. |
 
 ### What the plugin provides
 
@@ -57,7 +57,7 @@ needing a browser.
 | Build | **webpack**. Sources in `src/`, output to `assets/js` and `assets/css`. `npm run dev` (watch) · `npm run build:dev` · `npm run build`. `src/` is down to one file, `css/frontend.sass`, since the drilldown sources went; the config's only entry is that one, and phase 04 adds the per-row entries. `foundation-sites` is out of `package.json`. The four hand-written ACF admin scripts in `assets/js` are **not** in the pipeline and are edited in place. |
 | Release | `npm run release` (patch) · `release:minor` · `release:major` · `npm run release -- 1.1.0` · `npm run package`. Runs `bin/release.js`. `SHIP_DIRS` is `['assets','modules','core','templates','vendor']` — `templates` was added in phase 02, and the version pattern re-pointed from `ERDC_VERSION` to `ACBS_VERSION`. |
 | Tests / lint | **None.** No PHPUnit, PHPCS, PHPStan or CI. With Elementor's untyped surface gone this is now cheap to add; it is phase 06. |
-| Updates | GitHub-based via `yahnis-elsts/plugin-update-checker`. Needs `ERDC_UPDATER_TOKEN` in `wp-config.php`; absent, it warns in wp-admin rather than fataling. The update URL still points at the old repo. |
+| Updates | GitHub-based via `yahnis-elsts/plugin-update-checker`, and **off** — `Plugin::updater()` returns early unless `ACBS_UPDATE_REPO` is defined, and there is no default URL. Needs `ERDC_UPDATER_TOKEN` in `wp-config.php` too; absent, it warns in wp-admin rather than fataling. See §08 before re-enabling. |
 
 ---
 
@@ -95,7 +95,7 @@ elementor-repeater-and-dynamic-conditions-addon.php
   │            (ERDC_* aliased to each, for one release)
   └─ plugins_loaded            → require plugin.php
 
-plugin.php  — ERDC\Plugin singleton
+plugin.php  — ACBS\Plugin singleton
   ├─ spl_autoload_register     → path-derived autoloader
   ├─ updater()
   ├─ Core\Upgrades::maybe_run()   one-shot cleanup, gated on erdc_version
@@ -121,7 +121,7 @@ because `acf.php` calls `acf()->initialize()` at include time. **Do not "tidy" t
 `Plugin::autoload()` derives a file path from the class name by regex: PascalCase segments become kebab-case, underscores become path separators, everything lowercases.
 
 ```
-ERDC\Modules\FlexibleLayoutTemplate\Fields\Site_Layouts
+ACBS\Modules\FlexibleLayoutTemplate\Fields\Site_Layouts
   → modules/flexible-layout-template/fields/site-layouts.php
 ```
 
@@ -154,11 +154,14 @@ modules/flexible-layout-template/
     wrapper.php               locates templates/wrapper.php, emits the action points
     template-tags.php         plain functions, required not autoloaded
     assets.php                footer collector  (decision 3)
-    items-source.php          NOT YET — phase 05
+    items-source.php          repeater | taxonomy | post type  (phase 05)
+    item.php                  one item, whichever of the three it is
+    provides-items.php        optional interface, for a client's own row type
   fields/                     21 files, unchanged
 
 templates/                    overridable from {theme}/acbs/
   wrapper.php
+  parts/intro.php             shared by every layout Intro is injected into
   rows/default.php            ships empty
   rows/{layout}.php           × 15
   rows/{layout}/item.php      × 5
@@ -280,6 +283,28 @@ From `other-settings.php`: `section_bg`, `section_container_id`, `vertical_paddi
 
 \* has an item stub at `templates/rows/{layout}/item.php` — † leaves core (decision 10)
 
+### How items are read (phase 05)
+
+`Items_Source` resolves a row's `source` button group and hands the template a uniform
+iterator; `Item` reconciles a repeater row, a `WP_Term` and a `WP_Post` into the same
+`title()` / `content()` / `link()` / `image_html()` accessors, so an item template opens with
+no three-way branch. Field names per layout live in `Items_Source::DEFAULTS`, overridable by
+a row type implementing `Provides_Items` and then by `acbs/row/items_spec`.
+
+Templates reach it through `acbs_row_items($row)` and `acbs_row_part('intro', $row)` rather
+than naming the class, deliberately: a theme's copied templates are the one place a rename
+cannot reach, and the `ERDC\` → `ACBS\` rename proved the point.
+
+Two behaviours differ from ERDC on purpose:
+
+- **An empty selection now renders nothing.** ERDC set `$args['include'] = []` when no terms
+  were selected; `WP_Term_Query` applies `include` only when non-empty, so that asked for
+  every term in the taxonomy. `WP_Query` treats an empty `post__in` the same way. Both are
+  guarded before the query runs.
+- **The `product_cat` `hide_from_feed` meta query is gone**, along with the other five
+  client-specific query filters. `acbs/row/items_query` is where it goes back, in that
+  client's add-on (decision 10).
+
 **Correction to the plan: three layouts have a `source` field, not five or six.** Verified
 against the live `page_sections` field on 27/08/2026. Only `icon_leaders`,
 `image_cards_grid` and `image_cards_multi_grid` carry the repeater/taxonomy/post_type
@@ -332,8 +357,22 @@ if phase 05 comes and goes without one, delete it.
 
 ### The four shortcodes still to port (phase 05)
 
-Read before deletion; the bodies live in the first commit. Port them into the row template
-that used them, not back into a shortcode.
+Read before porting. **The bodies are NOT in this repo's git history** — the root commit
+already has phases 00-02 applied, so nothing deleted before then was ever committed here.
+Two copies of the pre-fork code exist, and neither is this repo:
+
+1. **The upstream ERDC repository**, the source of record for everything before the fork:
+   https://github.com/salumguilherme/elementor-repeater-and-dynamic-conditions-addon —
+   full history for the widget, the shortcodes, `loop-grid-repeater`,
+   `repeater-dynamic-tags` and the client query filters.
+2. The unpacked ERDC 1.0.33 release on disk at
+   `wp-content/elementor-repeater-and-dynamic-conditions-addon/`, which is one release
+   only, no history. Convenient for a quick `grep`; do not delete it.
+
+**That upstream repository is also the one the update checker must never point at** — it is
+what overwrote this fork on 28/08/2026. See "The updater is OFF" in §08.
+
+Port them into the row template that used them, not back into a shortcode.
 
 | Shortcode | Belongs to | Notes |
 |---|---|---|
@@ -364,7 +403,8 @@ still works once its hook name is updated.
 | `acbs/flexible_layout/location` | Narrow where the Page Content group appears |
 | `acbs/row/show` | Skip a row at render time (was `…/show_section`) |
 | `acbs/row/wrapper_classes` · `/wrapper_id` | Wrapper attributes |
-| `acbs/row/items_query` | The one query filter, replacing six client-specific ones. **Not implemented yet** — arrives with `Items_Source` in phase 05 |
+| `acbs/row/items_query` | The one query filter, replacing six client-specific ones. Passed `($args, $for, $row, $source)` where `$for` is `terms` or `posts`, with the row's ACF loop active |
+| `acbs/row/items_spec` | Which fields a layout's items read. Lets a site repoint a layout's items without replacing its row type |
 | `acbs/template/candidates` · `/path` | Template cascade |
 | `acbs/styles/enqueue_default` | Drop the plugin's base sheet for a layout |
 | `acbs/bootstrap/handle` · `/script_handle` | Handle to detect before bundling Bootstrap. **Not implemented yet** — phase 04 |
@@ -396,7 +436,7 @@ Option keys stay `erdc_*` — renaming buys nothing and needs a migration.
 memory on every request for a cache that no longer exists), and every `_fl_cache_*`
 transient, deleted through `delete_transient()` so the timeout rows go with them.
 
-### The updater is OFF, and must stay off until the fork has its own repo
+### The updater is ON again, pointed at the fork
 
 **On 28/08/2026 the update checker destroyed this fork.** The header had been reset to
 `1.0.0`, while `PucFactory::buildUpdateChecker()` still pointed at the original ERDC
@@ -410,18 +450,24 @@ Everything was rebuilt from a packaged 1.0.33 release found in `wp-content/`, pl
 Claude Code session transcripts in `~/.claude/projects/`, which carried the phase 01/02
 files verbatim.
 
-`Plugin::updater()` now returns early unless **`ACBS_UPDATE_REPO`** is defined in
-`wp-config.php`. There is no default URL on purpose. Before re-enabling it, both of these
-have to be true:
+**Re-enabled 31/08/2026.** `Plugin::updater()` returns early unless `ACBS_UPDATE_REPO` is
+defined; it is now defined in the main plugin file as
+`https://github.com/salumguilherme/acf-components-block-system` — the fork's own repository,
+which is also `origin` for this working copy. The upstream ERDC repo,
+https://github.com/salumguilherme/elementor-repeater-and-dynamic-conditions-addon, is
+read-only source of record for the pre-fork code (§07) and **must never** be what
+`ACBS_UPDATE_REPO` points at: a fork whose update checker points upstream can be overwritten
+by upstream at any time, and a lower fork version turns that into a silent downgrade rather
+than a visible error.
 
-1. The URL points at **this fork**, not at ERDC. A fork whose update checker points
-   upstream can be overwritten by upstream at any time, and a lower fork version turns
-   that into a silent downgrade rather than a visible error.
-2. The fork's version is above every version that repository has ever published, so a
-   stale tag cannot read as an upgrade.
+The `.git` directory still lives inside the plugin folder, which a plugin update would still
+delete — but there is now a mirror outside the webroot at `~/acbs-git-mirror/acbs.git`
+(remote `mirror`), as well as `origin` on GitHub. Keep pushing to both.
 
-**Also: do not keep the only copy of `.git` inside the plugin directory.** Any plugin
-update deletes it. Push to a remote, or keep a `git bundle` mirror outside the webroot.
+**The one condition still worth checking before each release:** the fork's version must be
+above every version its own repository has published, or a stale tag reads as an upgrade and
+the same delete-then-install cycle runs again. The header is currently `1.0.0` and
+`setBranch('main')`, so the update checker compares against whatever `main` declares.
 
 ### Constants
 
@@ -430,10 +476,25 @@ update deletes it. Push to a remote, or keep a `git bundle` mirror outside the w
 `wp-config.php` and keeps its name (it is a site's constant, not ours).
 `ERDC_DISABLE_LATE_ATOMIC_FLUSH` went with `loop-grid-repeater`.
 
-**The PHP namespace is still `ERDC\`.** Neither phase 01 nor phase 02 lists the rename, and
-doing it mid-stream would have buried this diff in 40-odd files of mechanical churn. It is a
-self-contained pass whenever you want it: the autoloader strips `__NAMESPACE__`
-dynamically, so renaming `ERDC\` → `ACBS\` needs no autoloader change and no file moves.
+**The PHP namespace was renamed `ERDC\` → `ACBS\` on 31/08/2026**, across 82 files and 198
+references, plus the one string-built class name in `Modules_Manager::get_module_class()`. No
+autoloader change and no file moves were needed, as predicted: `Plugin::autoload()` strips
+`__NAMESPACE__` dynamically and the on-disk paths never encoded the vendor prefix.
+
+Nothing else moved with it, and the distinction is worth keeping straight, because uppercase
+`ERDC\` and lowercase `erdc` were never the same thing:
+
+| Stays | Why |
+|---|---|
+| `'erdc'` text domain | Renaming it orphans every translation |
+| `erdc_*` option keys | Renaming needs a migration and buys nothing (§08 Options) |
+| `erdc/*` hooks on the component fields | Public API a site may already hook |
+| `ERDC_UPDATER_TOKEN` | A site's own `wp-config.php` constant, not ours |
+
+Internal uses of the deprecated `ERDC_VERSION` / `ERDC_PATH` / `ERDC_URL` / `ERDC__FILE__`
+aliases were switched to the canonical `ACBS_*` names at the same time — the aliases were
+undroppable while the plugin's own code still read them. The aliases themselves remain
+defined for one release, for a site's snippets.
 
 ---
 
@@ -465,7 +526,7 @@ dynamically, so renaming `ERDC\` → `ACBS\` needs no autoloader change and no f
 | 02 | Render layer: `Row`, `Row_Type`, `Row_Registry`, `Renderer`, `Template_Loader`, `Wrapper`, action points, footer assets, 15 stub templates | M | **Done 28/08/2026** |
 | 03 | Site kit | M | **Parked** (decision 6) |
 | 04 | `structure.sass` against Bootstrap's grid, Bootstrap fallback + handle filter, per-row webpack entries | M | |
-| 05 | Fill in the 15 row templates. Three need `Items_Source`; do one early | L | **Next** |
+| 05 | Fill in the 15 row templates. Three need `Items_Source`; do one early | L | **In progress** — `Items_Source` done, 2 of 15 templates written |
 | 06 | Theme integration in `five-starter` — **now blocking a working Elementor-free front end**, see the phase 01 checkpoint — plus PHPStan + PHPCS and the carried-over criticals (`templates/` is already in `SHIP_DIRS`) | M | |
 
 **Checkpoint for 01 — passed 28/08/2026.** Verified by filtering `option_active_plugins` so
@@ -497,6 +558,29 @@ row's live ACF loop, which is the thing most likely to break:
 `Renderer::layouts_on_page(11)` returns all three saved names from `acf_get_metadata()`, so
 the orphan is still findable by whoever cleans the data up — which is the point of skipping
 rather than deleting.
+
+**Checkpoint for 05's items layer — passed 31/08/2026.** Verified through a temporary probe
+mu-plugin against page **4120 "Vacuum Truck Supplies"**, whose single `icon_leaders` row is
+the only live data any source-bearing layout has on this site. All three `source` modes
+render, from the same item template:
+
+| Mode | Result |
+|---|---|
+| `repeater` (as saved) | 3 items, icons, titles and content, no links (the field is empty, so `<div>` not `<a>`) |
+| `taxonomy` | 1 item, term name + `get_term_link()`, no image — the term carries no ACF `icon` field, which degrades to nothing rather than erroring |
+| `post_type` | 1 item, featured image with srcset, permalink, excerpt |
+| either, nothing selected | 0 items, no empty `<ul>`, intro still rendered |
+| url-format image | hand-built `<img>`, no srcset, class merged |
+
+ACF's loop stack came back at depth **0** after the render, and a second render in the same
+request was byte-identical — which is the §05.2 corruption mode, tested rather than assumed.
+
+The taxonomy/post_type modes were exercised by filtering `acf/load_value` at read time; the
+row's saved data was not modified, and the probe mu-plugin has been deleted.
+
+**No page has an `image_cards_grid` row saved**, so that template's markup is unverified at
+runtime even though the items layer behind it is. Its field mapping was read straight out of
+`page-content.php`.
 
 **Not yet exercised: the `WP_DEBUG` paths.** `wp-config.php` on this install defines
 `WP_DEBUG` false, and an mu-plugin runs too late to change that. So the template-cascade

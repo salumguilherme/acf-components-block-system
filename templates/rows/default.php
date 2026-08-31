@@ -10,7 +10,7 @@
 	 * registered row type is skipped entirely, wrapper included, before resolution ever
 	 * runs. See CLAUDE.md section 05.7.
 	 *
-	 * @var ERDC\Modules\FlexibleLayoutTemplate\Rows\Row $row
+	 * @var ACBS\Modules\FlexibleLayoutTemplate\Rows\Row $row
 	 *
 	 * @version 1.0.0
 	 * @since   1.0.0

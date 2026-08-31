@@ -1,6 +1,6 @@
 <?php
 
-	namespace ERDC\Modules\PageHeader;
+	namespace ACBS\Modules\PageHeader;
 
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -18,7 +18,7 @@
 	 *
 	 * @version 1.0.22
 	 * @since   1.0.22
-	 * @package ERDC\Modules\PageHeader
+	 * @package ACBS\Modules\PageHeader
 	 */
 	class Settings {
 
@@ -35,7 +35,7 @@
 		const EXCLUSIONS_OPTION = 'erdc_page_header_exclusions';
 
 		/**
-		 * Tab this section is added to, owned by ERDC\Modules\Settings.
+		 * Tab this section is added to, owned by ACBS\Modules\Settings.
 		 */
 		const TAB_ID = 'erdc-flexible-content';
 
@@ -75,12 +75,12 @@
 		/**
 		 * register function
 		 *
-		 * Hooked after ERDC\Modules\Settings has created the tab.
+		 * Hooked after ACBS\Modules\Settings has created the tab.
 		 *
 		 * @version 1.0.22
 		 * @since   1.0.22
 		 *
-		 * @param \ERDC\Core\Admin\Settings_Page $settings
+		 * @param \ACBS\Core\Admin\Settings_Page $settings
 		 */
 		public static function register($settings) {
 

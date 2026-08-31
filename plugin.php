@@ -1,10 +1,10 @@
 <?php
 	
-	namespace ERDC;
+	namespace ACBS;
 	
-	use ERDC\Core\Modules_Manager;
-	use ERDC\Core\Upgrades;
-	use ERDC\Modules\FlexibleLayoutTemplate\Rows\Renderer;
+	use ACBS\Core\Modules_Manager;
+	use ACBS\Core\Upgrades;
+	use ACBS\Modules\FlexibleLayoutTemplate\Rows\Renderer;
 	use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 	
 	if(!defined( 'ABSPATH')) {
@@ -92,7 +92,7 @@
 					)
 				);
 				
-				$filename = ERDC_PATH.$filename.'.php';
+				$filename = ACBS_PATH.$filename.'.php';
 				
 				// If the file exists
 				if(is_readable($filename)) {
@@ -201,28 +201,33 @@
 		 */
 		private function updater() {
 			
-			// OFF BY DEFAULT, DELIBERATELY. Read this before switching it on.
+			// ON since 31/08/2026, pointed at the fork's own repository. Read this before
+			// changing where it points.
 			//
 			// On 28/08/2026 this method destroyed the fork. The plugin header had been
-			// reset to 1.0.0 for the fork while the repository below - the ORIGINAL ERDC
-			// repo, which this fork no longer tracks - was still publishing 1.0.4. wp-admin
-			// therefore offered "1.0.0 -> 1.0.4" as a legitimate update, and WordPress's
-			// plugin upgrader does what it always does: it deletes the entire plugin
-			// directory before installing. That took the whole 1.0.36 codebase, the phases
-			// 00-02 work, and the .git directory that lived inside the plugin folder.
+			// reset to 1.0.0 for the fork while the ORIGINAL ERDC repository - which this
+			// fork no longer tracks, and which lives at
+			// https://github.com/salumguilherme/elementor-repeater-and-dynamic-conditions-addon
+			// - was still publishing 1.0.4. wp-admin therefore offered "1.0.0 -> 1.0.4" as a
+			// legitimate update, and WordPress's plugin upgrader does what it always does:
+			// it deletes the entire plugin directory before installing. That took the whole
+			// 1.0.36 codebase, the phases 00-02 work, and the .git directory that lived
+			// inside the plugin folder.
 			//
-			// Two independent things have to be true before this is safe to re-enable:
+			// Two independent things have to stay true for this to remain safe:
 			//
-			//   1. The repository URL points at THIS fork, not at ERDC. Pointing a fork's
-			//      update checker at its upstream means upstream can overwrite the fork at
-			//      any time, and a lower fork version turns that into an automatic
-			//      downgrade rather than an obvious error.
+			//   1. ACBS_UPDATE_REPO points at THIS fork, never at the ERDC URL above.
+			//      Pointing a fork's update checker at its upstream means upstream can
+			//      overwrite the fork at any time, and a lower fork version turns that into
+			//      an automatic downgrade rather than an obvious error.
 			//   2. The fork's version is above every version that repository has ever
-			//      published, so a stale tag cannot read as an upgrade.
+			//      published, so a stale tag cannot read as an upgrade. This one has to be
+			//      re-checked at every release, not just once - it is a property of the tags
+			//      on the branch below, not of this file.
 			//
-			// Define ACBS_UPDATE_REPO in wp-config.php with the fork's repository URL to
-			// turn it on. There is no default value on purpose: a constant someone has to
-			// type is a decision, whereas a hardcoded URL is an accident waiting to repeat.
+			// ACBS_UPDATE_REPO is defined in the main plugin file. A site can override it
+			// from wp-config.php, since that is loaded first and define() does not
+			// redeclare.
 			if(!defined('ACBS_UPDATE_REPO') || !ACBS_UPDATE_REPO) {
 				return;
 			}

@@ -1,6 +1,6 @@
 <?php
 
-	namespace ERDC\Modules\FlexibleLayoutTemplate\Fields;
+	namespace ACBS\Modules\FlexibleLayoutTemplate\Fields;
 
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -24,7 +24,7 @@
 	 *
 	 * @version 1.0.27
 	 * @since   1.0.27
-	 * @package ERDC\Modules\FlexibleLayoutTemplate\Fields
+	 * @package ACBS\Modules\FlexibleLayoutTemplate\Fields
 	 */
 	interface Component_Identity {
 

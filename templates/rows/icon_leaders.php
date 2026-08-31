@@ -2,18 +2,18 @@
 	/**
 	 * Flexible layout row: Icon Leaders
 	 *
-	 * Stub. Override at {theme}/acbs/rows/icon_leaders.php
+	 * Override at {theme}/acbs/rows/icon_leaders.php
 	 *
-	 * Prints the layout's label and nothing else. The wrapper is already printing the
-	 * <section>, the container and the row classes around this, so a stub only has to
-	 * prove which file the cascade reached.
+	 * A row of icon-led points: an icon, a heading, a line or two of text, optionally
+	 * linked. Identical in structure to image_cards_grid - intro, then a grid of items
+	 * from whichever of the three sources the editor chose - and deliberately so: the only
+	 * differences between the two are which fields the items map to, which lives in
+	 * Items_Source::DEFAULTS rather than in either template.
 	 *
-	 * The label is read off $row rather than hardcoded, which is what makes all fifteen
-	 * stubs genuinely identical: any difference between two of them is a bug, and a stub
-	 * that still prints the right title after the registry changes is proving the registry
-	 * rather than the file.
+	 * `layout_columns` and `columns_alignment` are on the wrapper already, as
+	 * fl-loop-grid-columns-{n} and fl-loop-grid-columns-align-{x}.
 	 *
-	 * @var ERDC\Modules\FlexibleLayoutTemplate\Rows\Row $row
+	 * @var ACBS\Modules\FlexibleLayoutTemplate\Rows\Row $row
 	 *
 	 * @version 1.0.0
 	 * @since   1.0.0
@@ -21,4 +21,14 @@
 
 	if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-?><h2><?php echo esc_html( $row->label() ); ?></h2>
+	acbs_row_part( 'intro', $row );
+
+	$acbs_items = acbs_row_items( $row );
+
+	if ( ! $acbs_items->count() ) {
+		return;
+	}
+
+?><ul class="fl-grid fl-leaders">
+	<?php $acbs_items->render(); ?>
+</ul>

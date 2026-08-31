@@ -1,9 +1,9 @@
 <?php
 
-	namespace ERDC\Modules\PageHeader;
+	namespace ACBS\Modules\PageHeader;
 
-	use ERDC\Core\Module_Base as Base_Module;
-	use ERDC\Modules\PageHeader\Fields\Field_Group;
+	use ACBS\Core\Module_Base as Base_Module;
+	use ACBS\Modules\PageHeader\Fields\Field_Group;
 
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -25,7 +25,7 @@
 	 *
 	 * @version 1.0.22
 	 * @since   1.0.22
-	 * @package ERDC\Modules\PageHeader
+	 * @package ACBS\Modules\PageHeader
 	 */
 	class Module extends Base_Module {
 
@@ -49,7 +49,7 @@
 
 			// The settings section is registered whether or not the module is switched on,
 			// otherwise there would be no way to switch it back on. Priority 21 puts it after
-			// ERDC\Modules\Settings creates the tab at 20.
+			// ACBS\Modules\Settings creates the tab at 20.
 			add_action('acbs/admin/settings', [Settings::class, 'register'], 21);
 
 			if(!function_exists('acf_add_local_field_group')) {

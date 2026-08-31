@@ -1,9 +1,9 @@
 <?php
 
-	namespace ERDC\Modules\ThemeSettings;
+	namespace ACBS\Modules\ThemeSettings;
 
-	use ERDC\Core\Module_Base as Base_Module;
-	use ERDC\Modules\ThemeSettings\Fields\Field_Group;
+	use ACBS\Core\Module_Base as Base_Module;
+	use ACBS\Modules\ThemeSettings\Fields\Field_Group;
 
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -28,7 +28,7 @@
 	 *
 	 * @version 1.0.29
 	 * @since   1.0.20
-	 * @package ERDC\Modules\ThemeSettings
+	 * @package ACBS\Modules\ThemeSettings
 	 */
 	class Module extends Base_Module {
 

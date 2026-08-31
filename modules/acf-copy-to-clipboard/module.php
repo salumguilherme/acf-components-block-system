@@ -1,8 +1,8 @@
 <?php
 
-	namespace ERDC\Modules\AcfCopyToClipboard;
+	namespace ACBS\Modules\AcfCopyToClipboard;
 
-	use ERDC\Core\Module_Base as Base_Module;
+	use ACBS\Core\Module_Base as Base_Module;
 
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -26,7 +26,7 @@
 	 *
 	 * @version 1.0.28
 	 * @since   1.0.28
-	 * @package ERDC\Modules\AcfCopyToClipboard
+	 * @package ACBS\Modules\AcfCopyToClipboard
 	 */
 	class Module extends Base_Module {
 
@@ -50,7 +50,7 @@
 
 			// The settings section is registered whether or not the module is switched
 			// on, otherwise there would be no way to switch it back on. Priority 21 puts
-			// it after ERDC\Modules\Settings creates the tab at 20.
+			// it after ACBS\Modules\Settings creates the tab at 20.
 			add_action('acbs/admin/settings', [Settings::class, 'register'], 21);
 
 			if(!function_exists('acf_add_local_field_group')) {
@@ -75,16 +75,16 @@
 
 			wp_enqueue_style(
 				'erdc-acf-copy-to-clipboard',
-				ERDC_URL.'assets/css/acf-copy-to-clipboard.css',
+				ACBS_URL.'assets/css/acf-copy-to-clipboard.css',
 				[],
-				ERDC_VERSION
+				ACBS_VERSION
 			);
 
 			wp_enqueue_script(
 				'erdc-acf-copy-to-clipboard',
-				ERDC_URL.'assets/js/acf-copy-to-clipboard.js',
+				ACBS_URL.'assets/js/acf-copy-to-clipboard.js',
 				['jquery', 'acf-input'],
-				ERDC_VERSION,
+				ACBS_VERSION,
 				true
 			);
 

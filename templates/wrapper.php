@@ -9,7 +9,7 @@
 	 * sheet always loads and the theme's is enqueued after it, as a dependency. That
 	 * difference is deliberate.
 	 *
-	 * @var ERDC\Modules\FlexibleLayoutTemplate\Rows\Row $row
+	 * @var ACBS\Modules\FlexibleLayoutTemplate\Rows\Row $row
 	 *
 	 * @version 1.0.0
 	 * @since   1.0.0

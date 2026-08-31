@@ -13,7 +13,7 @@
 	 * that still prints the right title after the registry changes is proving the registry
 	 * rather than the file.
 	 *
-	 * @var ERDC\Modules\FlexibleLayoutTemplate\Rows\Row $row
+	 * @var ACBS\Modules\FlexibleLayoutTemplate\Rows\Row $row
 	 *
 	 * @version 1.0.0
 	 * @since   1.0.0

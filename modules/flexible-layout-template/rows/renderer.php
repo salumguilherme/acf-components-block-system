@@ -1,9 +1,9 @@
 <?php
 
-	namespace ERDC\Modules\FlexibleLayoutTemplate\Rows;
+	namespace ACBS\Modules\FlexibleLayoutTemplate\Rows;
 
-	use ERDC\Modules\FlexibleLayoutTemplate\Fields\Page_Content;
-	use ERDC\Modules\FlexibleLayoutTemplate\Source_Resolver;
+	use ACBS\Modules\FlexibleLayoutTemplate\Fields\Page_Content;
+	use ACBS\Modules\FlexibleLayoutTemplate\Source_Resolver;
 
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -22,7 +22,7 @@
 	 *
 	 * @version 1.0.0
 	 * @since   1.0.0
-	 * @package ERDC\Modules\FlexibleLayoutTemplate\Rows
+	 * @package ACBS\Modules\FlexibleLayoutTemplate\Rows
 	 */
 	class Renderer {
 

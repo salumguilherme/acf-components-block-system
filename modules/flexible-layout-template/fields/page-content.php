@@ -1,8 +1,8 @@
 <?php
 
-	namespace ERDC\Modules\FlexibleLayoutTemplate\Fields;
+	namespace ACBS\Modules\FlexibleLayoutTemplate\Fields;
 
-	use ERDC\Modules\FlexibleLayoutTemplate\Settings;
+	use ACBS\Modules\FlexibleLayoutTemplate\Settings;
 
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -16,7 +16,7 @@
 	 *
 	 * @version 1.0.6
 	 * @since   1.0.6
-	 * @package ERDC\Modules\FlexibleLayoutTemplate\Fields
+	 * @package ACBS\Modules\FlexibleLayoutTemplate\Fields
 	 */
 	class Page_Content {
 

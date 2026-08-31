@@ -1,8 +1,8 @@
 <?php
 
-	namespace ERDC\Modules\FlexibleLayoutTemplate\Rows;
+	namespace ACBS\Modules\FlexibleLayoutTemplate\Rows;
 
-	use ERDC\Modules\FlexibleLayoutTemplate\Source_Resolver;
+	use ACBS\Modules\FlexibleLayoutTemplate\Source_Resolver;
 
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -32,7 +32,7 @@
 	 *
 	 * @version 1.0.0
 	 * @since   1.0.0
-	 * @package ERDC\Modules\FlexibleLayoutTemplate\Rows
+	 * @package ACBS\Modules\FlexibleLayoutTemplate\Rows
 	 */
 	class Template_Loader {
 
@@ -168,6 +168,68 @@
 			 * @param Row    $row
 			 */
 			return (string) apply_filters('acbs/template/path', $path, $candidates, $row);
+
+		}
+
+		/**
+		 * locate_part function
+		 *
+		 * A template part shared by every layout rather than owned by one, e.g.
+		 * parts/intro.php. Same cascade as everything else, no fallback: a part either
+		 * exists or nothing is printed.
+		 *
+		 * Intro is the reason this exists. Its Section Title and Section Content are
+		 * injected into all but four of the fifteen layouts by Common_Fields, so without a
+		 * shared part the same six lines would be copied into thirteen row templates, and
+		 * a site wanting to change how an intro renders would have to override all
+		 * thirteen to do it.
+		 *
+		 * @version 1.0.0
+		 * @since   1.0.0
+		 *
+		 * @param string $name
+		 *
+		 * @return string
+		 */
+		public static function locate_part($name) {
+
+			$candidate = 'parts/'.$name.'.php';
+			$key = 'part:'.$candidate;
+
+			if(!isset(self::$resolved[$key])) {
+
+				$located = locate_template(self::THEME_DIR.'/'.$candidate);
+
+				if(!$located && file_exists(ACBS_PATH.'templates/'.$candidate)) {
+					$located = ACBS_PATH.'templates/'.$candidate;
+				}
+
+				self::$resolved[$key] = (string) $located;
+
+			}
+
+			return self::$resolved[$key];
+
+		}
+
+		/**
+		 * render_part function
+		 *
+		 * @version 1.0.0
+		 * @since   1.0.0
+		 *
+		 * @param string $name
+		 * @param Row    $row
+		 */
+		public static function render_part($name, Row $row) {
+
+			$path = self::locate_part($name);
+
+			if('' === $path) {
+				return;
+			}
+
+			Wrapper::include_template($path, $row);
 
 		}
 

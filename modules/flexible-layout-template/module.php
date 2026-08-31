@@ -1,14 +1,14 @@
 <?php
 	
-	namespace ERDC\Modules\FlexibleLayoutTemplate;
+	namespace ACBS\Modules\FlexibleLayoutTemplate;
 	
-	use ERDC\Core\Module_Base as Base_Module;
-	use ERDC\Modules\FlexibleLayoutTemplate\Fields\Field_Groups;
-	use ERDC\Modules\FlexibleLayoutTemplate\Fields\Common_Fields;
-	use ERDC\Modules\FlexibleLayoutTemplate\Fields\Page_Content;
-	use ERDC\Modules\FlexibleLayoutTemplate\Rows\Assets;
-	use ERDC\Modules\FlexibleLayoutTemplate\Rows\Row;
-	use ERDC\Modules\FlexibleLayoutTemplate\Rows\Row_Registry;
+	use ACBS\Core\Module_Base as Base_Module;
+	use ACBS\Modules\FlexibleLayoutTemplate\Fields\Field_Groups;
+	use ACBS\Modules\FlexibleLayoutTemplate\Fields\Common_Fields;
+	use ACBS\Modules\FlexibleLayoutTemplate\Fields\Page_Content;
+	use ACBS\Modules\FlexibleLayoutTemplate\Rows\Assets;
+	use ACBS\Modules\FlexibleLayoutTemplate\Rows\Row;
+	use ACBS\Modules\FlexibleLayoutTemplate\Rows\Row_Registry;
 	
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -27,7 +27,7 @@
 	 *
 	 * @version 1.0.0
 	 * @since   1.0.0
-	 * @package ERDC\Modules\FlexibleLayoutTemplate
+	 * @package ACBS\Modules\FlexibleLayoutTemplate
 	 */
 	class Module extends Base_Module {
 		
@@ -77,6 +77,11 @@
 			
 			// "Download Flexible Layouts" section, at the bottom of the same tab.
 			Layouts_Export::register();
+			
+			// "Page Builder" in the page editor's Template dropdown, served from the
+			// plugin. Registered here rather than in core/, so it exists exactly as long as
+			// the module that renders the rows does.
+			Page_Template::register();
 			
 			// Adds our wrapper classes and ids
 			add_filter('acbs/row/wrapper_classes', [$this, 'layout_wrapper_classes'], 10, 2);

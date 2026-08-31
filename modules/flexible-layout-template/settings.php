@@ -1,8 +1,8 @@
 <?php
 
-	namespace ERDC\Modules\FlexibleLayoutTemplate;
+	namespace ACBS\Modules\FlexibleLayoutTemplate;
 
-	use ERDC\Modules\FlexibleLayoutTemplate\Fields\Page_Content;
+	use ACBS\Modules\FlexibleLayoutTemplate\Fields\Page_Content;
 
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -23,7 +23,7 @@
 	 *
 	 * @version 1.0.30
 	 * @since   1.0.30
-	 * @package ERDC\Modules\FlexibleLayoutTemplate
+	 * @package ACBS\Modules\FlexibleLayoutTemplate
 	 */
 	class Settings {
 
@@ -33,7 +33,7 @@
 		const DISABLED_OPTION = 'erdc_disabled_flexible_layouts';
 
 		/**
-		 * Tab this section is added to, owned by ERDC\Modules\Settings.
+		 * Tab this section is added to, owned by ACBS\Modules\Settings.
 		 */
 		const TAB_ID = 'erdc-flexible-content';
 
@@ -62,12 +62,12 @@
 		/**
 		 * register function
 		 *
-		 * Hooked after ERDC\Modules\Settings has created the tab.
+		 * Hooked after ACBS\Modules\Settings has created the tab.
 		 *
 		 * @version 1.0.30
 		 * @since   1.0.30
 		 *
-		 * @param \ERDC\Core\Admin\Settings_Page $settings
+		 * @param \ACBS\Core\Admin\Settings_Page $settings
 		 */
 		public static function register($settings) {
 

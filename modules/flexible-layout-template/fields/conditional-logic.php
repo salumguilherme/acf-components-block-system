@@ -1,8 +1,8 @@
 <?php
 
-	namespace ERDC\Modules\FlexibleLayoutTemplate\Fields;
+	namespace ACBS\Modules\FlexibleLayoutTemplate\Fields;
 
-	use ERDC\Modules\PageHeader\Fields\Field_Group as Page_Header_Field_Group;
+	use ACBS\Modules\PageHeader\Fields\Field_Group as Page_Header_Field_Group;
 
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -27,7 +27,7 @@
 	 *
 	 * @version 1.0.26
 	 * @since   1.0.26
-	 * @package ERDC\Modules\FlexibleLayoutTemplate\Fields
+	 * @package ACBS\Modules\FlexibleLayoutTemplate\Fields
 	 */
 	class Conditional_Logic {
 
@@ -69,9 +69,9 @@
 
 			wp_enqueue_script(
 				'erdc-acf-conditional-logic',
-				ERDC_URL.'assets/js/acf-conditional-logic.js',
+				ACBS_URL.'assets/js/acf-conditional-logic.js',
 				['jquery', 'acf-field-group'],
-				ERDC_VERSION,
+				ACBS_VERSION,
 				true
 			);
 

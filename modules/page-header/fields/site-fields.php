@@ -1,9 +1,9 @@
 <?php
 
-	namespace ERDC\Modules\PageHeader\Fields;
+	namespace ACBS\Modules\PageHeader\Fields;
 
-	use ERDC\Modules\FlexibleLayoutTemplate\Fields\Component_Rule;
-	use ERDC\Modules\FlexibleLayoutTemplate\Fields\Site_Fields_Base;
+	use ACBS\Modules\FlexibleLayoutTemplate\Fields\Component_Rule;
+	use ACBS\Modules\FlexibleLayoutTemplate\Fields\Site_Fields_Base;
 
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -28,7 +28,7 @@
 	 *
 	 * @version 1.0.27
 	 * @since   1.0.22
-	 * @package ERDC\Modules\PageHeader\Fields
+	 * @package ACBS\Modules\PageHeader\Fields
 	 */
 	class Site_Fields extends Site_Fields_Base {
 

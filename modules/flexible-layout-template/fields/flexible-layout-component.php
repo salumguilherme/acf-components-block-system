@@ -1,6 +1,6 @@
 <?php
 
-	namespace ERDC\Modules\FlexibleLayoutTemplate\Fields;
+	namespace ACBS\Modules\FlexibleLayoutTemplate\Fields;
 
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -20,7 +20,7 @@
 	 * Component_Rule constant plus dropdown label, a line in Field_Groups::register(), a
 	 * line in Field_Groups::register_field_types(), and a line in Conditional_Logic's
 	 * $sets) with nothing to catch a missed one. Same idea as
-	 * ERDC\Core\Modules_Manager one level up, and as ACF's own
+	 * ACBS\Core\Modules_Manager one level up, and as ACF's own
 	 * acf_register_field_type().
 	 *
 	 * NOT for Page Header: it computes a real per-site location, registers as a directly
@@ -30,7 +30,7 @@
 	 *
 	 * @version 1.0.27
 	 * @since   1.0.27
-	 * @package ERDC\Modules\FlexibleLayoutTemplate\Fields
+	 * @package ACBS\Modules\FlexibleLayoutTemplate\Fields
 	 */
 	interface Flexible_Layout_Component extends Component_Identity {
 

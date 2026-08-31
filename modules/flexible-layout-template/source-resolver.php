@@ -1,6 +1,6 @@
 <?php
 
-	namespace ERDC\Modules\FlexibleLayoutTemplate;
+	namespace ACBS\Modules\FlexibleLayoutTemplate;
 
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
@@ -29,7 +29,7 @@
 	 *
 	 * @version 1.0.0
 	 * @since   1.0.0
-	 * @package ERDC\Modules\FlexibleLayoutTemplate
+	 * @package ACBS\Modules\FlexibleLayoutTemplate
 	 */
 	class Source_Resolver {
 
