@@ -90,7 +90,7 @@
 		 * single repeater field that needs its row fields.
 		 *
 		 * Rebuilds the base the same way Flexible_Layout_Components::register_all() does
-		 * (base fields through the `erdc/buttons/fields` filter) rather than reading
+		 * (base fields through the `acbs/buttons/fields` filter) rather than reading
 		 * Buttons::GROUP_KEY back out of ACF, so this works identically whether or not
 		 * that field group has registered yet.
 		 *
@@ -100,7 +100,7 @@
 		 */
 		public static function get_row_fields() {
 
-			$fields = apply_filters('erdc/buttons/fields', Buttons::get_base_fields());
+			$fields = apply_filters('acbs/buttons/fields', Buttons::get_base_fields());
 			$repeater_index = self::find_repeater_index($fields);
 
 			if($repeater_index === null) {

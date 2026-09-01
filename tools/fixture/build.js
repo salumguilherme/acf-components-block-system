@@ -106,13 +106,21 @@ const wrapperStyle = ( a ) =>
 const section = ( attrs, inner ) =>
 	`<section class="${ wrapperClasses( attrs ) }"${ wrapperStyle( attrs ) }>\n<div class="fl-container container">\n${ inner }\n</div>\n</section>`;
 
-/** templates/parts/intro.php */
-const intro = ( title, content ) =>
-	! title && ! content
+/**
+ * templates/parts/intro.php
+ *
+ * ONE wysiwyg, not a title field plus a content field. section_title was removed and the
+ * heading now lives inside section_content, so both arguments render into the same
+ * .fl-intro-content - there is no .fl-intro-title any more. The two-argument signature is
+ * kept because every caller below reads better for it, not because the fields are still
+ * separate.
+ */
+const intro = ( heading, content ) =>
+	! heading && ! content
 		? ''
-		: `<header class="fl-intro">${ title ? `<h2 class="fl-intro-title">${ title }</h2>` : '' }${
-				content ? `<div class="fl-intro-content"><p>${ content }</p></div>` : ''
-		  }</header>`;
+		: `<header class="fl-intro"><div class="fl-intro-content">${
+				heading ? `<h2>${ heading }</h2>` : ''
+		  }${ content ? `<p>${ content }</p>` : '' }</div></header>`;
 
 /** templates/parts/buttons.php */
 const buttons = ( styles = [ 'primary', 'secondary' ] ) =>
@@ -124,18 +132,20 @@ const buttons = ( styles = [ 'primary', 'secondary' ] ) =>
 		)
 		.join( '' ) }</div>`;
 
-/** templates/rows/icon_leaders/item.php - no .fl-card: this layout has no Content Box. */
-const leader = ( n, linked ) => {
-	const inner = `<span class="fl-leader-media"><img class="fl-leader-icon" src="${ IMG(
+/**
+ * templates/rows/columned_content/item.php
+ *
+ * Replaces the old icon_leaders item, which this fixture used as its grid and alignment
+ * demonstrator until that layout was removed. columned_content is the right stand-in: it
+ * is the layout that took over the icon, and it carries the same full Grid & Display set.
+ *
+ * .fl-card is always present - the card styling hangs off `.fl-card-box .fl-card`, so the
+ * switch belongs to the section, exactly as the real template has it.
+ */
+const column = ( n, align = 'default' ) =>
+	`<li class="fl-column fl-card fl-align-${ align }"><span class="fl-column-media"><img class="fl-column-icon" src="${ IMG(
 		'icon'
-	) }" alt=""></span><h3 class="fl-leader-title">Leader ${ n }</h3><div class="fl-leader-content"><p>Supporting copy for item ${ n }.</p></div>`;
-
-	return `<li class="fl-leader">${
-		linked
-			? `<a class="fl-leader-inner" href="#">${ inner }</a>`
-			: `<div class="fl-leader-inner">${ inner }</div>`
-	}</li>`;
-};
+	) }" alt=""></span><div class="fl-column-content"><h3>Column ${ n }</h3><p>Supporting copy for item ${ n }.</p></div></li>`;
 
 /** templates/rows/icon_list/item.php */
 const iconListItem = ( n ) =>
@@ -199,13 +209,13 @@ function build() {
 		);
 	} );
 
-	label( 'Grid columns &mdash; 1 through 8, on icon_leaders' );
+	label( 'Grid columns &mdash; 1 through 8, on columned_content' );
 	for ( const columns of COLUMNS ) {
 		parts.push(
 			section(
-				{ layout: 'icon_leaders', bg: 'default', padding: 'sm', columns },
+				{ layout: 'columned_content', bg: 'default', padding: 'sm', columns },
 				intro( `${ columns } column${ columns > 1 ? 's' : '' }`, '' ) +
-					grid( 'fl-leaders', Array.from( { length: columns }, ( _, i ) => leader( i + 1, i % 2 === 0 ) ) )
+					grid( 'fl-columns', Array.from( { length: columns }, ( _, i ) => column( i + 1 ) ) )
 			)
 		);
 	}
@@ -213,9 +223,9 @@ function build() {
 	label( 'Responsive columns &mdash; resize the window: 4 desktop / 3 tablet / 2 mobile' );
 	parts.push(
 		section(
-			{ layout: 'icon_leaders', bg: 'light', padding: 'sm', columns: 4, columnsSm: 3, columnsXs: 2 },
+			{ layout: 'columned_content', bg: 'light', padding: 'sm', columns: 4, columnsSm: 3, columnsXs: 2 },
 			intro( 'columns 4 / sm 3 / xs 2', 'Explicit per-breakpoint values, not a derived step-down.' ) +
-				grid( 'fl-leaders', Array.from( { length: 4 }, ( _, i ) => leader( i + 1, true ) ) )
+				grid( 'fl-columns', Array.from( { length: 4 }, ( _, i ) => column( i + 1 ) ) )
 		)
 	);
 
@@ -223,9 +233,9 @@ function build() {
 	for ( const align of ALIGNMENTS ) {
 		parts.push(
 			section(
-				{ layout: 'icon_leaders', bg: 'default', padding: 'sm', columns: 3, align },
-				intro( `align: ${ align }`, 'The intro follows when centred, and so do buttons.' ) +
-					grid( 'fl-leaders', [ leader( 1, true ), leader( 2, false ), leader( 3, true ) ] ) +
+				{ layout: 'columned_content', bg: 'default', padding: 'sm', columns: 3, align },
+				intro( `align: ${ align }`, 'The intro stays centred whatever this is; the columns follow it.' ) +
+					grid( 'fl-columns', [ column( 1 ), column( 2 ), column( 3 ) ] ) +
 					buttons()
 			)
 		);
@@ -312,8 +322,8 @@ function build() {
 	);
 	parts.push(
 		section(
-			{ layout: 'icon_leaders', bg: 'default', padding: 'sm', columns: 3 },
-			grid( 'fl-leaders', [ leader( 1, true ), leader( 2, true ), leader( 3, true ) ] )
+			{ layout: 'columned_content', bg: 'default', padding: 'sm', columns: 3 },
+			grid( 'fl-columns', [ column( 1 ), column( 2 ), column( 3 ) ] )
 		)
 	);
 

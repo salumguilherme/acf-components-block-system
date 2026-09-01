@@ -1,0 +1,80 @@
+//
+// Row: Columned Content
+//
+// Enqueued as `acbs-row-columned_content`, only on a page that has such a row. Loads after
+// structure.scss, so it can override the shared grid and alignment rules.
+//
+// Markup: templates/rows/columned_content.php and rows/columned_content/item.php.
+//
+// Type is the theme's. The column body is a wysiwyg, so whatever headings and paragraphs
+// the editor writes are styled by the theme sheet and the scoped Bootstrap - there is not
+// a single font-size in this file.
+//
+
+.fl-acbs .fl-type-columned_content {
+
+	// A block item, not a flex column. That is what makes the icon box below positionable
+	// by text-align: a direct child of a flex container is blockified, so an inline-level
+	// box inside one stops answering to text-align and starts answering to align-items,
+	// and align-items has no "inherit from the row" value to give `default` back.
+	.fl-column > :last-child {
+		margin-bottom: 0;
+	}
+
+	// The icon box. Fixed 46x46 at every width, so a set of icons drawn at different
+	// proportions still occupies one consistent footprint and the bodies below them line
+	// up. The SVG is centred inside it rather than filling it.
+	//
+	// inline-flex is doing two jobs. Inside the box it centres the icon on both axes;
+	// outside it, being INLINE-level is what lets the box be placed by the inherited
+	// text-align rather than needing an alignment rule of its own. That is the whole
+	// mechanism for "the 46px container follows the column's alignment", and it is why it
+	// keeps working for `default`: with no rule anywhere, the box inherits the row's
+	// fl-loop-grid-columns-align-* when one is set and the theme's left otherwise, exactly
+	// as the text does.
+	.fl-column-media {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: var(--fl-column-icon-size, 46px);
+		height: var(--fl-column-icon-size, 46px);
+		margin-bottom: var(--fl-column-icon-space, 1rem);
+	}
+
+	// max-width / max-height rather than width / height: an SVG narrower or shorter than
+	// 46px keeps its own size and sits centred, instead of being stretched to fill a box
+	// that is a minimum footprint rather than a target.
+	//
+	// object-fit only bites on an SVG that HAS an intrinsic ratio and overflows the box;
+	// it is here so a square-viewBox icon and a wide one both cap correctly rather than
+	// one of them distorting.
+	.fl-column-icon {
+		display: block;
+		max-width: var(--fl-column-icon-size, 46px);
+		max-height: var(--fl-column-icon-size, 46px);
+		object-fit: contain;
+	}
+
+	.fl-column-content > :last-child {
+		margin-bottom: 0;
+	}
+
+	// column_alignment, per item. Only the buttons need a rule: everything else in the
+	// column is either text or the inline-level icon box, and text-align already places
+	// both. `.fl-buttons` is a flex row, so its children answer to justify-content.
+	//
+	// There is deliberately no `.fl-align-default` block - default DEFERS. With no rule
+	// here a default column inside a centred row picks up structure's row-level
+	// `.fl-loop-grid-columns-align-center .fl-buttons`, and inside an unaligned row falls
+	// back to flex-start. Adding `justify-content: flex-start` for default would break
+	// exactly that.
+	//
+	// Written at .fl-type-columned_content depth (0,4,0) so an explicit per-item value
+	// beats structure's row-level rule (0,3,0). Per item is the more specific intent and
+	// should win; at equal specificity it would come down to sheet order, and this sheet
+	// loading second is a fact about the enqueue rather than something the CSS should
+	// rely on.
+	.fl-align-center .fl-buttons { justify-content: center; }
+	.fl-align-right  .fl-buttons { justify-content: flex-end; }
+
+}

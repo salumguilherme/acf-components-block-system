@@ -95,7 +95,7 @@
 		 * Renders one of the row's own sub-templates - rows/{layout}/item.php - from inside
 		 * that row's have_rows() loop:
 		 *
-		 *     while(have_rows('icon_leaders')) {
+		 *     while(have_rows('columns')) {
 		 *         the_row();
 		 *         acbs_row_partial('item', $row);
 		 *     }

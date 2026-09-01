@@ -19,6 +19,19 @@
 //
 
 // --------------------------------------------------------------------------------------
+// Type
+//
+// Declared before the brand palette because the brand's own "text on this ground" values
+// are defined in terms of these rather than repeating a hex. A `-dark` suffix here means
+// "for use ON a dark ground", not "a dark colour" - so $text-colour-dark is white.
+// --------------------------------------------------------------------------------------
+
+$text-colour:            #404040;
+$text-colour-dark:       #ffffff;
+$heading-colour:         #171717;
+$heading-colour-dark:    #ffffff;
+
+// --------------------------------------------------------------------------------------
 // Brand
 // --------------------------------------------------------------------------------------
 
@@ -30,9 +43,12 @@ $brand-secondary:       #E35C49;
 $brand-secondary-hover: #DE3831;
 $brand-secondary-text:  #ffffff;
 
+// Tertiary is a light yellow, so text ON it is DARK - the one brand ground that does not
+// take white. It was #ffffff, which is white on #ffc550: about 1.7:1, unreadable, and it
+// reached both the tertiary section background and the tertiary button label.
 $brand-tertiary:        #ffc550;
 $brand-tertiary-hover:  #ffc550cc;
-$brand-tertiary-text:   #ffffff;
+$brand-tertiary-text:   $text-colour;
 
 // --------------------------------------------------------------------------------------
 // Semantic aliases
@@ -48,14 +64,11 @@ $primary-text:    $brand-primary-text;
 $secondary-hover: $brand-secondary-hover;
 $secondary-text:  #ffffff;
 
+// Dark, for the same reason as $brand-tertiary-text above. This is what a .btn-tertiary
+// label reads, at rest and on hover, so both states now match instead of the resting
+// state being Bootstrap's computed black and the hover being white.
 $tertiary-hover:  $brand-tertiary-hover;
-$tertiary-text:   #ffffff;
-
-$text-colour:     #404040;
-$text-colour-dark:     #ffffff;
-$heading-colour:    #171717;
-$heading-colour-dark:    #171717;
-$headings-colour:    #ffffff;
+$tertiary-text:   $text-colour;
 
 // --------------------------------------------------------------------------------------
 // Palette
@@ -125,11 +138,11 @@ $btn-font-size: 16px;
 $btn-line-height: 1.125em;
 $btn-font-weight: 400;
 
-$border-radius:               .25rem;
+$border-radius:               1rem;
 $border-radius-sm:            .25rem;
-$border-radius-lg:            .25rem;
-$border-radius-xl:            .25rem;
-$border-radius-2xl:           .25rem;
+$border-radius-lg:            .5rem;
+$border-radius-xl:           1rem;
+$border-radius-2xl:           1.5rem;
 
 $h1-font-size:                null;
 $h2-font-size:                null;
@@ -137,6 +150,8 @@ $h3-font-size:                null;
 $h4-font-size:                null;
 $h5-font-size:                null;
 $h6-font-size:                null;
+
+$btn-border-radius:         $border-radius-sm;
 
 $container-max-widths: (
 		sm: 540px,

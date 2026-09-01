@@ -10,10 +10,10 @@
 	 * Class Intro_Site_Fields
 	 *
 	 * Merges any field group a site has tagged with "Flexible Layout Component = Intro"
-	 * into the plugin's Intro Section Fields - a site field named the same as one of
-	 * section_title/section_content replaces it in place, anything else is appended.
+	 * into the plugin's Intro Section Fields - a site field named section_content replaces
+	 * it in place, anything else is appended.
 	 *
-	 * Intro's own fields (Tab, Section Title, Section Content) are already top-level, so
+	 * Intro's own fields (Tab, Section Content) are already top-level, so
 	 * the inherited merge() applies to them directly with nothing to override - unlike
 	 * Buttons_Site_Fields, whose fields live inside a repeater's sub_fields.
 	 *

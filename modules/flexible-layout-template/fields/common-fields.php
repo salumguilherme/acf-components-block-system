@@ -9,8 +9,8 @@
 	/**
 	 * Class Common_Fields
 	 *
-	 * Injects the fields shared by every flexible layout - Intro's own Section Title/
-	 * Content with their own "Intro" tab, a "Content" tab, and Other Settings' own
+	 * Injects the fields shared by every flexible layout - Intro's own Section Content
+	 * with its own "Intro" tab, a "Content" tab, and Other Settings' own
 	 * background/padding/section ID controls under an "Other Settings" tab - into the
 	 * `page_sections` field's layouts. The "Other Settings" fields originally migrated
 	 * from the five-starter-child theme's includes/acf.php so they'd ship with the plugin
@@ -224,11 +224,11 @@
 		/**
 		 * get_intro_fields function
 		 *
-		 * Intro's own fields (its "Intro" tab, Section Title, Section Content, plus
-		 * anything a site has merged in via Intro_Site_Fields), each key-prefixed with
+		 * Intro's own fields (its "Intro" tab, Section Content, plus anything a site has
+		 * merged in via Intro_Site_Fields), each key-prefixed with
 		 * `field_intro_clone_<layout name>_` - the identical scheme ACF's own seamless
-		 * clone would have produced, so this reads and migrates the same way a real
-		 * clone's flattened output would (see Legacy_Migration\Intro_Migration).
+		 * clone would have produced, so this reads the same way a real clone's flattened
+		 * output would.
 		 *
 		 * Each field is run through acf_validate_field() before being returned. A field
 		 * reaching a layout's sub_fields the normal way (defined directly in Page_Content,

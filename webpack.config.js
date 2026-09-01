@@ -33,6 +33,60 @@ const RemoveEmptyScriptsPlugin = require( 'webpack-remove-empty-scripts' );
 const SCOPE_SELECTOR = '.acbs.fl-acbs';
 
 /**
+ * Copies src/svg/*.svg to assets/svg, so the button icons ship with the plugin.
+ *
+ * Hand-written rather than copy-webpack-plugin: it is a flat directory copy of a handful
+ * of files, and a dependency whose whole job is `readdir` + `writeFile` is a dependency to
+ * keep updated for no gain. Emitting them as webpack ASSETS rather than writing to disk
+ * directly is what puts them under output.path and inside the build's own accounting.
+ *
+ * The directory is cleaned on every build so a renamed or deleted icon does not leave a
+ * stale file behind - Button_Icons::ICONS and this directory have to agree, and a
+ * leftover file makes a broken choice look like it works.
+ */
+class CopySvgPlugin {
+	constructor( from, to ) {
+		this.from = from;
+		this.to = to;
+	}
+
+	apply( compiler ) {
+		compiler.hooks.thisCompilation.tap( 'CopySvgPlugin', ( compilation ) => {
+			compilation.hooks.processAssets.tap(
+				{
+					name: 'CopySvgPlugin',
+					stage: compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
+				},
+				() => {
+					if ( ! fs.existsSync( this.from ) ) {
+						return;
+					}
+
+					for ( const file of fs.readdirSync( this.from ) ) {
+						if ( ! file.endsWith( '.svg' ) ) {
+							continue;
+						}
+
+						const source = fs.readFileSync( path.join( this.from, file ) );
+
+						compilation.emitAsset(
+							`${ this.to }/${ file }`,
+							new compiler.webpack.sources.RawSource( source )
+						);
+
+						// Rebuild when one of them changes, so `npm run dev` picks up an
+						// edited icon instead of watching only the Sass.
+						compilation.fileDependencies.add( path.join( this.from, file ) );
+					}
+
+					compilation.contextDependencies.add( this.from );
+				}
+			);
+		} );
+	}
+}
+
+/**
  * Selectors that describe the document rather than an element inside it. Prefixing them
  * as descendants would produce '.acbs.fl-acbs body', which matches nothing - so they are
  * collapsed onto the wrapper itself, which is the nearest thing our subtree has to a root.
@@ -84,7 +138,10 @@ module.exports = ( env, argv ) => {
 			// generated, though, so that one directory is cleaned: without it, deleting
 			// src/css/rows/{layout}.scss leaves its compiled CSS behind and the release
 			// packager happily ships a sheet for a layout that no longer exists.
-			clean: { keep: ( asset ) => ! asset.startsWith( 'css/rows/' ) },
+			clean: {
+				keep: ( asset ) =>
+					! asset.startsWith( 'css/rows/' ) && ! asset.startsWith( 'svg/' ),
+			},
 		},
 
 		// WordPress already enqueues jQuery. Bundling a second copy would be
@@ -196,6 +253,7 @@ module.exports = ( env, argv ) => {
 			new MiniCssExtractPlugin( {
 				filename: '[name].css',
 			} ),
+			new CopySvgPlugin( path.resolve( __dirname, 'src/svg' ), 'svg' ),
 		],
 
 		optimization: {

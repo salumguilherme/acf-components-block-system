@@ -6,8 +6,15 @@
 	 * except the four listed in Common_Fields::default_disabled_layouts(). Override at
 	 * {theme}/acbs/parts/intro.php.
 	 *
-	 * Prints nothing at all when both fields are empty - not an empty <header>, which
-	 * would carry the row's spacing and read as a gap the editor cannot get rid of.
+	 * Prints nothing at all when the field is empty - not an empty <header>, which would
+	 * carry the row's spacing and read as a gap the editor cannot get rid of.
+	 *
+	 * ONE FIELD, NOT TWO. There used to be a plain-text `section_title` rendered here as
+	 * an <h2>, with section_content beneath it. The title field is gone and the heading
+	 * now lives inside section_content itself. Two things get better for that: the editor
+	 * chooses the heading level rather than every intro on the site being an h2, and a
+	 * two-tone heading is marked up with the toolbar's brand colour button instead of
+	 * hand-typing a <span class="text-primary"> into a text input.
 	 *
 	 * section_content is a wysiwyg, so it goes through the_content filters - wpautop for
 	 * paragraphs, wptexturize, embeds - exactly as post content does, and is then
@@ -23,18 +30,12 @@
 
 	if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-	$acbs_title   = get_sub_field( 'section_title' );
 	$acbs_content = get_sub_field( 'section_content' );
 
-	if ( empty( $acbs_title ) && empty( $acbs_content ) ) {
+	if ( empty( $acbs_content ) ) {
 		return;
 	}
 
 ?><header class="fl-intro">
-	<?php if ( ! empty( $acbs_title ) ) : ?>
-		<h2 class="fl-intro-title"><?php echo esc_html( $acbs_title ); ?></h2>
-	<?php endif; ?>
-	<?php if ( ! empty( $acbs_content ) ) : ?>
-		<div class="fl-intro-content"><?php echo wp_kses_post( apply_filters( 'the_content', $acbs_content ) ); ?></div>
-	<?php endif; ?>
+	<div class="fl-intro-content"><?php echo wp_kses_post( apply_filters( 'the_content', $acbs_content ) ); ?></div>
 </header>

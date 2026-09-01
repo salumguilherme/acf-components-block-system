@@ -68,7 +68,6 @@
 			'cta' => ['layout_display', 'layout_display_bg', 'layout_display_bg_colour'],
 			'icon_list' => ['layout_columns', 'layout_columns_sm', 'layout_columns_xs', 'layout_columns_alignment', 'layout_display', 'layout_display_bg', 'layout_display_bg_colour'],
 			'contact_page_form' => ['layout_display', 'layout_display_bg', 'layout_display_bg_colour'],
-			'icon_leaders' => ['layout_columns', 'layout_columns_alignment'],
 			'image_gallery' => ['layout_columns', 'layout_columns_sm', 'layout_columns_xs'],
 			'logo_gallery' => ['layout_columns', 'layout_columns_sm', 'layout_columns_xs'],
 			'stats' => ['layout_columns', 'layout_columns_sm', 'layout_columns_xs', 'layout_columns_alignment', 'layout_display', 'layout_display_bg', 'layout_display_bg_colour'],
@@ -98,13 +97,6 @@
 				'layout_columns' => ['label' => 'Columns', 'choices' => self::COLUMNS_8, 'default_value' => 7],
 				'layout_columns_sm' => ['label' => 'Columns - Tablet', 'choices' => self::COLUMNS_8, 'default_value' => ''],
 				'layout_columns_xs' => ['label' => 'Columns - Mobile', 'choices' => self::COLUMNS_8, 'default_value' => ''],
-			],
-
-			// Icon leaders sit four across by default and align left, where the grid
-			// layouts centre.
-			'icon_leaders' => [
-				'layout_columns' => ['label' => 'Layout Columns', 'default_value' => 4],
-				'layout_columns_alignment' => ['label' => 'Columns Alignment', 'default_value' => 'default'],
 			],
 
 		];
@@ -147,12 +139,12 @@
 			/**
 			 * Filters the Card BG Colour choices.
 			 *
-			 * Relabel site-wide through `erdc/colour_palette/choices` instead; this is for
+			 * Relabel site-wide through `acbs/colour_palette/choices` instead; this is for
 			 * narrowing the list to just this field.
 			 *
 			 * @param array $choices
 			 */
-			return (array) apply_filters('erdc/grid_display/bg_choices', $choices);
+			return (array) apply_filters('acbs/grid_display/bg_choices', $choices);
 
 		}
 

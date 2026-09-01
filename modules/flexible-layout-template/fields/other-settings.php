@@ -41,7 +41,7 @@
 		 * The palette an editor can set a section's background to.
 		 *
 		 * The shared palette (see Colour_Palette), then one more filter for narrowing it to
-		 * just this field. Relabel site-wide through `erdc/colour_palette/choices`; use the
+		 * just this field. Relabel site-wide through `acbs/colour_palette/choices`; use the
 		 * filter below only when sections should offer something cards do not.
 		 *
 		 * @version 1.0.0
@@ -52,7 +52,7 @@
 
 			$choices = Colour_Palette::choices();
 
-			return (array) apply_filters('erdc/section_bg/choices', $choices);
+			return (array) apply_filters('acbs/section_bg/choices', $choices);
 
 		}
 

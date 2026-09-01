@@ -78,12 +78,26 @@ html {
 	--heading-colour: #{$heading-colour};
 	--heading-colour-dark: #{$heading-colour-dark};
 
-	--section-space-y-xl: 7.5rem;
-	--section-space-y-lg: 6rem;
-	--section-space-y: 4rem;
-	--section-space-y-md: 3rem;
-	--section-space-y-sm: 2rem;
-	--section-space-y-xs: 2rem;
+	--fl-section-space-y-xl: 7rem;
+	--fl-section-space-y-lg: 4.5rem;
+	--fl-section-space-y: 4rem;
+	--fl-section-space-y-md: 3rem;
+	--fl-section-space-y-sm: 2rem;
+	--fl-section-space-y-xs: 2rem;
+
+	--fl-intro-max-width: 900px;
+	--fl-intro-space: 3.125rem;
+
+	// Corner radius. Two steps rather than a full scale, because two is all any row asks
+	// for so far: the base step for tablet and mobile, the -xl step for desktop, where a
+	// larger image can carry a larger curve without looking like a rounded button.
+	//
+	// NOTE: these values are a starting point, not measured off a design. The Figma this
+	// was written against draws square corners on the image, and neither the theme nor the
+	// design file declares a radius scale to inherit - the theme stylesheet defines no
+	// custom properties at all. Restate them from a theme's :root to retune.
+	--fl-border-radius: 0.5rem;
+	--fl-border-radius-xl: 1rem;
 
 }
 
@@ -123,9 +137,9 @@ html {
 		position: relative;
 		// The vertical rhythm every padding step below adjusts. Declared on the section
 		// rather than hardcoded per step so a theme can retune all of them at once.
-		--fl-space-y: var(--section-space-y-lg, 6rem);
-		--fl-space-y-sm: var(--section-space-y, 4rem);
-		--fl-space-y-lg: var(--section-space-y-xl, 7.5rem);
+		--fl-space-y: var(--fl-section-space-y-lg, 6rem);
+		--fl-space-y-sm: var(--fl-section-space-y, 4rem);
+		--fl-space-y-lg: var(--fl-section-space-y-xl, 7.5rem);
 
 		padding-top: var(--fl-space-y);
 		padding-bottom: var(--fl-space-y);
@@ -161,13 +175,21 @@ html {
 	.fl-bg-accent-1 { background-color: var(--accent-1, #{$accent-1}); color: var(--text-colour, #{$text-colour}); }
 	.fl-bg-accent-2 { background-color: var(--accent-2, #{$accent-2}); color: var(--text-colour, #{$text-colour}); }
 
-	// Brand grounds carry their own foreground. dark and darker both resolve to primary
-	// today, so they share its text colour.
-	.fl-bg-dark      { background-color: var(--dark, #{$dark});           color: var(--brand-primary-text, #{$brand-primary-text}); }
-	.fl-bg-darker    { background-color: var(--darker, #{$darker});       color: var(--brand-primary-text, #{$brand-primary-text}); }
-	.fl-bg-primary   { background-color: var(--primary, #{$brand-primary});     color: var(--brand-primary-text, #{$brand-primary-text}); }
-	.fl-bg-secondary { background-color: var(--secondary, #{$brand-secondary}); color: var(--brand-secondary-text, #{$brand-secondary-text}); }
-	.fl-bg-tertiary  { background-color: var(--tertiary, #{$brand-tertiary});   color: var(--brand-tertiary-text, #{$brand-tertiary-text}); }
+	// Brand grounds. The foreground comes from the two SEMANTIC text tokens rather than
+	// each brand's own --brand-*-text, so there is one pair of values to retune instead of
+	// four, and a ground cannot quietly disagree with the one next to it.
+	//
+	// --text-colour-dark reads "text for a dark ground", not "a dark text colour": it is
+	// white. Primary, secondary, dark and darker are all dark enough to take it.
+	.fl-bg-dark      { background-color: var(--dark, #{$dark});                 color: var(--text-colour-dark, #{$text-colour-dark}); }
+	.fl-bg-darker    { background-color: var(--darker, #{$darker});             color: var(--text-colour-dark, #{$text-colour-dark}); }
+	.fl-bg-primary   { background-color: var(--primary, #{$brand-primary});     color: var(--text-colour-dark, #{$text-colour-dark}); }
+	.fl-bg-secondary { background-color: var(--secondary, #{$brand-secondary}); color: var(--text-colour-dark, #{$text-colour-dark}); }
+
+	// Tertiary is the exception: a light yellow, so it is a PALE ground and takes the same
+	// dark body colour as white and lighter do. It is deliberately absent from the inverted
+	// block below, which is what leaves its headings on --heading-colour.
+	.fl-bg-tertiary  { background-color: var(--tertiary, #{$brand-tertiary});   color: var(--text-colour, #{$text-colour}); }
 
 	// Standard headings colours as per tokens
 	h1, h2, h3, h4, h5, h6 { color: var(--heading-colour, #{$heading-colour}); }
@@ -176,7 +198,6 @@ html {
 	// dark-on-light defaults show through on a dark panel.
 	.fl-bg-primary,
 	.fl-bg-secondary,
-	.fl-bg-tertiary,
 	.fl-bg-dark,
 	.fl-bg-darker {
 		h1, h2, h3, h4, h5, h6 { color: var(--heading-colour-dark, $heading-colour-dark); }
@@ -267,13 +288,19 @@ html {
 
 	// layout_columns_alignment: default (left) | center | right. Aligns the text inside items,
 	// not the grid tracks - "Default (left)" in the field label refers to text.
+	//
+	// The intro is excluded rather than overridden afterwards. It is centred unconditionally
+	// (see the Intro section below), so the honest way to say "this field aligns the section
+	// CONTENT" is to not match the intro in the first place. Overriding it later would work
+	// too, but only while the two rules keep their current specificity and order, and the
+	// last time that assumption was made here the override silently lost.
 	.fl-loop-grid-columns-align-center {
-		.fl-grid, & > .container {
+		.fl-grid, & > .container > :not(.fl-intro) {
 			text-align: center;
 		}
 	}
 	.fl-loop-grid-columns-align-right {
-		.fl-grid, & > .container {
+		.fl-grid, & > .container > :not(.fl-intro) {
 			text-align: right;
 		}
 	}
@@ -299,26 +326,35 @@ html {
 // --------------------------------------------------------------------------------------
 
 .fl-acbs {
+	// The intro is ALWAYS centred, whatever layout_columns_alignment says. That field aligns
+	// the section's content - the columns it is named for - and the intro is not content;
+	// it is the section's own heading, and a page whose intros wander between left, centre
+	// and right depending on how each row's grid happens to be set reads as an accident.
+	//
+	// This used to be conditional on the row being centred. It is unconditional now, which
+	// means a left- or right-aligned row's intro also picks up the max-width below. That is
+	// the intended change: the measure is what makes a centred heading readable, and it was
+	// only ever tied to the alignment class by proximity.
 	.fl-intro {
 		margin-bottom: var(--fl-intro-space, 2.5rem);
-	}
-
-	.fl-intro-title {
-		margin-top: 0;
-		margin-bottom: 0.5em;
-	}
-
-	.fl-intro-content {
-		> :last-child { margin-bottom: 0; }
-	}
-
-	// A centred grid centres its intro too, which is what an editor picking "Center"
-	// means even though the field is labelled for the columns.
-	.fl-loop-grid-columns-align-center .fl-intro {
-		text-align: center;
 		margin-left: auto;
 		margin-right: auto;
+		// The design draws this at 1008px inside a 1216px container. 48rem (768px) is kept
+		// as the default because it is what every centred intro on the site already renders
+		// at, and widening it here would move rows nobody asked us to touch. Set
+		// --fl-intro-max-width per site or per row to match a design that wants wider.
 		max-width: var(--fl-intro-max-width, 48rem);
+		text-align: center;
+	}
+
+	// The intro is one wysiwyg now - the separate section_title field and its .fl-intro-title
+	// <h2> are gone, so the heading is whatever the editor wrote inside the content and is
+	// styled by the theme like any other heading. Only the first and last child need saying:
+	// the header carries its own margin-bottom above, and a leading <h2>'s own margin-top
+	// would push it away from that.
+	.fl-intro-content {
+		> :first-child { margin-top: 0; }
+		> :last-child { margin-bottom: 0; }
 	}
 }
 
@@ -349,30 +385,66 @@ html {
 		background-color: var(--fl-card-box-bg, transparent);
 		// Cards in a grid should end level with each other whatever their content length.
 		height: 100%;
+		display: flex;
+		flex-flow: column nowrap;
+
+		.fl-buttons {
+			margin-top: auto;
+			padding-top: 1.5rem;
+
+			@media (max-width: 767.98px) {
+				padding-top: 1rem;
+			}
+		}
 	}
 
 	// The named colours, the same palette section backgrounds offer (Colour_Palette).
 	// Two keys have no rule here on purpose: `default`, which leaves the card transparent
 	// - padding and rounding, no fill - and `custom`, which sets --fl-card-box-bg inline
 	// on the section from layout_display_bg_colour. See Module::layout_wrapper_style().
-	.fl-card-bg-primary   { --fl-card-box-bg: var(--primary, #{$brand-primary});     --fl-card-colour: var(--brand-primary-text, #{$brand-primary-text}); }
-	.fl-card-bg-secondary { --fl-card-box-bg: var(--secondary, #{$brand-secondary}); --fl-card-colour: var(--brand-secondary-text, #{$brand-secondary-text}); }
-	.fl-card-bg-tertiary  { --fl-card-box-bg: var(--tertiary, #{$brand-tertiary});   --fl-card-colour: var(--brand-tertiary-text, #{$brand-tertiary-text}); }
+	.fl-card-bg-primary   { --fl-card-box-bg: var(--primary, #{$brand-primary});     --fl-card-colour: var(--text-colour-dark, #{$text-colour-dark}); }
+	.fl-card-bg-secondary { --fl-card-box-bg: var(--secondary, #{$brand-secondary}); --fl-card-colour: var(--text-colour-dark, #{$text-colour-dark}); }
+	// Pale ground, dark text - matches .fl-bg-tertiary. It still sets --fl-card-colour so a
+	// card on a DARK section does not inherit that section's white.
+	.fl-card-bg-tertiary  { --fl-card-box-bg: var(--tertiary, #{$brand-tertiary});   --fl-card-colour: var(--text-colour, #{$text-colour}); }
 	.fl-card-bg-white     { --fl-card-box-bg: var(--white, #{$white}); }
 	.fl-card-bg-light     { --fl-card-box-bg: var(--light, #{$light}); }
 	.fl-card-bg-lighter   { --fl-card-box-bg: var(--lighter, #{$lighter}); }
 	.fl-card-bg-accent-1  { --fl-card-box-bg: var(--accent-1, #{$accent-1}); }
 	.fl-card-bg-accent-2  { --fl-card-box-bg: var(--accent-2, #{$accent-2}); }
-	.fl-card-bg-dark      { --fl-card-box-bg: var(--dark, #{$dark});     --fl-card-colour: var(--brand-primary-text, #{$brand-primary-text}); }
-	.fl-card-bg-darker    { --fl-card-box-bg: var(--darker, #{$darker}); --fl-card-colour: var(--brand-primary-text, #{$brand-primary-text}); }
+	.fl-card-bg-dark      { --fl-card-box-bg: var(--dark, #{$dark});     --fl-card-colour: var(--text-colour-dark, #{$text-colour-dark}); }
+	.fl-card-bg-darker    { --fl-card-box-bg: var(--darker, #{$darker}); --fl-card-colour: var(--text-colour-dark, #{$text-colour-dark}); }
 
 	// Foreground goes on the card, not the section, so the intro outside it keeps the
 	// section's own colour. A light card sets no --fl-card-colour and inherits.
 	.fl-card-box .fl-card {
 		color: var(--fl-card-colour, inherit);
 
-		h1, h2, h3, h4, h5, h6 { color: inherit; }
 		a:not(.btn) { color: inherit; }
+	}
+
+	// ONLY A DARK CARD INVERTS ITS HEADINGS.
+	//
+	// `h1-h6 { color: inherit }` used to sit on every .fl-card, which made a heading take
+	// the card's BODY colour rather than the heading colour - so a heading on a pale card
+	// came out #404040 where the same heading on a pale section is #171717. Tertiary showed
+	// it up: as a section background its headings were right, as a card background they
+	// were not, for the same colour.
+	//
+	// This list mirrors the section-level inverted block above, tertiary excluded from both
+	// for the same reason - it is a pale ground. A `custom` card colour is not in the list
+	// either, since nothing can know whether an editor picked something dark; it keeps
+	// --heading-colour, which is the safer default of the two.
+	.fl-card-bg-primary,
+	.fl-card-bg-secondary,
+	.fl-card-bg-dark,
+	.fl-card-bg-darker {
+		.fl-card h1,
+		.fl-card h2,
+		.fl-card h3,
+		.fl-card h4,
+		.fl-card h5,
+		.fl-card h6 { color: inherit; }
 	}
 
 }
@@ -396,6 +468,64 @@ html {
 
 	.fl-loop-grid-columns-align-center .fl-buttons { justify-content: center; }
 	.fl-loop-grid-columns-align-right  .fl-buttons { justify-content: flex-end; }
+}
+
+// --------------------------------------------------------------------------------------
+// Button icons
+//
+// parts/buttons.php, rendering an inline <svg> from Fields\Button_Icons. Inline, not an
+// <img>, so the artwork's `fill="currentColor"` inherits the button's own text colour -
+// which means one file covers every style, both outline variants and every dark ground.
+//
+// FULL `.acbs.fl-acbs` SCOPE, for the reason spelled out under the hover states below:
+// the scoped Bootstrap writes `.acbs.fl-acbs .btn` at three classes, so `.fl-acbs .btn`
+// is two and loses silently. `.acbs.fl-acbs .btn.fl-has-icon` is four and settles it on
+// specificity rather than on which sheet happens to load second.
+//
+// Only a button that HAS an icon becomes a flex container. Putting `display: flex` on
+// `.btn` outright would change the layout of every button on the site for the sake of a
+// feature most of them do not use, and would quietly undo Bootstrap's own inline-block
+// behaviour where buttons sit inside running text.
+// --------------------------------------------------------------------------------------
+
+.acbs.fl-acbs {
+
+	.btn.fl-has-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--fl-button-icon-gap, 7px);
+		// The icon box cannot shrink, so a label that wrapped would push the button wider
+		// than its text and leave the icon hanging off a second line.
+		white-space: nowrap;
+	}
+
+	// A fixed box, so icons drawn at different proportions occupy one consistent footprint
+	// and a row of buttons keeps a single baseline. `flex: 0 0 20px` rather than a bare
+	// width: as a flex item the box would otherwise shrink to fit a long label, taking the
+	// icon with it.
+	.fl-button-icon-box {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: var(--fl-button-icon-size, 20px);
+		height: var(--fl-button-icon-size, 20px);
+		flex: 0 0 var(--fl-button-icon-size, 20px);
+	}
+
+	// The <svg> itself fills its box. object-fit is not doing much on an SVG with a
+	// viewBox, which scales on its own - it is here for one that has width/height and no
+	// viewBox, where the element would otherwise stretch.
+	.fl-button-icon {
+		width: 100%;
+		height: 100%;
+		flex: 0 0 auto;
+		object-fit: contain;
+		max-width: 100%;
+		max-height: 100%;
+		margin: auto;
+	}
+
 }
 
 // --------------------------------------------------------------------------------------
@@ -497,7 +627,17 @@ html {
 // --------------------------------------------------------------------------------------
 
 .fl-acbs {
-	.fl-align-default { text-align: left; }
-	.fl-align-center  { text-align: center; }
-	.fl-align-right   { text-align: right; }
+	// `default` DEFERS - it deliberately has no rule.
+	//
+	// It used to declare `text-align: left`, which made it an override rather than a
+	// default: an editor who centred the row and left the items alone got centred text
+	// everywhere except inside the items, because each item reset itself to left. The
+	// row-level setting looked broken when it was in fact being countermanded.
+	//
+	// Emitting nothing lets the value inherit - from the row's own
+	// fl-loop-grid-columns-align-* when one is set, and from the theme otherwise, which is
+	// left in every child theme we ship against. The class is still emitted in the markup
+	// so a theme has something to hang its own rule on.
+	.fl-align-center { text-align: center; }
+	.fl-align-right  { text-align: right; }
 }

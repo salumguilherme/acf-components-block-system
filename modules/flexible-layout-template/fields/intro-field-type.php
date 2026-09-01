@@ -16,7 +16,7 @@
 	 * confirmed ACF editor-rendering bug this avoids); this one extends ACF's own
 	 * "Group" field type (`\acf_field__group`, note the double underscore - that is
 	 * ACF's actual class name) rather than Repeater, since Intro's shape - a leading
-	 * tab plus a flat Section Title/Content pair - doesn't repeat.
+	 * tab plus a flat Section Content field - doesn't repeat.
 	 *
 	 * Its fields (Intro::get_base_fields(), plus anything a site has merged in via
 	 * Intro_Site_Fields) are injected in load_field() on every load, never read from or
@@ -55,7 +55,7 @@
 			$this->name = self::NAME;
 			$this->label = __('Intro Fields', 'erdc');
 			$this->category = 'layout';
-			$this->description = __("The plugin's standard Section Title/Section Content pair, ready to use in a custom flexible layout without a Clone field. Its fields come from the plugin, or a site's own override tagged \"Flexible Layout Component = Intro\" - never from this field's own settings, so there is nothing here to duplicate or get out of sync.", 'erdc');
+			$this->description = __("The plugin's standard Section Content field, ready to use in a custom flexible layout without a Clone field. Its fields come from the plugin, or a site's own override tagged \"Flexible Layout Component = Intro\" - never from this field's own settings, so there is nothing here to duplicate or get out of sync.", 'erdc');
 
 			$this->add_field_filter('acf/prepare_field_for_export', [$this, 'prepare_field_for_export']);
 			$this->add_field_filter('acf/prepare_field_for_import', [$this, 'prepare_field_for_import']);
@@ -120,7 +120,7 @@
 				</div>
 				<div class="acf-input">
 					<p class="description">
-						<?php esc_html_e('Section Title and Section Content - the same fields as every other Intro section in this plugin. To add or change one, tag your own field group with "Flexible Layout Component = Intro" rather than editing this field.', 'erdc'); ?>
+						<?php esc_html_e('Section Content - the same field as every other Intro section in this plugin. To add or change one, tag your own field group with "Flexible Layout Component = Intro" rather than editing this field.', 'erdc'); ?>
 					</p>
 				</div>
 			</div>

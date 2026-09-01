@@ -67,7 +67,7 @@
 			 *
 			 * @param array $choices value => label.
 			 */
-			return (array) apply_filters('erdc/colour_palette/choices', $choices);
+			return (array) apply_filters('acbs/colour_palette/choices', $choices);
 
 		}
 

@@ -16,9 +16,9 @@
  *   3. A field named `_buttons_` is a PLACEHOLDER, not a real field - the JSON types it
  *      as `text`. Each is replaced by a clone of the Buttons component.
  *   4. Layout `stats_copy` is renamed `icon_list`, matching its label and its repeater.
- *   5. icon_leaders' repeater carries conditional_logic pointing at a `source` field that
- *      no longer exists in any layout. A condition whose target is absent hides the field
- *      permanently, so it is dropped.
+ *   5. Layout `icon_leaders` is DROPPED. It was removed from the plugin - its job is done
+ *      by columned_content, which has an icon of its own - so a source JSON that still
+ *      carries it should not reintroduce it.
  *   6. Keys are emitted as supplied. They are fresh and do not match the previous set;
  *      layouts and fields are matched by NAME, not key.
  *
@@ -38,6 +38,13 @@ const GRID_FIELDS = [
 ];
 
 const RENAME_LAYOUT = { stats_copy: 'icon_list' };
+
+/**
+ * Layouts the plugin no longer has. A source JSON predating their removal still carries
+ * them, and regenerating from it would put them back - silently, since a layout array is
+ * long enough that one extra entry does not stand out in a diff.
+ */
+const DROP_LAYOUT = new Set( [ 'icon_leaders' ] );
 const BUTTONS_GROUP_KEY = 'group_b99bcf0767134';
 
 /** ACF settings that are pure editor noise in a locally registered field. */
@@ -78,11 +85,6 @@ function cleanField( field, layoutName ) {
 		out[ k ] = v;
 	}
 
-	// Rule 5: drop a condition whose target is not in this layout.
-	if ( out.conditional_logic && layoutName === 'icon_leaders' ) {
-		delete out.conditional_logic;
-	}
-
 	return out;
 }
 
@@ -119,6 +121,12 @@ function main() {
 
 	for ( const def of Object.values( src ) ) {
 		const name = RENAME_LAYOUT[ def.name ] || def.name;
+
+		if ( DROP_LAYOUT.has( name ) ) {
+			console.log( `  ${ name.padEnd( 24 ) }dropped (removed from the plugin)` );
+			continue;
+		}
+
 		const kept = def.sub_fields.filter( ( f ) => ! isGrid( f.name ) );
 		const stripped = def.sub_fields.filter( ( f ) => isGrid( f.name ) ).map( ( f ) => f.name );
 

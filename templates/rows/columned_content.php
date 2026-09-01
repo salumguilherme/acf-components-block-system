@@ -2,16 +2,12 @@
 	/**
 	 * Flexible layout row: Columned Content
 	 *
-	 * Stub. Override at {theme}/acbs/rows/columned_content.php
+	 * Override at {theme}/acbs/rows/columned_content.php
 	 *
-	 * Prints the layout's label and nothing else. The wrapper is already printing the
-	 * <section>, the container and the row classes around this, so a stub only has to
-	 * prove which file the cascade reached.
-	 *
-	 * The label is read off $row rather than hardcoded, which is what makes all fifteen
-	 * stubs genuinely identical: any difference between two of them is a bug, and a stub
-	 * that still prints the right title after the registry changes is proving the registry
-	 * rather than the file.
+	 * The intro, then the `columns` repeater laid out on the shared `.fl-grid`. The column
+	 * count is not read here - layout_columns and its -sm / -xs steps are already on the
+	 * wrapper as fl-loop-grid-columns-{n}, so the grid is a CSS concern and this template
+	 * is the same at one across or four.
 	 *
 	 * @var ACBS\Modules\FlexibleLayoutTemplate\Rows\Row $row
 	 *
@@ -21,7 +17,16 @@
 
 	if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-?><ul class="fl-grid fl-columned-content">
+	acbs_row_part( 'intro', $row );
+
+	// No columns renders no <ul> rather than an empty one, which would otherwise carry the
+	// grid's gap and read as a gap under the intro that the editor cannot remove. This also
+	// leaves the loop stack clean: have_rows() pops the loop itself when it returns false.
+	if ( ! have_rows( 'columns' ) ) {
+		return;
+	}
+
+?><ul class="fl-grid fl-columns">
 	<?php
 		while ( have_rows( 'columns' ) ) {
 			the_row();

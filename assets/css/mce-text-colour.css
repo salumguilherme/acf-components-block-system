@@ -1,0 +1,94 @@
+/*
+ * ACBS brand text colour - classic editor toolbar button.
+ *
+ * The button and its panel live OUTSIDE the editor iframe, so none of this can be done
+ * through content_style; the colours INSIDE the iframe are generated in PHP instead.
+ *
+ * NOT part of the webpack pipeline - hand-edited in place, like the ACF admin scripts.
+ * Nothing here is scoped to .acbs.fl-acbs: these are TinyMCE's own chrome classes, in
+ * wp-admin, where that wrapper does not exist.
+ */
+
+/* The icon.
+ *
+ * A mask, not a background-image. TinyMCE paints .mce-ico in its own colour and changes
+ * it on hover, on active and when disabled; a background-image would be a fixed-colour
+ * picture sitting still while everything around it moved. Masking the shape and filling
+ * with currentColor makes the icon follow the skin for free, and means the SVG's own
+ * fill values are irrelevant. --acbs-mce-icon is set by wp_add_inline_style().
+ *
+ * TWO CLASSES, NOT ONE. The element carries both .mce-ico and .mce-i-acbs-text-colour, and
+ * the pair is needed for weight: TinyMCE injects its skin stylesheet at editor init, which
+ * is AFTER this file's <link> in the head, so a single-class rule ties with the skin's
+ * .mce-ico and loses on order. That is exactly how this shipped first: mask and all,
+ * computing to background-color: rgba(0,0,0,0), drawing nothing.
+ */
+.mce-ico.mce-i-acbs-text-colour {
+	background-color: currentColor;
+	-webkit-mask-image: var(--acbs-mce-icon);
+	mask-image: var(--acbs-mce-icon);
+	-webkit-mask-repeat: no-repeat;
+	mask-repeat: no-repeat;
+	-webkit-mask-position: center;
+	mask-position: center;
+	-webkit-mask-size: contain;
+	mask-size: contain;
+}
+
+/* .mce-ico sets a tinymce icon font; there is no glyph behind our name, so a stray
+ * character could otherwise render underneath the mask. */
+.mce-ico.mce-i-acbs-text-colour::before {
+	content: none;
+}
+
+/* The swatches.
+ *
+ * The grid itself inherits TinyMCE's .mce-grid / .mce-colorbutton-grid styling, which is
+ * why the markup copies that structure. Only the cell needs saying: the skin sizes its
+ * own swatches from the textcolor plugin's 8-column grid, and ours is 4 across.
+ */
+/* The element selectors are carrying weight, not decoration. The skin's own
+ * `.mce-grid td.mce-grid-cell div` is (0,2,2); a rule written
+ * `.acbs-colour-grid .mce-grid-cell div` is (0,2,1) and loses outright - it does not even
+ * come down to load order. Written that way the sizing below simply did not apply and the
+ * swatches stayed at the skin's 15px. `table` and `td` bring this to (0,2,3). */
+table.acbs-colour-grid td.mce-grid-cell div {
+	width: 22px;
+	height: 22px;
+	margin: 1px;
+	border: 1px solid rgba(0, 0, 0, 0.2);
+	cursor: pointer;
+	box-sizing: border-box;
+}
+
+table.acbs-colour-grid td.mce-grid-cell div:hover,
+table.acbs-colour-grid td.mce-grid-cell div:focus {
+	border-color: #2271b1;
+	outline: none;
+}
+
+/* "No colour". A plain button rather than a grid cell, because it is not a colour and
+ * putting it in the grid as a crossed-out swatch (which is what TinyMCE does) reads as a
+ * transparent colour rather than as "remove what is there". */
+.acbs-colour-clear {
+	padding: 4px;
+	border-top: 1px solid #e5e5e5;
+}
+
+.acbs-colour-clear button {
+	display: block;
+	width: 100%;
+	padding: 4px 6px;
+	background: none;
+	border: 0;
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+	color: inherit;
+}
+
+.acbs-colour-clear button:hover,
+.acbs-colour-clear button:focus {
+	background: #f0f0f1;
+	outline: none;
+}

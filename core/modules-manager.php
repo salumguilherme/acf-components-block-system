@@ -37,7 +37,8 @@
 			'theme-settings',
 			'page-header',
 			'settings',
-			'acf-copy-to-clipboard'
+			'acf-copy-to-clipboard',
+			'editor-colours'
 		];
 		
 		public function __construct() {
