@@ -1,0 +1,33 @@
+//
+// Row: Icon List
+//
+// Enqueued as `acbs-row-icon_list`, only on pages with such a row.
+// Markup: templates/rows/icon_list.php and rows/icon_list/item.php.
+//
+
+.fl-acbs .fl-type-icon_list {
+	.fl-icon-list-item {
+		display: flex;
+		align-items: center;
+		gap: var(--fl-icon-list-gap, 0.75rem);
+	}
+
+	// The field takes SVG only, and an SVG with no intrinsic size fills whatever box it
+	// is given - which, without this, is the full grid column. A fixed box is safe here
+	// precisely because there are no raster sizes to respect.
+	.fl-icon-list-media {
+		flex: 0 0 auto;
+		width: var(--fl-icon-list-size, 2rem);
+		height: var(--fl-icon-list-size, 2rem);
+	}
+
+	.fl-icon-list-icon {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+	}
+
+	// A centred grid centres the pair rather than leaving it hard left in its column.
+	&.fl-loop-grid-columns-align-center .fl-icon-list-item { justify-content: center; }
+	&.fl-loop-grid-columns-align-right  .fl-icon-list-item { justify-content: flex-end; }
+}

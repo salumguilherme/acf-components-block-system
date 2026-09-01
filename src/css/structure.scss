@@ -1,0 +1,496 @@
+//
+// Layout row structure.
+//
+// Always loaded, and the only sheet that is. Everything here is the plugin's own: the
+// section, its container, the background and padding steps an editor picks per row, the
+// grid the item templates fill, and the shared intro. Per-layout rules live in
+// rows/{layout}.scss and load on top of this, for the layouts actually on the page.
+//
+// TOKENS ARE UNPREFIXED AND BORROWED, NOT OWNED. `--brand-primary` and friends belong to
+// the theme; this sheet only ever reads them, and every read carries a fallback so a row
+// still renders on a site that defines none of them. Never redefine a --brand-* value
+// here: the theme is the authority, and a plugin overriding a site's brand colour is a
+// bug that looks like a design decision.
+//
+// Specificity is kept flat on purpose - single classes, no !important - so a theme sheet
+// loading after this one wins without a fight. That is decision 5: templates REPLACE,
+// styling LAYERS.
+//
+
+@import "tokens";
+
+// --------------------------------------------------------------------------------------
+// Tokens
+//
+// Declared on `html`, deliberately, NOT on `:root`. The two select the same element but
+// `html` is a type selector (0,0,1) where `:root` is a pseudo-class (0,1,0), so anything
+// the theme declares on `:root` beats these no matter which stylesheet loads first. That
+// keeps the plugin's palette a default rather than an override, which is the whole point:
+// the theme owns the brand, and these exist so a row still renders correctly on a site
+// that has not defined them.
+//
+// Every consumer below still reads through var() with a literal fallback, so a row also
+// survives this block being removed entirely.
+// --------------------------------------------------------------------------------------
+
+html {
+
+	// Brand
+	--brand-primary: #{$brand-primary};
+	--brand-primary-hover: #{$brand-primary-hover};
+	--brand-primary-text: #{$brand-primary-text};
+
+	--brand-secondary: #{$brand-secondary};
+	--brand-secondary-hover: #{$brand-secondary-hover};
+	--brand-secondary-text: #{$brand-secondary-text};
+
+	--brand-tertiary: #{$brand-tertiary};
+	--brand-tertiary-hover: #{$brand-tertiary-hover};
+	--brand-tertiary-text: #{$brand-tertiary-text};
+
+	// Semantic aliases. These point AT the brand tokens rather than repeating their
+	// values, so overriding --brand-primary alone retunes everything downstream of it.
+	--primary: var(--brand-primary);
+	--secondary: var(--brand-secondary);
+	--tertiary: var(--brand-tertiary);
+
+	--primary-hover: #{$primary-hover};
+	--primary-text: #{$primary-text};
+
+	--secondary-hover: #{$secondary-hover};
+	--secondary-text: #{$secondary-text};
+
+	--tertiary-hover: #{$tertiary-hover};
+	--tertiary-text: #{$tertiary-text};
+
+	// Palette
+	--white: #{$white};
+	--light: #{$light};
+	--lighter: #{$lighter};
+	--accent-1: #{$accent-1};
+	--accent-2: #{$accent-2};
+	--dark: var(--brand-primary);
+	--darker: var(--brand-primary);
+
+	// Type
+	--text-colour: #{$text-colour};
+	--text-colour-dark: #{$text-colour-dark};
+	--heading-colour: #{$heading-colour};
+	--heading-colour-dark: #{$heading-colour-dark};
+
+}
+
+// --------------------------------------------------------------------------------------
+// The wrapper
+//
+// One per set of rows, emitted by Rows\Renderer. It is also the scope Bootstrap is
+// compiled behind (see rows-bootstrap.scss), which is why it carries the two classes.
+// --------------------------------------------------------------------------------------
+
+.acbs.fl-acbs {
+	// A containing block for anything a row positions against "the row area", and a
+	// guard against a row's own overflow widening the page.
+	position: relative;
+	width: 100%;
+	color: var(--text-colour, $body-color);
+	font-family: inherit;
+
+	// Bootstrap's `body` rules are rewritten onto this element (see rows-bootstrap.scss),
+	// which is what keeps its base typography working inside the scope. One of those rules
+	// is `background-color: var(--bs-body-bg)` - white - and on a wrapper rather than the
+	// document that is a panel painted over the page. Any row whose section_bg is
+	// "Default (transparent)" would show white instead of the theme's page background.
+	//
+	// The typography is kept deliberately; only the paint is undone. Same specificity as
+	// the rule it overrides, so this only works because structure.css is enqueued with the
+	// Bootstrap handle as a dependency - do not remove that dependency.
+	background-color: transparent;
+}
+
+// --------------------------------------------------------------------------------------
+// Section
+// --------------------------------------------------------------------------------------
+
+.fl-acbs {
+	.fl-section {
+		position: relative;
+		// The vertical rhythm every padding step below adjusts. Declared on the section
+		// rather than hardcoded per step so a theme can retune all of them at once.
+		--fl-space-y: var(--section-space-y, 4rem);
+		--fl-space-y-sm: var(--section-space-y-sm, 2rem);
+		--fl-space-y-lg: var(--section-space-y-lg, 7rem);
+
+		padding-top: var(--fl-space-y);
+		padding-bottom: var(--fl-space-y);
+	}
+
+	// Container. The template emits `fl-container container`, so Bootstrap's scoped
+	// .container supplies the width and gutters and this only adjusts what Bootstrap
+	// deliberately leaves alone.
+	.fl-container {
+		position: relative;
+	}
+}
+
+// --------------------------------------------------------------------------------------
+// Backgrounds
+//
+// section_bg, as listed in Colour_Palette::choices(): default | white | light | lighter |
+// accent-1 | accent-2 | dark | darker | primary | secondary | tertiary.
+//
+// `fl-bg-default` IS emitted - the class is built unconditionally, unlike the padding
+// steps which skip their default. It deliberately has no rule: a transparent section
+// inherits whatever it is sitting on.
+//
+// The choices are filterable per site (`erdc/section_bg/choices`), so a site adding a key
+// has to add the matching rule too. There is one here for each of the ten shipped.
+// --------------------------------------------------------------------------------------
+
+.fl-acbs {
+	// Pale grounds keep the body text colour.
+	.fl-bg-white    { background-color: var(--white, #{$white});       color: var(--text-colour, #{$text-colour}); }
+	.fl-bg-light    { background-color: var(--light, #{$light});       color: var(--text-colour, #{$text-colour}); }
+	.fl-bg-lighter  { background-color: var(--lighter, #{$lighter});   color: var(--text-colour, #{$text-colour}); }
+	.fl-bg-accent-1 { background-color: var(--accent-1, #{$accent-1}); color: var(--text-colour, #{$text-colour}); }
+	.fl-bg-accent-2 { background-color: var(--accent-2, #{$accent-2}); color: var(--text-colour, #{$text-colour}); }
+
+	// Brand grounds carry their own foreground. dark and darker both resolve to primary
+	// today, so they share its text colour.
+	.fl-bg-dark      { background-color: var(--dark, #{$dark});           color: var(--brand-primary-text, #{$brand-primary-text}); }
+	.fl-bg-darker    { background-color: var(--darker, #{$darker});       color: var(--brand-primary-text, #{$brand-primary-text}); }
+	.fl-bg-primary   { background-color: var(--primary, #{$brand-primary});     color: var(--brand-primary-text, #{$brand-primary-text}); }
+	.fl-bg-secondary { background-color: var(--secondary, #{$brand-secondary}); color: var(--brand-secondary-text, #{$brand-secondary-text}); }
+	.fl-bg-tertiary  { background-color: var(--tertiary, #{$brand-tertiary});   color: var(--brand-tertiary-text, #{$brand-tertiary-text}); }
+
+	// Standard headings colours as per tokens
+	h1, h2, h3, h4, h5, h6 { color: var(--heading-colour, #{$heading-colour}); }
+
+	// Inverted sections carry their link and heading colours with them, or the theme's
+	// dark-on-light defaults show through on a dark panel.
+	.fl-bg-primary,
+	.fl-bg-secondary,
+	.fl-bg-tertiary,
+	.fl-bg-dark,
+	.fl-bg-darker {
+		h1, h2, h3, h4, h5, h6 { color: var(--heading-colour-dark, $heading-colour-dark); }
+		a:not(.btn) { color: var(--text-colour-dark, $text-colour-dark); text-decoration-thickness: from-font; }
+	}
+}
+
+// --------------------------------------------------------------------------------------
+// Padding steps
+//
+// vertical_padding and vertical_padding_xs, each: default | sm | lg | bottom | top |
+// top-sm | bottom-sm | none. `default` emits no class. The mobile variants are the same
+// set under a max-width query, and they win because they are declared after.
+// --------------------------------------------------------------------------------------
+
+@mixin fl-padding-steps($suffix: '') {
+	.fl-p#{$suffix}-sm        { padding-top: var(--fl-space-y-sm); padding-bottom: var(--fl-space-y-sm); }
+	.fl-p#{$suffix}-lg        { padding-top: var(--fl-space-y-lg); padding-bottom: var(--fl-space-y-lg); }
+	.fl-p#{$suffix}-none      { padding-top: 0; padding-bottom: 0; }
+	.fl-p#{$suffix}-top       { padding-top: var(--fl-space-y); padding-bottom: 0; }
+	.fl-p#{$suffix}-bottom    { padding-top: 0; padding-bottom: var(--fl-space-y); }
+	.fl-p#{$suffix}-top-sm    { padding-top: var(--fl-space-y-sm); padding-bottom: var(--fl-space-y); }
+	.fl-p#{$suffix}-bottom-sm { padding-top: var(--fl-space-y); padding-bottom: var(--fl-space-y-sm); }
+}
+
+.fl-acbs {
+	@include fl-padding-steps();
+
+	// 767.98px, matching Bootstrap's md breakpoint minus a hair - the same boundary the
+	// theme's own Bootstrap uses, so a row never disagrees with the page around it about
+	// where "mobile" ends.
+	@media (max-width: 767.98px) {
+		@include fl-padding-steps('-xs');
+	}
+}
+
+// --------------------------------------------------------------------------------------
+// Grid
+//
+// The item templates emit a flat `<ul class="fl-grid">`; the column count comes off the
+// wrapper as fl-loop-grid-columns-{1..6}. CSS grid rather than Bootstrap's float/flex
+// columns because the markup has no per-item column class to hang them on, and equal-height
+// rows come for free.
+// --------------------------------------------------------------------------------------
+
+.fl-acbs {
+	.fl-grid {
+		display: grid;
+		grid-template-columns: repeat(var(--fl-columns, 1), minmax(0, 1fr));
+		gap: var(--fl-grid-gap, 1.5rem);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	// 1-8: the galleries go to eight across, everything else stops at six, but the CSS
+	// costs nothing to emit for all of them.
+	@for $n from 1 through 8 {
+		.fl-loop-grid-columns-#{$n} .fl-grid { --fl-columns: #{$n}; }
+	}
+
+	// Tablet and mobile are their own fields (layout_columns_sm / layout_columns_xs), not
+	// a derived step-down. Both are optional: an unset value emits no class, so the
+	// fallbacks below apply instead and a row that only sets the desktop count still
+	// collapses sensibly.
+	@media (min-width: 768px) and (max-width: 991.98px) {
+
+		// Fallback first, so an explicit sm value declared after it wins.
+		@for $n from 3 through 8 {
+			.fl-loop-grid-columns-#{$n} .fl-grid { --fl-columns: 2; }
+		}
+
+		@for $n from 1 through 8 {
+			.fl-loop-grid-columns-sm-#{$n} .fl-grid { --fl-columns: #{$n}; }
+		}
+
+	}
+
+	@media (max-width: 767.98px) {
+
+		.fl-grid { --fl-columns: 1; }
+
+		@for $n from 1 through 8 {
+			.fl-loop-grid-columns-xs-#{$n} .fl-grid { --fl-columns: #{$n}; }
+		}
+
+	}
+
+	// layout_columns_alignment: default (left) | center | right. Aligns the text inside items,
+	// not the grid tracks - "Default (left)" in the field label refers to text.
+	.fl-loop-grid-columns-align-center {
+		.fl-grid, & > .container {
+			text-align: center;
+		}
+	}
+	.fl-loop-grid-columns-align-right {
+		.fl-grid, & > .container {
+			text-align: right;
+		}
+	}
+}
+
+// --------------------------------------------------------------------------------------
+// Image fit
+//
+// image_fit: cover | contain. Applies to any image a row template renders inside a fixed
+// media box; a template with no such box is unaffected.
+// --------------------------------------------------------------------------------------
+
+.fl-acbs {
+	.fl-image-fit-cover img   { object-fit: cover; }
+	.fl-image-fit-contain img { object-fit: contain; }
+}
+
+// --------------------------------------------------------------------------------------
+// Intro
+//
+// parts/intro.php. Shared by every layout Intro is injected into, so it is here rather
+// than repeated in each row sheet.
+// --------------------------------------------------------------------------------------
+
+.fl-acbs {
+	.fl-intro {
+		margin-bottom: var(--fl-intro-space, 2.5rem);
+	}
+
+	.fl-intro-title {
+		margin-top: 0;
+		margin-bottom: 0.5em;
+	}
+
+	.fl-intro-content {
+		> :last-child { margin-bottom: 0; }
+	}
+
+	// A centred grid centres its intro too, which is what an editor picking "Center"
+	// means even though the field is labelled for the columns.
+	.fl-loop-grid-columns-align-center .fl-intro {
+		text-align: center;
+		margin-left: auto;
+		margin-right: auto;
+		max-width: var(--fl-intro-max-width, 48rem);
+	}
+}
+
+// --------------------------------------------------------------------------------------
+// Content Box
+//
+// layout_display: seamless (no class) or card, which puts `fl-card-box` on the SECTION.
+// That class is a switch, not the card itself - the card is `.fl-card`, and where that
+// sits depends on the layout:
+//
+//   * A repeater layout (columned_content, icon_list, stats, testimonials) puts .fl-card
+//     on each ITEM, so a row of three columns becomes three cards.
+//   * A single-content layout (cta, contact_page_form) puts it on the content block.
+//
+// The section intro is outside .fl-card in every template, deliberately: an intro sitting
+// inside the card would read as part of the first item.
+//
+// Turning the switch off leaves .fl-card in the markup with no card styling, which is why
+// the properties live on `.fl-card-box .fl-card` rather than on `.fl-card` alone. A
+// template never has to know whether cards are on.
+// --------------------------------------------------------------------------------------
+
+.fl-acbs {
+
+	.fl-card-box .fl-card {
+		padding: var(--fl-card-space, 2rem);
+		border-radius: var(--fl-card-radius, 0.5rem);
+		background-color: var(--fl-card-box-bg, transparent);
+		// Cards in a grid should end level with each other whatever their content length.
+		height: 100%;
+	}
+
+	// The named colours, the same palette section backgrounds offer (Colour_Palette).
+	// Two keys have no rule here on purpose: `default`, which leaves the card transparent
+	// - padding and rounding, no fill - and `custom`, which sets --fl-card-box-bg inline
+	// on the section from layout_display_bg_colour. See Module::layout_wrapper_style().
+	.fl-card-bg-primary   { --fl-card-box-bg: var(--primary, #{$brand-primary});     --fl-card-colour: var(--brand-primary-text, #{$brand-primary-text}); }
+	.fl-card-bg-secondary { --fl-card-box-bg: var(--secondary, #{$brand-secondary}); --fl-card-colour: var(--brand-secondary-text, #{$brand-secondary-text}); }
+	.fl-card-bg-tertiary  { --fl-card-box-bg: var(--tertiary, #{$brand-tertiary});   --fl-card-colour: var(--brand-tertiary-text, #{$brand-tertiary-text}); }
+	.fl-card-bg-white     { --fl-card-box-bg: var(--white, #{$white}); }
+	.fl-card-bg-light     { --fl-card-box-bg: var(--light, #{$light}); }
+	.fl-card-bg-lighter   { --fl-card-box-bg: var(--lighter, #{$lighter}); }
+	.fl-card-bg-accent-1  { --fl-card-box-bg: var(--accent-1, #{$accent-1}); }
+	.fl-card-bg-accent-2  { --fl-card-box-bg: var(--accent-2, #{$accent-2}); }
+	.fl-card-bg-dark      { --fl-card-box-bg: var(--dark, #{$dark});     --fl-card-colour: var(--brand-primary-text, #{$brand-primary-text}); }
+	.fl-card-bg-darker    { --fl-card-box-bg: var(--darker, #{$darker}); --fl-card-colour: var(--brand-primary-text, #{$brand-primary-text}); }
+
+	// Foreground goes on the card, not the section, so the intro outside it keeps the
+	// section's own colour. A light card sets no --fl-card-colour and inherits.
+	.fl-card-box .fl-card {
+		color: var(--fl-card-colour, inherit);
+
+		h1, h2, h3, h4, h5, h6 { color: inherit; }
+		a:not(.btn) { color: inherit; }
+	}
+
+}
+
+// --------------------------------------------------------------------------------------
+// Buttons
+//
+// parts/buttons.php. The classes are Bootstrap's own, compiled from the brand palette in
+// _tokens.scss, so there is very little to add here beyond spacing.
+// --------------------------------------------------------------------------------------
+
+.fl-acbs {
+	.fl-buttons {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--fl-buttons-gap, 0.75rem);
+		margin-top: var(--fl-buttons-space, 1.5rem);
+
+		&:first-child { margin-top: 0; }
+	}
+
+	.fl-loop-grid-columns-align-center .fl-buttons { justify-content: center; }
+	.fl-loop-grid-columns-align-right  .fl-buttons { justify-content: flex-end; }
+}
+
+// --------------------------------------------------------------------------------------
+// Secondary and tertiary hover states
+//
+// Bootstrap decides a button's foreground with color-contrast(), which measures luminance
+// and returns black or white. Both #E35C49 and #ffc550 come out light enough for it to
+// choose BLACK - so a secondary or tertiary button had black text at rest and on hover,
+// ignoring --secondary-text and --tertiary-text entirely.
+//
+// Overridden through Bootstrap's own custom properties rather than by writing competing
+// rules: .btn reads --bs-btn-hover-color at use time, so setting it here is enough and
+// there is no specificity fight. The hover BACKGROUND uses --secondary-hover and
+// --tertiary-hover, which existed as tokens but nothing was reading.
+//
+// The resting colour is left as Bootstrap computed it - see the note in the handover.
+//
+// NOTE THE SELECTOR: `.acbs.fl-acbs`, not `.fl-acbs` like the rest of this sheet. The
+// scoped Bootstrap writes `.acbs.fl-acbs .btn-secondary` - three classes - so a rule
+// written `.fl-acbs .btn-secondary` is two and loses, silently. Anything here that
+// overrides a Bootstrap class needs the full two-class scope to draw level, and then wins
+// on load order because structure.css declares the Bootstrap handle as a dependency.
+// --------------------------------------------------------------------------------------
+
+.acbs.fl-acbs {
+
+	.btn-secondary,
+	.btn-outline-secondary {
+		--bs-btn-hover-color: var(--secondary-text, #{$secondary-text});
+		--bs-btn-hover-bg: var(--secondary-hover, #{$secondary-hover});
+		--bs-btn-hover-border-color: var(--secondary-hover, #{$secondary-hover});
+		--bs-btn-active-color: var(--secondary-text, #{$secondary-text});
+		--bs-btn-active-bg: var(--secondary-hover, #{$secondary-hover});
+		--bs-btn-active-border-color: var(--secondary-hover, #{$secondary-hover});
+	}
+
+	.btn-tertiary,
+	.btn-outline-tertiary {
+		--bs-btn-hover-color: var(--tertiary-text, #{$tertiary-text});
+		--bs-btn-hover-bg: var(--tertiary-hover, #{$tertiary-hover});
+		--bs-btn-hover-border-color: var(--tertiary-hover, #{$tertiary-hover});
+		--bs-btn-active-color: var(--tertiary-text, #{$tertiary-text});
+		--bs-btn-active-bg: var(--tertiary-hover, #{$tertiary-hover});
+		--bs-btn-active-border-color: var(--tertiary-hover, #{$tertiary-hover});
+	}
+
+
+
+	.btn-primary {
+		--bs-btn-color: var(--primary-text, #{$primary-text});
+	}
+
+	.btn-outline-primary {
+		--bs-btn-color: var(--primary, #{$brand-primary});
+	}
+
+	.btn-secondary {
+		--bs-btn-color: var(--secondary-text, #{$secondary-text});
+	}
+
+	.btn-outline-secondary {
+		--bs-btn-color: var(--secondary, #{$brand-secondary});
+	}
+
+	.btn-tertiary {
+		--bs-btn-color: var(--tertiary-text, #{$tertiary-text});
+	}
+
+	.btn-outline-tertiary {
+		--bs-btn-color: var(--tertiary, #{$brand-tertiary});
+	}
+
+	// A link on a coloured ground inherits that ground's foreground, but only at rest -
+	// hovering one fell through to Bootstrap's --bs-link-hover-color, which is a blue
+	// computed from the default palette and reads as a broken link on a brand panel.
+	.fl-bg-primary,
+	.fl-bg-secondary,
+	.fl-bg-tertiary,
+	.fl-bg-dark,
+	.fl-bg-darker,
+	.fl-card-bg-primary,
+	.fl-card-bg-secondary,
+	.fl-card-bg-tertiary,
+	.fl-card-bg-dark,
+	.fl-card-bg-darker {
+		a:not(.btn):hover,
+		a:not(.btn):focus {
+			color: inherit;
+		}
+	}
+
+}
+
+// --------------------------------------------------------------------------------------
+// Item content alignment
+//
+// column_alignment is a per-item field on several repeater layouts, distinct from the
+// row-level grid alignment.
+// --------------------------------------------------------------------------------------
+
+.fl-acbs {
+	.fl-align-default { text-align: left; }
+	.fl-align-center  { text-align: center; }
+	.fl-align-right   { text-align: right; }
+}

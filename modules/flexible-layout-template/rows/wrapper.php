@@ -61,9 +61,11 @@
 			// the theme has not supplied one. Kept minimal and correct rather than absent,
 			// so a broken install degrades to unstyled rather than to a blank page.
 			$id = $row->wrapper_id();
+			$style = $row->wrapper_style();
 
 			return '<section class="'.esc_attr($row->wrapper_class()).'"'
 				.('' !== $id ? ' id="'.esc_attr($id).'"' : '')
+				.('' !== $style ? ' style="'.esc_attr($style).'"' : '')
 				.'>'.$row->content().'</section>';
 
 		}
@@ -265,6 +267,90 @@
 			$classes = array_filter(array_map('sanitize_html_class', $classes));
 
 			return array_values(array_unique($classes));
+
+		}
+
+		/**
+		 * style function
+		 *
+		 * Inline custom properties for the row's wrapper, as a style attribute value.
+		 *
+		 * Exists for exactly one thing a stylesheet cannot express: a colour an editor picks
+		 * per row. layout_display_bg offers eight named choices, seven of which are rules in
+		 * structure.scss - and `custom`, which carries a hex from layout_display_bg_colour.
+		 * There is no way to write that as a static rule, so it arrives as a custom property
+		 * on the element and the same rule reads it.
+		 *
+		 * Deliberately narrow: it returns declarations, and everything it emits is escaped
+		 * through safecss_filter_attr(), which is what strips url(), expression() and
+		 * anything else that turns a colour field into an injection point.
+		 *
+		 * @version 1.0.0
+		 * @since   1.0.0
+		 *
+		 * @param Row $row
+		 *
+		 * @return string
+		 */
+		public static function style(Row $row) {
+
+			/**
+			 * Filters the row wrapper's inline style declarations.
+			 *
+			 * Called with the row's ACF loop active. Return an array of
+			 * `property: value` declarations WITHOUT the trailing semicolon, or a
+			 * ready-made string.
+			 *
+			 * @param array $declarations
+			 * @param Row   $row
+			 */
+			$declarations = apply_filters('acbs/row/wrapper_style', [], $row);
+
+			if(is_array($declarations)) {
+				$declarations = implode('; ', array_filter($declarations));
+			}
+
+			$declarations = trim((string) $declarations);
+
+			if('' === $declarations) {
+				return '';
+			}
+
+			// safecss_filter_attr() is what wp_kses uses on a style attribute. It drops any
+			// property it does not recognise - and it does NOT recognise custom properties, so
+			// the -- declarations are validated by hand below instead of being silently eaten.
+			$safe = [];
+
+			foreach(explode(';', $declarations) as $declaration) {
+
+				$declaration = trim($declaration);
+
+				if('' === $declaration) {
+					continue;
+				}
+
+				if(0 === strpos($declaration, '--')) {
+
+					// A custom property: name must look like one, and the value is restricted to
+					// the characters a colour, length or keyword needs. Nothing with a bracket or
+					// a quote gets through, which rules out url() and expression().
+					if(preg_match('/^--[a-z0-9-]+:\s*[#a-z0-9%,.\s\/-]+$/i', $declaration)) {
+						$safe[] = $declaration;
+					}
+
+					continue;
+
+				}
+
+				$filtered = safecss_filter_attr($declaration);
+
+				if('' !== $filtered) {
+					$safe[] = $filtered;
+				}
+
+			}
+
+			return implode('; ', $safe);
 
 		}
 

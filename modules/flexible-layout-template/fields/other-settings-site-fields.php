@@ -11,7 +11,7 @@
 	 *
 	 * Merges any field group a site has tagged with "Flexible Layout Component = Other
 	 * Settings" into the plugin's Other Settings Fields - a site field named the same as
-	 * one of section_bg/section_container_id/vertical_padding/vertical_padding_mobile
+	 * one of section_bg/section_container_id/vertical_padding/vertical_padding_xs
 	 * replaces it in place, anything else is appended.
 	 *
 	 * Other Settings' own fields are already top-level, so the inherited merge() applies

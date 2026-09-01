@@ -21,4 +21,7 @@
 
 	if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-?><h2><?php echo esc_html( $row->label() ); ?></h2>
+?><div class="fl-full-width-image-content">
+	<?php echo wp_kses_post(get_sub_field('written_content')); ?>
+	<?php acbs_row_part( 'buttons', $row ); ?>
+</div>

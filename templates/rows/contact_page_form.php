@@ -1,17 +1,19 @@
 <?php
 	/**
-	 * Flexible layout row: Contact Page Form
+	 * Flexible layout row: Enquiry Form
 	 *
-	 * Stub. Override at {theme}/acbs/rows/contact_page_form.php
+	 * Override at {theme}/acbs/rows/contact_page_form.php
 	 *
-	 * Prints the layout's label and nothing else. The wrapper is already printing the
-	 * <section>, the container and the row classes around this, so a stub only has to
-	 * prove which file the cascade reached.
+	 * Content plus an embedded form. `contact_form_id` is a free text field holding
+	 * whatever the site's form plugin wants - a Gravity Forms shortcode, an embed, an id -
+	 * so it goes through do_shortcode().
 	 *
-	 * The label is read off $row rather than hardcoded, which is what makes all fifteen
-	 * stubs genuinely identical: any difference between two of them is a bug, and a stub
-	 * that still prints the right title after the registry changes is proving the registry
-	 * rather than the file.
+	 * That is WordPress's own shortcode expansion, not a shortcode the plugin registers:
+	 * ACBS declares none. It is here because a form plugin's shortcode is the only way to
+	 * get its form onto the page, and an editor pasting one into this field is the
+	 * documented use of it.
+	 *
+	 * Not a repeater layout, so a `card` display wraps this whole block, intro excluded.
 	 *
 	 * @var ACBS\Modules\FlexibleLayoutTemplate\Rows\Row $row
 	 *
@@ -21,4 +23,17 @@
 
 	if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-?><h2><?php echo esc_html( $row->label() ); ?></h2>
+	acbs_row_part( 'intro', $row );
+
+	$acbs_content = (string) get_sub_field( 'written_content' );
+	$acbs_form    = trim( (string) get_sub_field( 'contact_form_id' ) );
+
+?><div class="fl-enquiry fl-card">
+	<?php if ( '' !== $acbs_content ) : ?>
+		<div class="fl-enquiry-content"><?php echo wp_kses_post( apply_filters( 'the_content', $acbs_content ) ); ?></div>
+	<?php endif; ?>
+	<?php if ( '' !== $acbs_form ) : ?>
+		<?php // Not escaped: a form plugin returns its own markup, and escaping it would print the form as text. ?>
+		<div class="fl-enquiry-form"><?php echo do_shortcode( $acbs_form ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
+	<?php endif; ?>
+</div>

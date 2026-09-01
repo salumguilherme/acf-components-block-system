@@ -42,7 +42,7 @@
 	define('ERDC_PATH', ACBS_PATH);
 	define('ERDC_URL', ACBS_URL);
 
-	// ERDC_UPDATER_TOKEN (a GitHub personal access token, scoped to this plugin's private
+	// ACBS_UPDATER_TOKEN (a GitHub personal access token, scoped to this plugin's private
 	// update repository) is expected to be defined in wp-config.php, not shipped in the
 	// plugin's own source - Plugin::updater() checks for it at runtime and warns in
 	// wp-admin if it's missing, rather than requiring it here or failing if it's absent.

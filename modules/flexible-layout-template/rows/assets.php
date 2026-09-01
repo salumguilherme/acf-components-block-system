@@ -2,6 +2,8 @@
 
 	namespace ACBS\Modules\FlexibleLayoutTemplate\Rows;
 
+	use ACBS\Modules\FlexibleLayoutTemplate\Module;
+
 	if(!defined( 'ABSPATH')) {
 		exit; // Exit if accessed directly.
 	}
@@ -107,9 +109,10 @@
 
 			$this->recorded[$name] = $type;
 
-			// A row discovered after the footer pass has already run - a shortcode in a
-			// widget area, say - enqueues immediately instead of being dropped. That still
-			// works up to wp_print_footer_scripts; past it the sheet is lost, so say so.
+			// A row discovered after the footer pass has already run - a theme calling
+			// acbs_render_rows() from inside its own footer, say - enqueues immediately
+			// instead of being dropped. That still works up to wp_print_footer_scripts; past
+			// it the sheet is lost, so say so.
 			if($this->flushed) {
 
 				$this->enqueue($type);
@@ -153,7 +156,7 @@
 						continue;
 					}
 
-					wp_register_style($handle, ACBS_URL.$relative, ['erdc-frontend'], ACBS_VERSION, 'all');
+					wp_register_style($handle, ACBS_URL.$relative, [Module::STRUCTURE_HANDLE], ACBS_VERSION, 'all');
 
 				}
 
@@ -190,6 +193,14 @@
 			}
 
 			$this->flushed = true;
+
+			// A row rendered from somewhere the head pass did not predict - a theme calling
+			// acbs_render_rows() outside the Page Builder template - still needs the structure
+			// sheet, and every row sheet declares it as a dependency, so enqueueing it here is
+			// what stops those dependencies silently dropping the row's own CSS.
+			if(!empty($this->recorded) && !wp_style_is(Module::STRUCTURE_HANDLE, 'enqueued')) {
+				wp_enqueue_style(Module::STRUCTURE_HANDLE);
+			}
 
 			foreach($this->recorded as $type) {
 				$this->enqueue($type);

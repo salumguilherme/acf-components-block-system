@@ -65,7 +65,53 @@
 
 			}
 
-			return $output;
+			return self::wrap($output);
+
+		}
+
+		/**
+		 * wrap function
+		 *
+		 * The single top-level element around a whole set of rows.
+		 *
+		 * There is exactly one of these per render, not one per row - the per-row <section>
+		 * comes from templates/wrapper.php. It exists because it is the SCOPE the plugin's
+		 * Bootstrap is compiled behind: every selector in assets/css/rows-bootstrap.css is
+		 * rewritten to sit under `.acbs.fl-acbs`, so a row gets stock Bootstrap regardless of
+		 * what the surrounding site has done to its own copy, and nothing outside this element
+		 * is touched. Remove the wrapper and the row stylesheets stop matching anything.
+		 *
+		 * Both classes are load-bearing: two of them give the scoped rules enough specificity
+		 * to outweigh the theme's own unscoped Bootstrap, which still cascades in.
+		 *
+		 * An empty render emits nothing rather than an empty wrapper, so a page whose rows
+		 * were all skipped leaves no stray element behind.
+		 *
+		 * @version 1.0.0
+		 * @since   1.0.0
+		 *
+		 * @param string $rows
+		 *
+		 * @return string
+		 */
+		public static function wrap($rows) {
+
+			if('' === $rows) {
+				return '';
+			}
+
+			/**
+			 * Filters the classes on the top-level row wrapper.
+			 *
+			 * `acbs` and `fl-acbs` are what the compiled Bootstrap and every row stylesheet
+			 * are scoped to. Add to this list; removing either breaks all row styling.
+			 *
+			 * @param array $classes
+			 */
+			$classes = (array) apply_filters('acbs/rows/wrapper_classes', ['acbs', 'fl-acbs']);
+			$classes = array_values(array_unique(array_filter(array_map('sanitize_html_class', $classes))));
+
+			return '<div class="'.esc_attr(implode(' ', $classes)).'">'.$rows.'</div>';
 
 		}
 

@@ -34,6 +34,7 @@
 			Buttons::class,
 			Intro::class,
 			Other_Settings::class,
+			Grid_Display::class,
 		];
 
 		/**

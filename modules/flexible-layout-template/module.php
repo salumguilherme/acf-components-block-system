@@ -38,6 +38,12 @@
 		 * @since   1.0.0
 		 * @return string
 		 */
+		/**
+		 * Handle of the always-loaded row structure sheet. Every per-row sheet declares it
+		 * as a dependency, so it is also what guarantees load order.
+		 */
+		const STRUCTURE_HANDLE = 'acbs-structure';
+
 		public function get_name() {
 			return 'flexible-layout-template';
 		}
@@ -55,7 +61,6 @@
 			
 			// The public render API - plain functions, so required rather than autoloaded
 			require_once __DIR__.'/rows/template-tags.php';
-			add_shortcode('acbs_rows', 'acbs_rows_shortcode');
 			
 			// Row types, and the footer asset collector that reads their declarations.
 			// Priority 20 on init is after ACF's own init at 5 has fired acf/init, so the
@@ -86,6 +91,7 @@
 			// Adds our wrapper classes and ids
 			add_filter('acbs/row/wrapper_classes', [$this, 'layout_wrapper_classes'], 10, 2);
 			add_filter('acbs/row/wrapper_id', [$this, 'layout_wrapper_id'], 10, 2);
+			add_filter('acbs/row/wrapper_style', [$this, 'layout_wrapper_style'], 10, 2);
 			
 		}
 		
@@ -96,7 +102,81 @@
 		 * @since   1.0.13
 		 */
 		public function register_assets() {
-			wp_register_style('erdc-frontend', ACBS_URL.'assets/css/frontend.css', [], ACBS_VERSION, 'all');
+
+			$bootstrap = self::bootstrap_handle();
+
+			// The plugin's own copy of Bootstrap, every selector rewritten to sit under
+			// `.acbs.fl-acbs` at build time. Registered under a filterable handle because a site
+			// whose theme already ships a scoped build can point us at theirs instead and stop
+			// this one loading at all.
+			if(!wp_style_is($bootstrap, 'registered')) {
+				wp_register_style($bootstrap, ACBS_URL.'assets/css/rows-bootstrap.css', [], filemtime(ACBS_PATH.'/assets/css/rows-bootstrap.css'), 'all');
+			}
+
+			// Structure depends on Bootstrap, and that dependency is not cosmetic: it resets the
+			// white background Bootstrap's rewritten `body` rules put on the wrapper, at the same
+			// specificity, so it only wins by loading second.
+			wp_register_style(self::STRUCTURE_HANDLE, ACBS_URL.'assets/css/structure.css', [$bootstrap], filemtime(ACBS_PATH.'/assets/css/structure.css'), 'all');
+
+			// Head, not footer: neither of these needs a row to be discovered first, and a
+			// 236KB stylesheet arriving after first paint is a visible reflow. They are only
+			// enqueued where rows will actually render - see Rows\Assets for the footer pass that
+			// covers a theme rendering rows from somewhere unexpected.
+			if(self::will_render_rows()) {
+				wp_enqueue_style(self::STRUCTURE_HANDLE);
+			}
+
+		}
+
+		/**
+		 * bootstrap_handle function
+		 *
+		 * @version 1.0.0
+		 * @since   1.0.0
+		 * @return string
+		 */
+		public static function bootstrap_handle() {
+
+			/**
+			 * Filters the style handle the plugin's scoped Bootstrap is registered under.
+			 *
+			 * Return a handle a site has already registered and the plugin will not register
+			 * its own - the existing registration wins. Note the site's build has to be scoped
+			 * the same way, to `.acbs.fl-acbs`, or the rows lose their grid.
+			 *
+			 * @param string $handle
+			 */
+			return (string) apply_filters('acbs/bootstrap/handle', 'acbs-bootstrap');
+
+		}
+
+		/**
+		 * will_render_rows function
+		 *
+		 * Whether this request is one the base sheets are needed on, decided before any row
+		 * has been looked at - which is the only reason it has to be a guess at all.
+		 *
+		 * The Page Builder template is the answer in every normal case, since that is what
+		 * calls acbs_render_rows(). A theme calling the tag from somewhere else is covered by
+		 * the footer pass instead, which knows for certain because a row has rendered by then.
+		 *
+		 * @version 1.0.0
+		 * @since   1.0.0
+		 * @return bool
+		 */
+		public static function will_render_rows() {
+
+			$render = is_singular() && Page_Template::SLUG === get_page_template_slug();
+
+			/**
+			 * Filters whether the row base stylesheets are enqueued in the head for this
+			 * request. A theme that renders rows outside the Page Builder template should
+			 * return true here rather than rely on the footer fallback.
+			 *
+			 * @param bool $render
+			 */
+			return (bool) apply_filters('acbs/rows/enqueue_base_styles', $render);
+
 		}
 		
 		/**
@@ -233,8 +313,8 @@
 			}
 			
 			// Mobile vertical padding
-			if(!empty(get_sub_field('vertical_padding_mobile')) && get_sub_field('vertical_padding_mobile') != 'default') {
-				$classes[] = 'fl-p-mobile-'.get_sub_field('vertical_padding_mobile');
+			if(!empty(get_sub_field('vertical_padding_xs')) && get_sub_field('vertical_padding_xs') != 'default') {
+				$classes[] = 'fl-p-xs-'.get_sub_field('vertical_padding_xs');
 			}
 			
 			// Grid type
@@ -243,14 +323,38 @@
 				$classes[] = 'fl-loop-grid-'.get_sub_field('grid_type');
 			}
 			
-			// IF we have a layout columns layout
+			// Grid & Display. The column counts are three separate fields rather than one
+			// responsive control, so they emit three independent classes; an unset tablet or
+			// mobile value emits nothing and the CSS falls back to the next size up.
 			if(get_sub_field('layout_columns')) {
 				$classes[] = 'fl-loop-grid-columns-'.get_sub_field('layout_columns');
 			}
 			
-			// IF we have a layout columns alignment
-			if(get_sub_field('columns_alignment')) {
-				$classes[] = 'fl-loop-grid-columns-align-'.get_sub_field('columns_alignment');
+			if(get_sub_field('layout_columns_sm')) {
+				$classes[] = 'fl-loop-grid-columns-sm-'.get_sub_field('layout_columns_sm');
+			}
+			
+			if(get_sub_field('layout_columns_xs')) {
+				$classes[] = 'fl-loop-grid-columns-xs-'.get_sub_field('layout_columns_xs');
+			}
+			
+			// Renamed from `columns_alignment` when the whole Grid & Display group took the
+			// layout_ prefix. Reading the old name here emitted nothing and raised nothing -
+			// the alignment class just quietly stopped appearing.
+			if(get_sub_field('layout_columns_alignment')) {
+				$classes[] = 'fl-loop-grid-columns-align-'.get_sub_field('layout_columns_alignment');
+			}
+			
+			// Content Box. 'default' is seamless and needs no class of its own; only a card
+			// changes anything, and its colour comes with it.
+			if('card' === get_sub_field('layout_display')) {
+			
+				$classes[] = 'fl-card-box';
+				
+				if(get_sub_field('layout_display_bg')) {
+					$classes[] = 'fl-card-bg-'.get_sub_field('layout_display_bg');
+				}
+			
 			}
 			
 			// Image fit
@@ -258,10 +362,61 @@
 				$classes[] = 'fl-image-fit-'.get_sub_field('image_fit');
 			}
 			
+			// Full Width Image
+			if(get_row_layout() == 'full_width_image') {
+				$classes[] = 'fl-loop-grid-columns-align-center';
+				
+				if(!empty(get_sub_field('overlay'))) {
+					$classes[] = 'fl-full-width-image-overlay';
+				}
+			}
+			
 			return $classes;
 			
 		}
 		
+		/**
+		 * layout_wrapper_style function
+		 *
+		 * The one thing about a row that cannot be a stylesheet rule: the colour an editor
+		 * picks when layout_display_bg is set to `custom`. The other seven choices are named,
+		 * so structure.scss carries them; this one arrives per row.
+		 *
+		 * Emitted as the same custom property the named rules set, so the card rule itself
+		 * does not care where its colour came from.
+		 *
+		 * @version 1.0.0
+		 * @since   1.0.0
+		 *
+		 * @param array $declarations
+		 * @param Row   $row
+		 *
+		 * @return array
+		 */
+		public function layout_wrapper_style($declarations, $row) {
+			
+			//Default per field conditionals styles - can be overwritten per site as well
+			if(get_row_layout() == 'full_width_image' && !empty(get_sub_field('image'))) {
+				$image = get_sub_field('image');
+				$declarations[] = 'background: url('.$image['url'].') no-repeat center center; background-position: 50% 50%; background-size: cover;';
+			}
+
+			if('card' !== get_sub_field('layout_display') || 'custom' !== get_sub_field('layout_display_bg')) {
+				return $declarations;
+			}
+
+			$colour = trim((string) get_sub_field('layout_display_bg_colour'));
+
+			if('' === $colour) {
+				return $declarations;
+			}
+
+			$declarations[] = '--fl-card-box-bg: '.$colour;
+
+			return $declarations;
+
+		}
+
 		/**
 		 * layout_wrapper_id function
 		 *

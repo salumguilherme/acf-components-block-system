@@ -47,32 +47,6 @@
 		 */
 		public static function register() {
 			add_filter('acf/load_field/key=field_6a0a99f262aaf', [__CLASS__, 'inject_common_fields']);
-			add_filter('erdc_disable_layout_intro', [__CLASS__, 'default_disabled_layouts']);
-		}
-
-		/**
-		 * default_disabled_layouts function
-		 *
-		 * The plugin's own default exclusions from `erdc_disable_layout_intro` - a site
-		 * can still add more (or, since the filter deals in a plain array, remove one of
-		 * these) via its own callback on the same filter.
-		 *
-		 * @version 1.0.23
-		 * @since   1.0.23
-		 *
-		 * @param array $disabled
-		 *
-		 * @return array
-		 */
-		public static function default_disabled_layouts($disabled) {
-
-			return array_merge($disabled, [
-				'full_width_image_cta',
-				'full_width_image',
-				'columned_content',
-				'full_width_content',
-			]);
-
 		}
 
 		/**
@@ -105,6 +79,18 @@
 				}
 			}
 
+			// Intro goes into EVERY layout by default - the plugin registers no exclusions of
+			// its own. The filter is the seam, kept for a theme that wants to suppress Intro on
+			// a particular layout:
+			//
+			//   add_filter('erdc_disable_layout_intro', function($disabled) {
+			//       $disabled[] = 'full_width_image';
+			//       return $disabled;
+			//   });
+			//
+			// Anything added here is also read by should_add_intro(), which is what
+			// Layout_Row_Type::supports() and the flexible-layout-tabs script both go through, so
+			// one callback is enough to keep the whole plugin consistent about it.
 			$disabled = apply_filters('erdc_disable_layout_intro', []);
 
 			// Adds the common fields to each layout
@@ -125,7 +111,12 @@
 
 				$layout_row_fields = self::get_layout_row_fields($layout_name);
 
-				$layout['sub_fields'] = array_merge($leading_tab, $layout['sub_fields'], $layout_row_fields, $intro, self::get_common_fields());
+				// Grid & Display sits between Intro and Other Settings, and is the one injected
+				// component that is not given to every layout: a layout that declares no grid or
+				// card fields gets no tab rather than an empty one. See Grid_Display::LAYOUTS.
+				$grid = Grid_Display::fields_for_layout($layout_name);
+
+				$layout['sub_fields'] = array_merge($leading_tab, $layout['sub_fields'], $layout_row_fields, $intro, $grid, self::get_common_fields());
 
 			}
 

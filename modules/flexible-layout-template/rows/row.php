@@ -69,6 +69,11 @@
 		private $wrapper_id = null;
 
 		/**
+		 * @var string|null
+		 */
+		private $wrapper_style = null;
+
+		/**
 		 * Constructor
 		 *
 		 * @param string     $layout   ACF layout name, e.g. 'full_width_content'.
@@ -200,6 +205,26 @@
 			}
 
 			return $this->wrapper_id;
+
+		}
+
+		/**
+		 * wrapper_style function
+		 *
+		 * Inline declarations for the wrapper, or '' when there are none. Memoised for the
+		 * same reason the classes are: it runs a filter.
+		 *
+		 * @version 1.0.0
+		 * @since   1.0.0
+		 * @return string
+		 */
+		public function wrapper_style() {
+
+			if(is_null($this->wrapper_style)) {
+				$this->wrapper_style = Wrapper::style($this);
+			}
+
+			return $this->wrapper_style;
 
 		}
 

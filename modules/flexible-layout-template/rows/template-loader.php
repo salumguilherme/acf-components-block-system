@@ -234,6 +234,52 @@
 		}
 
 		/**
+		 * render_partial function
+		 *
+		 * Includes one of a row's own sub-templates - rows/{layout}/item.php and the like -
+		 * with $row in scope and the ACF loop left exactly as it was found.
+		 *
+		 * Called from inside a row template's own have_rows() loop, so the item's fields are
+		 * already in scope through get_sub_field(). Nothing is passed for the item itself;
+		 * ACF's loop IS the item.
+		 *
+		 * A missing partial prints nothing and says so under WP_DEBUG, because a row whose
+		 * items silently vanish is very hard to tell from a row with no items.
+		 *
+		 * @version 1.0.0
+		 * @since   1.0.0
+		 *
+		 * @param Row    $row
+		 * @param string $partial
+		 */
+		public static function render_partial(Row $row, $partial = 'item') {
+
+			$path = self::locate_partial($row, $partial);
+
+			if('' === $path) {
+
+				if(defined('WP_DEBUG') && WP_DEBUG) {
+					trigger_error(
+						sprintf(
+							'ACBS: row layout "%s" has no "%s" partial, so its items rendered nothing. Expected rows/%s/%s.php.',
+							$row->layout(),
+							$partial,
+							$row->type()->template(),
+							$partial
+						),
+						E_USER_NOTICE
+					);
+				}
+
+				return;
+
+			}
+
+			Wrapper::include_template($path, $row);
+
+		}
+
+		/**
 		 * locate_partial function
 		 *
 		 * A sub-template of a row, e.g. rows/image_cards_grid/item.php. Same cascade, no

@@ -61,6 +61,11 @@
 		const OTHER_SETTINGS = 'other_settings';
 
 		/**
+		 * Grid & Display - how a row lays out and whether its content sits in a card.
+		 */
+		const GRID_DISPLAY = 'grid_display';
+
+		/**
 		 * Value stored against this rule when a site tags its field group as an override
 		 * for the Theme Settings options page field group.
 		 */

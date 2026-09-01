@@ -1,0 +1,139 @@
+//
+// Design tokens.
+//
+// Imported by BOTH rows-bootstrap.scss and structure.scss, and the split matters:
+//
+//   * The Sass variables below are literal colour values because Bootstrap computes with
+//     them - tint-color(), shade-color() and color-contrast() generate every button's
+//     hover, active and text colour. Hand it `var(--brand-primary)` instead and Sass
+//     cannot do the arithmetic, so the whole button set comes out wrong or fails to
+//     compile. Bootstrap's own variables are all `!default`, so declaring ours first is
+//     all it takes to override them.
+//
+//   * The custom properties are emitted once, by structure.scss, in acbs-tokens(). They
+//     are what the row stylesheets read at runtime, and what a site changes to retheme
+//     without rebuilding.
+//
+// This file emits NO CSS on its own. Importing it twice is therefore free, which is what
+// lets both entries share one source of truth.
+//
+
+// --------------------------------------------------------------------------------------
+// Brand
+// --------------------------------------------------------------------------------------
+
+$brand-primary:         #175E54;
+$brand-primary-hover:   #007573;
+$brand-primary-text:    #ffffff;
+
+$brand-secondary:       #E35C49;
+$brand-secondary-hover: #DE3831;
+$brand-secondary-text:  #ffffff;
+
+$brand-tertiary:        #ffc550;
+$brand-tertiary-hover:  #ffc550cc;
+$brand-tertiary-text:   #ffffff;
+
+// --------------------------------------------------------------------------------------
+// Semantic aliases
+//
+// Note that `--primary-text` is the brand green, not white: it is the colour primary text
+// takes ON a light background, where `--brand-primary-text` is the colour text takes on a
+// primary background. Two different jobs, easy to swap by accident.
+// --------------------------------------------------------------------------------------
+
+$primary-hover:   $brand-primary-hover;
+$primary-text:    $brand-primary-text;
+
+$secondary-hover: $brand-secondary-hover;
+$secondary-text:  #ffffff;
+
+$tertiary-hover:  $brand-tertiary-hover;
+$tertiary-text:   #ffffff;
+
+$text-colour:     #404040;
+$text-colour-dark:     #ffffff;
+$heading-colour:    #171717;
+$heading-colour-dark:    #ffffff;
+$headings-colour:    #171717;
+
+// --------------------------------------------------------------------------------------
+// Palette
+//
+// dark and darker both resolve to primary today. They are kept as separate tokens rather
+// than collapsed, because section_bg and the card colours both offer them as distinct
+// choices and an editor's saved value should not need migrating the day they diverge.
+// --------------------------------------------------------------------------------------
+
+$white:    #ffffff;
+$light:    #F8FAFC;
+$lighter:  #F2F2EF;
+$accent-1: #EDE8C4;
+$accent-2: #E2C2C7;
+$dark:     $brand-primary;
+$darker:   $brand-primary;
+
+// --------------------------------------------------------------------------------------
+// Bootstrap overrides
+//
+// Set before Bootstrap's own variables, which are all !default. $theme-colors is declared
+// in full rather than merged after the fact: merging needs the map to exist first, which
+// means importing variables first, which means the scalars below have already been baked
+// into the defaults by then.
+//
+// Every key here becomes a full set of generated classes - .btn-accent-2, .text-accent-2,
+// .bg-accent-2, .border-accent-2 and so on - all of them scoped to .acbs.fl-acbs by the
+// build. That is the whole point of compiling our own copy.
+// --------------------------------------------------------------------------------------
+
+$primary:   $brand-primary;
+$secondary: $brand-secondary;
+
+$theme-colors: (
+	'primary':   $primary,
+	'secondary': $secondary,
+	'tertiary':  $brand-tertiary,
+
+	// `white` is here because button_style offers it. Without the key Bootstrap never
+	// generates .btn-white or .btn-outline-white, and a button an editor styled white
+	// came out as a bare .btn with no colour at all - silently, since the class was
+	// emitted correctly and simply matched nothing.
+	'white':     $white,
+
+	'light':     $light,
+	'lighter':   $lighter,
+	'accent-1':  $accent-1,
+	'accent-2':  $accent-2,
+	'dark':      $dark,
+	'darker':    $darker,
+
+	// Bootstrap's own semantic colours, kept so alerts, badges and validation states
+	// still have something to resolve against.
+	'success':   #198754,
+	'info':      #0dcaf0,
+	'warning':   #ffc107,
+	'danger':    #dc3545,
+);
+
+$body-color: $text-colour;
+$body-bg: $white;
+$body-color: $text-colour;
+
+$btn-padding-y: 14px;
+$btn-padding-x: 20px;
+$btn-font-size: 16px;
+$btn-line-height: 1.125em;
+$btn-font-weight: 400;
+
+$border-radius:               .25rem;
+$border-radius-sm:            .25rem;
+$border-radius-lg:            .25rem;
+$border-radius-xl:            .25rem;
+$border-radius-2xl:           .25rem;
+
+$h1-font-size:                null;
+$h2-font-size:                null;
+$h3-font-size:                null;
+$h4-font-size:                null;
+$h5-font-size:                null;
+$h6-font-size:                null;

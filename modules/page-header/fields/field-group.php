@@ -3,6 +3,7 @@
 	namespace ACBS\Modules\PageHeader\Fields;
 
 	use ACBS\Modules\FlexibleLayoutTemplate\Fields\Buttons_Field_Type;
+	use ACBS\Modules\FlexibleLayoutTemplate\Page_Template;
 	use ACBS\Modules\PageHeader\Settings;
 
 	if(!defined( 'ABSPATH')) {
@@ -142,7 +143,22 @@
 		/**
 		 * get_location function
 		 *
-		 * Every public post type and taxonomy except those excluded in the settings.
+		 * Pages using the plugin's own "Page Builder" template, and nothing else - the same
+		 * rule Page_Content uses, for the same reason: the header is part of a page the
+		 * plugin renders, so it belongs on the screens where the plugin renders one.
+		 *
+		 * This is a deliberate narrowing from "every public post type and taxonomy minus the
+		 * exclusions". Two consequences worth knowing:
+		 *
+		 * 1. The exclusions setting has almost nothing left to exclude. `page_template` is
+		 *    scoped to the page post type by ACF (its object_subtype), so post types and
+		 *    taxonomies cannot appear here to be excluded in the first place. The one case
+		 *    that still means something is excluding `page` itself, which now switches the
+		 *    group off entirely - handled below rather than silently ignored, so the setting
+		 *    never looks like it did something it did not.
+		 * 2. Header values already saved against posts or terms stay in the database. They
+		 *    simply have no editing UI until this location is widened again, which the filter
+		 *    below still allows.
 		 *
 		 * @version 1.0.22
 		 * @since   1.0.22
@@ -151,39 +167,23 @@
 		public static function get_location() {
 
 			$excluded = Settings::get_exclusions();
-			$location = [];
 
-			foreach(get_post_types(['public' => true]) as $post_type) {
-
-				if('attachment' === $post_type || in_array($post_type, $excluded, true)) {
-					continue;
-				}
-
-				$location[] = [
-					[
-						'param' => 'post_type',
-						'operator' => '==',
-						'value' => $post_type,
-					],
-				];
-
+			// 'page' excluded in the settings means there is nowhere left for this group at
+			// all. register() turns an empty location into "do not register", which is the
+			// correct reading - an empty location array would otherwise show it everywhere.
+			if(in_array('page', $excluded, true)) {
+				return apply_filters('erdc/page_header/location', []);
 			}
 
-			foreach(get_taxonomies(['public' => true]) as $taxonomy) {
-
-				if(in_array($taxonomy, $excluded, true)) {
-					continue;
-				}
-
-				$location[] = [
+			$location = [
+				[
 					[
-						'param' => 'taxonomy',
+						'param' => 'page_template',
 						'operator' => '==',
-						'value' => $taxonomy,
+						'value' => Page_Template::SLUG,
 					],
-				];
-
-			}
+				],
+			];
 
 			return apply_filters('erdc/page_header/location', $location);
 

@@ -236,21 +236,29 @@
 				require ACBS_PATH.'vendor/autoload.php';
 			}
 			
+			// Both derived, never hardcoded. The release packager renames the plugin folder
+			// and the main file from the forked ERDC names to acf-components-block-system on
+			// the way out, so the source tree and an installed copy legitimately disagree
+			// about what this file is called. ACBS__FILE__ is __FILE__ of the main file
+			// whatever its name, and the slug is the directory WordPress actually installed
+			// into - which the update checker then uses to rename an incoming update's
+			// directory to match (Puc\v5p6\UpdateChecker::fixDirectoryName), so a site
+			// running the old folder keeps updating in place instead of gaining a second one.
 			$this->updateChecker = PucFactory::buildUpdateChecker(
 				ACBS_UPDATE_REPO,
-				ACBS_PATH.'elementor-repeater-and-dynamic-conditions-addon.php',
-				'elementor-repeater-and-dynamic-conditions-addon'
+				ACBS__FILE__,
+				basename(dirname(ACBS__FILE__))
 			);
 			
 			$this->updateChecker->setBranch('main');
 			
-			// ERDC_UPDATER_TOKEN authenticates against a private update repository and is
+			// ACBS_UPDATER_TOKEN authenticates against a private update repository and is
 			// expected to be defined in wp-config.php. A site that hasn't set it still
 			// loads and runs normally - it simply won't receive updates - so this warns
 			// whoever can actually fix it rather than calling setAuthentication() with an
 			// undefined constant, which would fatal every request on PHP 8.
-			if(defined('ERDC_UPDATER_TOKEN')) {
-				$this->updateChecker->setAuthentication(ERDC_UPDATER_TOKEN);
+			if(defined('ACBS_UPDATER_TOKEN')) {
+				$this->updateChecker->setAuthentication(ACBS_UPDATER_TOKEN);
 			} elseif(is_admin()) {
 				add_action('admin_notices', [$this, 'render_missing_updater_token_notice']);
 			}
@@ -282,7 +290,7 @@
 							/* translators: 1: opening code tag, 2: constant name, 3: closing code tag */
 							esc_html__('ACF Components Block System: the %1$s%2$s%3$s constant is not defined in wp-config.php. Without it, this site will not receive future plugin updates - add it to wp-config.php to keep updates working.', 'erdc'),
 							'<code>',
-							'ERDC_UPDATER_TOKEN',
+							'ACBS_UPDATER_TOKEN',
 							'</code>'
 						);
 					?>

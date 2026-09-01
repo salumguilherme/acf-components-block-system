@@ -87,17 +87,36 @@
 							'name' => 'button_style',
 							'type' => 'button_group',
 							'required' => 1,
+							// Outline is no longer baked into the style. It used to double the
+							// list - primary/secondary/tertiary each with an -outline twin - and
+							// every new colour would have doubled it again. `button_outline`
+							// below carries that axis on its own, so a style and its outline
+							// variant are one choice plus one toggle.
 							'choices' => [
 								'primary' => 'Primary',
 								'secondary' => 'Secondary',
 								'tertiary' => 'Tertiary',
-								'primary-outline' => 'Primary Outline',
-								'secondary-outline' => 'Secondary Outline',
-								'tertiary-outline' => 'Tertiary Outline',
+								'white' => 'White',
 							],
 							'default_value' => 'primary',
 							'return_format' => 'value',
 							'layout' => 'horizontal',
+						],
+						[
+							'key' => 'field_6a9621c4b7e12',
+							'label' => 'Outline',
+							'name' => 'button_outline',
+							'type' => 'true_false',
+							'required' => 0,
+							'message' => '',
+							'default_value' => 0,
+							// Supplied with these two the way round they are: the toggle reads
+							// "Solid" when on and "Outline" when off, which is the opposite of what
+							// the field name suggests. Kept verbatim rather than silently corrected -
+							// flip the two strings if it was a slip.
+							'ui_on_text' => 'Outline',
+							'ui_off_text' => 'Solid',
+							'ui' => 1,
 						]
 					],
 				],

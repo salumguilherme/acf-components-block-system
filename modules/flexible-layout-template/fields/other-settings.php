@@ -21,7 +21,7 @@
 	 * A site can override or extend these fields by tagging its own field group with
 	 * "Flexible Layout Component = Other Settings" (see Other_Settings_Site_Fields) - a
 	 * field named the same as one of section_bg/section_container_id/vertical_padding/
-	 * vertical_padding_mobile replaces that field, and anything else is added alongside
+	 * vertical_padding_xs replaces that field, and anything else is added alongside
 	 * them.
 	 *
 	 * @version 1.0.28
@@ -34,6 +34,27 @@
 		 * Field group key.
 		 */
 		const GROUP_KEY = 'group_98d051483ff9a';
+
+		/**
+		 * get_section_bg_choices function
+		 *
+		 * The palette an editor can set a section's background to.
+		 *
+		 * The shared palette (see Colour_Palette), then one more filter for narrowing it to
+		 * just this field. Relabel site-wide through `erdc/colour_palette/choices`; use the
+		 * filter below only when sections should offer something cards do not.
+		 *
+		 * @version 1.0.0
+		 * @since   1.0.0
+		 * @return array
+		 */
+		public static function get_section_bg_choices(): array {
+
+			$choices = Colour_Palette::choices();
+
+			return (array) apply_filters('erdc/section_bg/choices', $choices);
+
+		}
 
 		/**
 		 * get_base_fields function
@@ -61,16 +82,8 @@
 					'label' => 'Section BG Colour',
 					'name' => 'section_bg',
 					'type' => 'button_group',
-					'choices' => [
-						'default' => 'Default (transparent)',
-						'white' => 'White',
-						'light' => 'Light',
-						'lighter' => 'Lighter',
-						'primary' => 'Primary',
-						'dark' => 'Dark',
-						'darker' => 'Darker',
-					],
-					'default_value' => 'darker',
+					'choices' => self::get_section_bg_choices(),
+					'default_value' => 'default',
 					'return_format' => 'string',
 				],
 				[
@@ -100,7 +113,7 @@
 				[
 					'key' => 'field_38b835071ff93',
 					'label' => 'Vertical Padding (Mobile)',
-					'name' => 'vertical_padding_mobile',
+					'name' => 'vertical_padding_xs',
 					'type' => 'select',
 					'choices' => [
 						'default' => 'Default',

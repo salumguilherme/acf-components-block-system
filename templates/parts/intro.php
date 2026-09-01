@@ -9,9 +9,11 @@
 	 * Prints nothing at all when both fields are empty - not an empty <header>, which
 	 * would carry the row's spacing and read as a gap the editor cannot get rid of.
 	 *
-	 * section_content is a wysiwyg, so it goes through the_content filters for
-	 * wpautop, shortcodes and embeds, exactly as post content does, and is then
-	 * restricted to post-safe HTML rather than trusted outright.
+	 * section_content is a wysiwyg, so it goes through the_content filters - wpautop for
+	 * paragraphs, wptexturize, embeds - exactly as post content does, and is then
+	 * restricted to post-safe HTML rather than trusted outright. That is WordPress's own
+	 * content pipeline rather than anything the plugin registers; the plugin itself adds
+	 * no shortcodes.
 	 *
 	 * @var ACBS\Modules\FlexibleLayoutTemplate\Rows\Row $row
 	 *

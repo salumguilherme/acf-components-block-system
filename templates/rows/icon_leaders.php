@@ -5,13 +5,22 @@
 	 * Override at {theme}/acbs/rows/icon_leaders.php
 	 *
 	 * A row of icon-led points: an icon, a heading, a line or two of text, optionally
-	 * linked. Identical in structure to image_cards_grid - intro, then a grid of items
-	 * from whichever of the three sources the editor chose - and deliberately so: the only
-	 * differences between the two are which fields the items map to, which lives in
-	 * Items_Source::DEFAULTS rather than in either template.
+	 * linked. The items come from the layout's own `icon_leaders` repeater and nowhere
+	 * else - the taxonomy/post-type `source` selector this layout used to carry is gone.
 	 *
-	 * `layout_columns` and `columns_alignment` are on the wrapper already, as
-	 * fl-loop-grid-columns-{n} and fl-loop-grid-columns-align-{x}.
+	 * The loop below is a NESTED have_rows(), called with no post id. That is not a
+	 * shorthand: inside an active page_sections row, ACF resolves `icon_leaders` as a sub
+	 * field of the current layout and opens a child loop, so the repeater is already
+	 * loaded and already formatted. Passing a post id would take a different branch and
+	 * break the moment these rows are rendered for something other than the global post.
+	 * See CLAUDE.md section 05.3.
+	 *
+	 * The loop is never broken out of, so ACF pops it from its own stack when the rows run
+	 * out - the only thing that does. If you add an early exit, call reset_rows() first.
+	 *
+	 * Columns and alignment are not read here: `layout_columns` and
+	 * `layout_columns_alignment` are already on the wrapper as fl-loop-grid-columns-{n}
+	 * and fl-loop-grid-columns-align-{x}, so the grid is a CSS concern.
 	 *
 	 * @var ACBS\Modules\FlexibleLayoutTemplate\Rows\Row $row
 	 *
@@ -23,12 +32,18 @@
 
 	acbs_row_part( 'intro', $row );
 
-	$acbs_items = acbs_row_items( $row );
-
-	if ( ! $acbs_items->count() ) {
+	// An empty repeater renders no <ul> at all rather than an empty one, so a row whose
+	// items were removed leaves the intro standing and nothing else. have_rows() returns
+	// false for an empty value, so this is the whole check.
+	if ( ! have_rows( 'icon_leaders' ) ) {
 		return;
 	}
 
 ?><ul class="fl-grid fl-leaders">
-	<?php $acbs_items->render(); ?>
+	<?php
+		while ( have_rows( 'icon_leaders' ) ) {
+			the_row();
+			acbs_row_partial( 'item', $row );
+		}
+	?>
 </ul>

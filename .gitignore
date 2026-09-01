@@ -20,3 +20,6 @@ demo_sdk_vault/
 # Session primer is TRACKED in this repo - see CLAUDE.md's own note.
 #CLAUDE.md
 
+
+# Release packages
+dist/

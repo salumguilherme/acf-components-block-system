@@ -121,8 +121,9 @@
 		 */
 		public static function get($name) {
 
-			// A row can be rendered before init:5 in principle (a shortcode in an early
-			// template part), so make sure the base set exists before answering.
+			// A row can be rendered before init:20 in principle - a theme calling
+			// acbs_render_rows() from a header template part, say - so make sure the base set
+			// exists before answering rather than relying on the hook having fired.
 			self::boot();
 
 			return self::$types[$name] ?? null;
