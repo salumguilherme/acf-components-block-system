@@ -1,0 +1,174 @@
+//
+// Row: Call to Action
+//
+// Enqueued only on a page that actually has a cta row - Rows\Assets registers this as
+// `acbs-row-cta` and enqueues it in the footer, so it loads after structure.scss.
+//
+// Markup: templates/rows/cta.php. The row is a single content block plus its buttons,
+// and `display_type` chooses whether they sit side by side (`columns`) or stack
+// (`stacked`).
+//
+// Reference: Figma "Untitled", node 27:690 - two rows, columns above stacked.
+//
+// SPECIFICITY. Every layout rule below is written `.fl-cta.fl-cta-columns` rather than
+// `.fl-cta-columns`, and the reason is not cosmetic. structure.scss carries
+//
+//     .fl-acbs .fl-card-box .fl-card { display: flex; flex-flow: column nowrap; }
+//
+// at (0,3,0), which is exactly what a plain `.fl-acbs .fl-type-cta .fl-cta-columns`
+// scores. A tie is settled by load order, and load order happens to favour this sheet -
+// but only because row sheets are enqueued in the footer, which is an asset-pipeline
+// detail and not something a layout should depend on. The doubled class makes these
+// (0,4,0) and settles it on specificity instead. The same rule's `.fl-buttons` child
+// (margin-top: auto, padding-top: 1.5rem) is (0,4,0), so the resets below are written
+// as children of the doubled selector to clear it.
+//
+// Type, colour and the card itself are all inherited - the card ground, radius and text
+// colour come from `layout_display` / `layout_display_bg` in structure.scss, and the
+// headings from the theme. This sheet only does layout.
+//
+
+@import "../tokens";
+
+.fl-acbs .fl-type-cta {
+
+	// The wysiwyg brings the theme's own heading and paragraph margins with it. In a
+	// centred card those margins are measured from the card's padding edge, so a leading
+	// <h4> with a top margin drops the whole block off centre - visible in the columns
+	// layout, where the two sides are vertically centred against each other.
+	.fl-cta-content {
+		> :first-child { margin-top: 0; }
+		> :last-child  { margin-bottom: 0; }
+	}
+
+	// ----------------------------------------------------------------------------------
+	// display_type: columns
+	//
+	// Content left, buttons right, vertically centred against each other. Design: 64px
+	// between them.
+	//
+	// ABOUT THE 50% FLOOR. The brief is "min-width: 50% each column", which taken
+	// literally is 50% + 50% + a 64px gap - more than the row has, and since min-width is
+	// a hard floor neither column can give the gap back. The row overflows the card by
+	// exactly the gap. So the floor is half of what is actually available (50% less half
+	// the gap), which is the same guarantee - neither side drops below half the row -
+	// without the overflow.
+	//
+	// `justify-content: space-between` is kept because it is what the design describes,
+	// but note it is inert here: the content column grows (flex-grow: 1) and absorbs all
+	// the free space itself, so there is never any left for space-between to distribute.
+	// What actually pins the button to the right edge is `justify-content: flex-end` on
+	// the buttons column below - without it, a buttons column sitting at its 50% floor
+	// renders its button at the row's midpoint rather than its right edge.
+	// ----------------------------------------------------------------------------------
+	.fl-cta.fl-cta-columns {
+		display: flex;
+		flex-flow: row nowrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--fl-cta-gap, 4rem);
+
+		> .fl-cta-content {
+			flex: 1 1 auto;
+			min-width: calc(50% - (var(--fl-cta-gap, 4rem) * 0.5));
+		}
+
+		> .fl-buttons {
+			flex: 0 1 auto;
+			min-width: calc(50% - (var(--fl-cta-gap, 4rem) * 0.5));
+			justify-content: flex-end;
+
+			// Clears structure's card rule, which pushes the buttons to the bottom of a
+			// column-direction card and adds a 1.5rem lead-in above them. Neither means
+			// anything on a row: `margin-top: auto` beats `align-items: center` outright
+			// (auto margins are resolved first), so without this the buttons sit on the
+			// card's bottom edge while the content stays centred.
+			margin-top: 0;
+			padding-top: 0;
+		}
+	}
+
+	// ----------------------------------------------------------------------------------
+	// display_type: stacked
+	//
+	// The same two blocks, centred and stacked, at every width. Design: 40px between the
+	// content and the buttons, content held to 1008px so the paragraph does not run the
+	// full width of a wide card.
+	// ----------------------------------------------------------------------------------
+	.fl-cta.fl-cta-stacked {
+		display: flex;
+		flex-flow: column nowrap;
+		align-items: center;
+		justify-content: center;
+		gap: var(--fl-cta-stacked-gap, 2.5rem);
+		text-align: center;
+
+		> .fl-cta-content {
+			width: 100%;
+			max-width: var(--fl-cta-measure, 63rem);
+		}
+
+		> .fl-buttons {
+			justify-content: center;
+
+			// The gap above already spaces these; structure's card rule would add its own
+			// 1.5rem on top and make the stacked row's spacing disagree with the design.
+			margin-top: 0;
+			padding-top: 0;
+		}
+	}
+
+	// Card padding, stacked only.
+	//
+	// `--fl-card-space` is read by `.fl-acbs .fl-card-box .fl-card` in structure.scss, so
+	// setting it here retunes that rule rather than competing with it - no specificity
+	// race, and a card that is switched off still has no padding because nothing reads
+	// the property. `&.fl-card-box` is on the SECTION, which is the same element as
+	// `.fl-type-cta`, hence the `&` rather than a descendant.
+	&.fl-card-box .fl-cta-stacked {
+		--fl-card-space: var(--fl-cta-card-space, 3rem);
+
+		@media (max-width: 991.98px) {
+			--fl-card-space: var(--fl-cta-card-space-sm, 2rem);
+		}
+
+		@media (max-width: 767.98px) {
+			--fl-card-space: var(--fl-cta-card-space-xs, 1.275rem);
+		}
+	}
+
+	// ----------------------------------------------------------------------------------
+	// Tablet and mobile
+	//
+	// The columns layout becomes the stacked one: content above buttons, both centred.
+	// One max-width block rather than two, because the project's breakpoints nest and
+	// tablet-and-below is a single query.
+	// ----------------------------------------------------------------------------------
+	@media (max-width: 991.98px) {
+
+		.fl-cta.fl-cta-columns {
+			flex-flow: column nowrap;
+			align-items: center;
+			justify-content: flex-start;
+			text-align: center;
+			gap: var(--fl-cta-gap-sm, 2rem);
+
+			> .fl-cta-content,
+			> .fl-buttons {
+				width: 100%;
+				// Releases the desktop floor. Left in place it would still read 50% of
+				// the row, which on a stacked column is a floor no narrower than the
+				// column itself - harmless, but it makes the rule look like it does
+				// something it no longer does.
+				min-width: 0;
+			}
+
+			> .fl-buttons {
+				flex: 0 1 auto;
+				justify-content: center;
+			}
+		}
+
+	}
+
+}

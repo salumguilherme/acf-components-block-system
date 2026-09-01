@@ -870,6 +870,23 @@ Added 01–02/09/2026, each one caught by measuring output rather than by a buil
   same height but 24x24 and 24x18 are different widths, so the text after them starts at
   different x positions - measured 204px and 211px on the live `icon_list`. Give the icon BOX a
   fixed width and leave the icon `auto` inside it.
+- **The card rule sets `flex-flow: column` on the row, and it outranks a row sheet.**
+  `.fl-acbs .fl-card-box .fl-card` is (0,3,0) and declares `display: flex; flex-flow: column
+  nowrap`, so a row that wants to lay itself out sideways - `cta` with `display_type =
+  columns` - is forced back into a column the moment an editor switches Content Box on.
+  A row sheet's natural `.fl-acbs .fl-type-cta .fl-cta-columns` is also (0,3,0), so it ties
+  and is settled by load order, which happens to favour the row sheet only because row
+  sheets are enqueued in the FOOTER. Doubling the class (`.fl-cta.fl-cta-columns`) makes it
+  (0,4,0) and settles it on specificity instead. The same rule's `.fl-buttons` child carries
+  `margin-top: auto`, which beats `align-items: center` outright because auto margins
+  resolve first - on a row that drops the buttons onto the card's bottom edge while the
+  content stays centred.
+- **A `min-width` floor of 50% on two flex columns plus a gap overflows by the gap.**
+  `min-width` is a hard floor, so neither column can give the gap back and the row spills
+  past its container - silently, since a card has `overflow: visible`. Floor them at
+  `calc(50% - gap/2)`, which is the same guarantee measured against what is actually
+  available. Caught by comparing `document.documentElement.scrollWidth` against
+  `clientWidth`, which is the cheapest overflow check there is.
 - **A blanket prefix rename will merge a deprecated alias into its own target.** Renaming
   `erdc/` to `acbs/` turned `do_action('erdc/init')` - the deprecated alias sitting directly
   below `do_action('acbs/init')` - into a second `acbs/init`, firing every listener twice. A
@@ -894,9 +911,31 @@ Added 01–02/09/2026, each one caught by measuring output rather than by a buil
 
 ### Row stylesheets
 
-`columned_content`, `content_left_image_right`, `full_width_image`, `icon_list`,
-`logo_gallery` and `stats` have sheets. `testimonials`, `cta`, `accordions` and
+`columned_content`, `content_left_image_right`, `cta`, `full_width_image`, `icon_list`,
+`logo_gallery` and `stats` have sheets. `testimonials`, `accordions` and
 `contact_page_form` have real templates and no sheet.
+
+### Decisions taken on cta, 02/09/2026
+
+Reference: Figma "Untitled", node 27:690.
+
+- **The 50% column floor is `calc(50% - gap/2)`, not `50%`.** Taken literally, two columns
+  each floored at 50% plus a 64px gap is wider than the row, and because `min-width` is a
+  hard floor neither column can give the gap back: the row overflows the card by exactly
+  the gap. Half of what is *available* is the same guarantee without the overflow, and it
+  measures 506 + 64 + 506 = 1076px against a 1076px inner width.
+- **`justify-content: space-between` is inert on this row, and kept anyway.** The content
+  column grows and absorbs all the free space itself, so nothing is ever left to
+  distribute. What actually pins the button to the right edge is `justify-content:
+  flex-end` on the buttons column: at its 50% floor with the default `flex-start`, the
+  button renders at the row's midpoint instead.
+- **Card padding is retuned through `--fl-card-space`, not a competing rule.** Structure's
+  `.fl-card-box .fl-card` reads that property, so setting it on the stacked row changes
+  that rule rather than racing it, and a row with cards switched off is untouched because
+  nothing reads the property. 3rem / 2rem / 1.275rem, stacked only.
+- **The design's 15px card radius and 40px columns padding were left alone.** Both would
+  mean moving the shared `--fl-card-radius` (8px) and `--fl-card-space` (2rem), which
+  every other card layout also uses. Same call as icon_list's 4px radius below.
 
 ### Decisions taken on icon_list, 01/09/2026
 
