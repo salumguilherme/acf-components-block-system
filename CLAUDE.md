@@ -253,6 +253,13 @@ Output shape:
 </div>
 ```
 
+**Overriding a row's CSS from a theme.** Drop a file at `{theme}/acbs/css/rows/{layout}.css`
+(note `css/rows/`, not `rows/css/`). No hook: the file existing is the trigger. It is registered
+with the plugin's own sheet as a dependency so it always loads second, child theme beats parent,
+and it is versioned by `filemtime` so an edit busts the cache. `acbs/styles/enqueue_default`
+drops the plugin's sheet for one layout if you want to take a row over rather than layer on it.
+**This works for a layout a theme registered itself**, which it did not until 01/09 - see §09.
+
 **The wrapper is a template too.** `Wrapper::render()` computes the classes, id and inline
 custom properties, then includes `templates/wrapper.php` with `$row` in scope. The PHP fallback
 inside `Wrapper::render()` fires only if that file has been deleted and the theme supplies none.
@@ -388,7 +395,7 @@ into the array literal in `page-content.php` (975 lines, down from 1,724).
 | `content_left_image_right` | | none |
 | `cta` | | display + cards |
 | `full_width_image` | | none |
-| `icon_list` | `icon_list` repeater | full set + cards |
+| `icon_list` | `icon_list` repeater | full set + cards. **The card wraps the whole list, not each item** - the only repeater layout where that is true, because the row's content IS the list. Columns are CSS multi-column, not the shared grid |
 | `image_gallery` | gallery field | columns 1–8, default 7 |
 | `logo_gallery` | gallery field | columns 1–8, default 7 |
 | `stats` | `stats` repeater | full set + cards |
@@ -842,6 +849,27 @@ Added 01–02/09/2026, each one caught by measuring output rather than by a buil
 - **A page cache will make a correct deploy look like a failed one.** Staging returned the old
   markup with `x-cache: HIT` after a good upload. Check with a cache-buster before debugging
   the code.
+- **A theme stylesheet whose dependency is not registered is dropped in silence.**
+  `WP_Dependencies::all_deps()` computes `array_diff($deps, array_keys($registered))` and, with
+  anything missing, sets `$keep_going = false` and skips the item. No warning, no output. This
+  bit `enqueue_theme_styles()` twice: a layout registered BY A THEME has no plugin sheet, so
+  `acbs-row-{layout}` is never registered and naming it as a dependency killed the theme's own
+  file; and because a dependency is enqueued whether or not anyone asked, the same line dragged
+  the plugin's sheet back in and made `acbs/styles/enqueue_default => false` do nothing. Fixed
+  01/09: the dependency is now what was ACTUALLY enqueued, falling back to `acbs-structure`.
+- **`ACBS_VERSION` is the wrong cache key for a file the plugin does not own.** A theme edits
+  its own CSS without bumping the plugin, so a theme row sheet kept serving the cached old
+  file - which reads as "my change did not deploy", the same false trail the page cache gives.
+  `filemtime()` now, matching what `Module` does for structure and Bootstrap.
+- **`display: grid` fills ACROSS, which is wrong for a list.** `.fl-grid` puts items 1 and 2 on
+  the first row, not the first half of the list in column one. `icon_list` reads as a scrambled
+  list under it. CSS multi-column fills down then across, balances by height, and leaves the
+  markup as ONE `<ul>` - which splitting into several in PHP would not, and which matters:
+  a screen reader otherwise announces "list, 5 items" then "list, 4 items" for one list of nine.
+- **`width: auto` on icons of different proportions gives a ragged text edge.** Two icons at the
+  same height but 24x24 and 24x18 are different widths, so the text after them starts at
+  different x positions - measured 204px and 211px on the live `icon_list`. Give the icon BOX a
+  fixed width and leave the icon `auto` inside it.
 - **A blanket prefix rename will merge a deprecated alias into its own target.** Renaming
   `erdc/` to `acbs/` turned `do_action('erdc/init')` - the deprecated alias sitting directly
   below `do_action('acbs/init')` - into a second `acbs/init`, firing every listener twice. A
@@ -869,6 +897,18 @@ Added 01–02/09/2026, each one caught by measuring output rather than by a buil
 `columned_content`, `content_left_image_right`, `full_width_image`, `icon_list`,
 `logo_gallery` and `stats` have sheets. `testimonials`, `cta`, `accordions` and
 `contact_page_form` have real templates and no sheet.
+
+### Decisions taken on icon_list, 01/09/2026
+
+- **Multi-column, not a PHP split.** Balances by HEIGHT rather than item count, so nine items
+  across three columns come out 4/4/1 (heights 204/204/140) rather than 3/3/3. That keeps the
+  column bottoms level, which a count split would not. Swap to a PHP split if strict counts
+  matter more than even columns.
+- **The icon box has a fixed width, the icon does not.** Brief was height 1.2em / width auto;
+  that alone gave the ragged edge in §09, so the box is 1.75em wide and the icon still keeps
+  its own proportions inside it.
+- **The design's card radius is 4px; the shared `--fl-card-radius` is 8px.** Left alone rather
+  than special-cased for one row.
 
 ### Closed 02/09/2026
 

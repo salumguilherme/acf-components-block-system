@@ -228,12 +228,18 @@
 			 */
 			$enqueue_default = (bool) apply_filters('acbs/styles/enqueue_default', true, $type->name(), $type);
 
+			// The plugin sheets that were ACTUALLY enqueued, collected rather than assumed.
+			// enqueue_theme_styles() needs to know which handles really exist so it can
+			// depend on those and nothing else - see the two failure modes documented there.
+			$base = [];
+
 			if($enqueue_default) {
 
 				foreach($type->styles() as $handle) {
 
 					if(wp_style_is($handle, 'registered')) {
 						wp_enqueue_style($handle);
+						$base[] = $handle;
 					}
 
 				}
@@ -245,7 +251,7 @@
 			// side effect of enqueue order. Note this is the opposite of how TEMPLATES
 			// resolve, where the theme's file replaces the plugin's - deliberately, since
 			// there is no sane way to layer two PHP files.
-			$this->enqueue_theme_styles($type);
+			$this->enqueue_theme_styles($type, $base);
 
 			foreach($type->scripts() as $handle) {
 
@@ -260,26 +266,71 @@
 		/**
 		 * enqueue_theme_styles function
 		 *
+		 * A theme's own sheet for a row, from {theme}/acbs/css/rows/{layout}.css. Child
+		 * theme first, then parent; the file existing is the whole trigger, there is no
+		 * hook to call.
+		 *
+		 * THE DEPENDENCY IS WHAT WAS ACTUALLY ENQUEUED, not what the row type declares, and
+		 * that distinction is the whole point of this function. It used to pass
+		 * `$type->styles()` straight through, which broke in two ways, both silently:
+		 *
+		 *   1. A layout REGISTERED BY A THEME has no sheet in the plugin, so
+		 *      Assets::register_row_assets() never registers `acbs-row-{layout}` - it only
+		 *      registers handles that have a built file behind them. Naming it as a
+		 *      dependency then meant WP_Dependencies::all_deps() computed a non-empty
+		 *      array_diff against the registered list, set $keep_going = false, and dropped
+		 *      the stylesheet entirely. No warning, no output: a theme could put the file in
+		 *      exactly the documented place and never see it load.
+		 *
+		 *   2. `acbs/styles/enqueue_default` returning false is supposed to drop the
+		 *      plugin's sheet so a site can style a row from nothing. But a dependency is
+		 *      enqueued whether or not anyone asked for it, so the theme sheet dragged the
+		 *      plugin's back in through the dependency chain and the filter did nothing.
+		 *
+		 * Falling back to the structure handle keeps the ordering promise in both cases:
+		 * structure already depends on the scoped Bootstrap, so a theme sheet still lands
+		 * after both of them.
+		 *
+		 * VERSION IS filemtime, not ACBS_VERSION. A theme edits its own CSS on its own
+		 * schedule and has no reason to bump the plugin's version, so keying the cache to
+		 * ACBS_VERSION meant an edited theme sheet kept serving the old file - which reads
+		 * as "my change did not deploy". Same approach Module uses for structure and
+		 * Bootstrap.
+		 *
 		 * @version 1.0.0
 		 * @since   1.0.0
 		 *
 		 * @param Row_Type $type
+		 * @param array    $base Plugin style handles actually enqueued for this row.
 		 */
-		private function enqueue_theme_styles(Row_Type $type) {
+		private function enqueue_theme_styles(Row_Type $type, array $base = []) {
 
 			$name = $type->name();
 			$relative = 'acbs/css/rows/'.$name.'.css';
 
 			foreach([get_stylesheet_directory() => get_stylesheet_directory_uri(), get_template_directory() => get_template_directory_uri()] as $dir => $uri) {
 
-				if(!file_exists($dir.'/'.$relative)) {
+				$file = $dir.'/'.$relative;
+
+				if(!file_exists($file)) {
 					continue;
 				}
 
 				$handle = Row_Type_Base::STYLE_PREFIX.$name.'-theme';
 
 				if(!wp_style_is($handle, 'registered')) {
-					wp_register_style($handle, $uri.'/'.$relative, $type->styles(), ACBS_VERSION, 'all');
+
+					$deps = $base;
+
+					if(!$deps && wp_style_is(Module::STRUCTURE_HANDLE, 'registered')) {
+						$deps = [Module::STRUCTURE_HANDLE];
+					}
+
+					$version = filemtime($file);
+					$version = false !== $version ? $version : ACBS_VERSION;
+
+					wp_register_style($handle, $uri.'/'.$relative, $deps, $version, 'all');
+
 				}
 
 				wp_enqueue_style($handle);
