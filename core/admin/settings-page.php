@@ -243,8 +243,8 @@
 
 			add_submenu_page(
 				self::PARENT_SLUG,
-				esc_html__('ACF Components Block System', 'erdc'),
-				esc_html__('Components', 'erdc'),
+				esc_html__('ACF Components Block System', 'acbs'),
+				esc_html__('Components', 'acbs'),
 				self::CAPABILITY,
 				self::PAGE_SLUG,
 				[$this, 'render_page']
@@ -402,7 +402,7 @@
 		public function render_page() {
 
 			if(!current_user_can(self::CAPABILITY)) {
-				wp_die(esc_html__('You are not allowed to do this.', 'erdc'), 403);
+				wp_die(esc_html__('You are not allowed to do this.', 'acbs'), 403);
 			}
 
 			$this->collect();

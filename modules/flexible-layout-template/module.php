@@ -212,7 +212,7 @@
 		 * added purely through tagging its own group "Flexible Layout = Page Content" - rather
 		 * than read from a fixed constant: since 1.0.23 every layout gets Intro by default
 		 * (see Common_Fields::should_add_intro()), disable-able per layout via the
-		 * `erdc_disable_layout_intro` filter, so which layouts actually need this can change
+		 * `acbs_disable_layout_intro` filter, so which layouts actually need this can change
 		 * at runtime.
 		 *
 		 * @version 1.0.25

@@ -28,7 +28,7 @@
 	 * A site can override or extend these fields by tagging its own field group with
 	 * "Flexible Layout Component = Intro" (see Intro_Site_Fields) - a field named
 	 * section_content replaces that field, and anything else is added alongside it. A
-	 * layout can opt out of Intro entirely via the `erdc_disable_layout_intro` filter (see
+	 * layout can opt out of Intro entirely via the `acbs_disable_layout_intro` filter (see
 	 * Common_Fields).
 	 *
 	 * @version 1.0.23
@@ -107,11 +107,11 @@
 		}
 
 		public static function label(): string {
-			return __('Intro', 'erdc');
+			return __('Intro', 'acbs');
 		}
 
 		public static function filter_tag(): string {
-			return 'erdc/intro/fields';
+			return 'acbs/intro/fields';
 		}
 
 		public static function site_fields_class(): string {
@@ -141,7 +141,7 @@
 		 * @return string
 		 */
 		public static function conditional_logic_label(): string {
-			return __('Section Intro', 'erdc');
+			return __('Section Intro', 'acbs');
 		}
 
 	}

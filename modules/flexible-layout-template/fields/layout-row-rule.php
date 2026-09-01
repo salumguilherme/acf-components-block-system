@@ -44,7 +44,7 @@
 		 */
 		public function initialize() {
 			$this->name = self::RULE_NAME;
-			$this->label = __('Flexible Layout Row', 'erdc');
+			$this->label = __('Flexible Layout Row', 'acbs');
 			$this->category = 'forms';
 		}
 
@@ -77,7 +77,7 @@
 		 * renamed, added or removed layout is reflected here immediately with no caching
 		 * layer of its own to go stale - including a layout added purely through the ACF
 		 * admin UI (tagging a site's own group "Flexible Layout = Page Content"), not
-		 * just one added via the `erdc/flexible_layout/layouts` code filter.
+		 * just one added via the `acbs/flexible_layout/layouts` code filter.
 		 *
 		 * @version 1.0.25
 		 * @since   1.0.24
@@ -88,7 +88,7 @@
 		 */
 		public function get_values($rule) {
 
-			$values = [self::ALL => __('All Flexible Layouts', 'erdc')];
+			$values = [self::ALL => __('All Flexible Layouts', 'acbs')];
 
 			foreach(Page_Content::get_current_layouts() as $layout) {
 

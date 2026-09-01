@@ -14,7 +14,7 @@
 	 * one of the layout_* fields replaces it in place, anything else is appended.
 	 *
 	 * Note the two-step: this changes what the FIELDS are, while
-	 * `erdc/grid_display/layout_fields` changes which of them a given layout takes. A site
+	 * `acbs/grid_display/layout_fields` changes which of them a given layout takes. A site
 	 * adding a field here still has to name it in that filter for any layout to show it.
 	 *
 	 * @version 1.0.0

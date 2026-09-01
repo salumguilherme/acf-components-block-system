@@ -11,7 +11,7 @@
 	 *
 	 * Each pair below maps one Taxonomy select field to the Terms field(s) that should
 	 * reload against it (see Page_Content's "Source: Taxonomy" layouts). Add further
-	 * pairs here, or via the `erdc/dynamic_taxonomy_fields/pairs` filter, as more
+	 * pairs here, or via the `acbs/dynamic_taxonomy_fields/pairs` filter, as more
 	 * layouts adopt the Repeater/Taxonomy source pattern.
 	 *
 	 * A pair may also carry an optional 'post_type_source' key - an array of one or
@@ -67,7 +67,7 @@
 		 * @return array
 		 */
 		public static function get_pairs() {
-			return apply_filters('erdc/dynamic_taxonomy_fields/pairs', self::FIELD_PAIRS);
+			return apply_filters('acbs/dynamic_taxonomy_fields/pairs', self::FIELD_PAIRS);
 		}
 
 		/**

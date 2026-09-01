@@ -21,7 +21,7 @@
 	 * rule, by pointing a plain field group directly at this options page, where a
 	 * shared field name still wins but the plugin can only drop its own copy rather
 	 * than fold the site's field into position (see Site_Fields::remove_claimed()).
-	 * Code-based additions can use the `erdc/theme_settings/fields` filter.
+	 * Code-based additions can use the `acbs/theme_settings/fields` filter.
 	 *
 	 * Note the field keys here deliberately differ from those in any hand-built version
 	 * of this group a site may already have in its database: ACF's runtime field store
@@ -207,7 +207,7 @@
 		 */
 		public static function register() {
 
-			$fields = apply_filters('erdc/theme_settings/fields', self::get_base_fields());
+			$fields = apply_filters('acbs/theme_settings/fields', self::get_base_fields());
 			$fields = Site_Fields::remove_claimed($fields);
 			$fields = Site_Fields::merge($fields);
 			$fields = self::remove_empty_tabs($fields);
@@ -220,7 +220,7 @@
 
 			acf_add_local_field_group([
 				'key' => self::GROUP_KEY,
-				'title' => __('Theme Settings', 'erdc'),
+				'title' => __('Theme Settings', 'acbs'),
 				'fields' => $fields,
 				'location' => [
 					[

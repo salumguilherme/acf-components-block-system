@@ -64,13 +64,13 @@
 			]);
 
 			$settings->add_field(self::TAB_ID, self::SECTION_ID, 'acf_copy_to_clipboard_enabled', [
-				'label' => esc_html__('ACF Copy to clipboard', 'erdc'),
+				'label' => esc_html__('ACF Copy to clipboard', 'acbs'),
 				'full_field_id' => self::ENABLED_OPTION,
 				'field_args' => [
 					'type' => 'checkbox',
 					'value' => 'yes',
 					'std' => 'yes',
-					'sub_desc' => esc_html__('Show copy field name to clipboard icon on ACF fields', 'erdc'),
+					'sub_desc' => esc_html__('Show copy field name to clipboard icon on ACF fields', 'acbs'),
 				],
 			]);
 
@@ -85,8 +85,8 @@
 		public static function render_section_heading() {
 			?>
 			<hr>
-			<h2><?php esc_html_e('ACF Copy to clipboard', 'erdc'); ?></h2>
-			<p class="e-experiment__description"><?php esc_html_e('Adds a small icon next to each ACF field, on post edit and options pages, that copies the field name to the clipboard.', 'erdc'); ?></p>
+			<h2><?php esc_html_e('ACF Copy to clipboard', 'acbs'); ?></h2>
+			<p class="e-experiment__description"><?php esc_html_e('Adds a small icon next to each ACF field, on post edit and options pages, that copies the field name to the clipboard.', 'acbs'); ?></p>
 			<?php
 		}
 

@@ -40,17 +40,17 @@
 		public static function choices(): array {
 
 			$choices = [
-				'default' => __('Transparent', 'erdc'),
-				'white' => __('White', 'erdc'),
-				'light' => __('Light', 'erdc'),
-				'lighter' => __('Lighter', 'erdc'),
-				'accent-1' => __('Accent 1', 'erdc'),
-				'accent-2' => __('Accent 2', 'erdc'),
-				'dark' => __('Dark', 'erdc'),
-				'darker' => __('Darker', 'erdc'),
-				'primary' => __('Primary', 'erdc'),
-				'secondary' => __('Secondary', 'erdc'),
-				'tertiary' => __('Tertiary', 'erdc'),
+				'default' => __('Transparent', 'acbs'),
+				'white' => __('White', 'acbs'),
+				'light' => __('Light', 'acbs'),
+				'lighter' => __('Lighter', 'acbs'),
+				'accent-1' => __('Accent 1', 'acbs'),
+				'accent-2' => __('Accent 2', 'acbs'),
+				'dark' => __('Dark', 'acbs'),
+				'darker' => __('Darker', 'acbs'),
+				'primary' => __('Primary', 'acbs'),
+				'secondary' => __('Secondary', 'acbs'),
+				'tertiary' => __('Tertiary', 'acbs'),
 			];
 
 			/**

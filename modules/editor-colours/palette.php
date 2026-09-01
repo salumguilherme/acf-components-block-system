@@ -33,12 +33,20 @@
 		/**
 		 * The default palette: class key => label + swatch colour.
 		 *
-		 * WARNING ON `dark`. This says #171717, which is $heading-colour. The compiled
-		 * `.text-dark` says #175e54, because $theme-colors maps 'dark' to $brand-primary
-		 * in _tokens.scss ("dark and darker both resolve to primary today"). So this one
-		 * swatch previews a colour the front end will not render. It is left as specified
-		 * rather than quietly corrected, because the fix is a decision about the token,
-		 * not about this file: changing $dark also moves every fl-bg-dark section.
+		 * EVERY HEX HERE IS WHAT ITS CLASS ACTUALLY RENDERS, not what the name suggests.
+		 * The swatch and the editor preview are a promise about the result, so a value that
+		 * disagrees with the compiled stylesheet is worse than no preview at all.
+		 *
+		 * `dark` is the one where those two readings differ. It is #175e54, the brand green,
+		 * because $theme-colors maps 'dark' to $brand-primary in _tokens.scss ("dark and
+		 * darker both resolve to primary today") and so `.text-dark` compiles to
+		 * `color: #175e54`. It was #171717 ($heading-colour) here for a day, which drew a
+		 * near-black swatch for a class that paints green.
+		 *
+		 * So: when a token moves, this list moves with it. The two are not generated from
+		 * each other - these hexes are needed in PHP at admin render time, where the
+		 * compiled stylesheet is not available to parse - so keeping them in step is a
+		 * manual job. Check against `.text-{key}` in assets/css/rows-bootstrap.css.
 		 *
 		 * @var array
 		 */
@@ -47,7 +55,7 @@
 			'secondary' => [ 'label' => 'Secondary', 'hex' => '#e35c49' ],
 			'tertiary'  => [ 'label' => 'Tertiary',  'hex' => '#ffc550' ],
 			'white'     => [ 'label' => 'White',     'hex' => '#ffffff' ],
-			'dark'      => [ 'label' => 'Dark',      'hex' => '#171717' ],
+			'dark'      => [ 'label' => 'Dark',      'hex' => '#175e54' ],
 			'light'     => [ 'label' => 'Light',     'hex' => '#f8fafc' ],
 			'accent-1'  => [ 'label' => 'Accent 1',  'hex' => '#ede8c4' ],
 			'accent-2'  => [ 'label' => 'Accent 2',  'hex' => '#e2c2c7' ],

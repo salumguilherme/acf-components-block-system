@@ -90,18 +90,18 @@
 			]);
 
 			$settings->add_field(self::TAB_ID, self::SECTION_ID, 'page_header_enabled', [
-				'label' => esc_html__('Page Header Fields', 'erdc'),
+				'label' => esc_html__('Page Header Fields', 'acbs'),
 				'full_field_id' => self::ENABLED_OPTION,
 				'field_args' => [
 					'type' => 'checkbox',
 					'value' => 'yes',
 					'std' => 'yes',
-					'sub_desc' => esc_html__('Enable the Page Header', 'erdc'),
+					'sub_desc' => esc_html__('Enable the Page Header', 'acbs'),
 				],
 			]);
 
 			$settings->add_field(self::TAB_ID, self::SECTION_ID, 'page_header_exclusions', [
-				'label' => esc_html__('Hide Page Header On', 'erdc'),
+				'label' => esc_html__('Hide Page Header On', 'acbs'),
 				'full_field_id' => self::EXCLUSIONS_OPTION,
 				'render' => [__CLASS__, 'render_exclusions'],
 				'field_args' => [
@@ -124,8 +124,8 @@
 		public static function render_section_heading() {
 			?>
 			<hr>
-			<h2><?php esc_html_e('Page Header', 'erdc'); ?></h2>
-			<p class="e-experiment__description"><?php esc_html_e('A base set of header fields for this site, which each site can extend or override through ACF.', 'erdc'); ?></p>
+			<h2><?php esc_html_e('Page Header', 'acbs'); ?></h2>
+			<p class="e-experiment__description"><?php esc_html_e('A base set of header fields for this site, which each site can extend or override through ACF.', 'acbs'); ?></p>
 			<?php
 		}
 
@@ -144,7 +144,7 @@
 			<div class="erdc-page-header-exclusions"<?php echo self::is_enabled() ? '' : ' style="display:none"'; ?>>
 
 				<p class="description" style="margin-bottom:8px">
-					<?php esc_html_e('Tick anywhere the Page Header fields should NOT appear. Leave everything unticked to show them everywhere.', 'erdc'); ?>
+					<?php esc_html_e('Tick anywhere the Page Header fields should NOT appear. Leave everything unticked to show them everywhere.', 'acbs'); ?>
 				</p>
 
 				<?php foreach(self::get_targets() as $heading => $items) : ?>
@@ -201,8 +201,8 @@
 			}
 
 			return [
-				esc_html__('Post Types', 'erdc') => $post_types,
-				esc_html__('Taxonomies', 'erdc') => $taxonomies,
+				esc_html__('Post Types', 'acbs') => $post_types,
+				esc_html__('Taxonomies', 'acbs') => $taxonomies,
 			];
 
 		}

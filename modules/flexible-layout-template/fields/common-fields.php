@@ -58,7 +58,7 @@
 		 *
 		 * Intro is added to every layout unconditionally - including a site's own
 		 * custom layouts added via Site_Layouts - unless its name is in
-		 * `erdc_disable_layout_intro`.
+		 * `acbs_disable_layout_intro`.
 		 *
 		 * @version 1.0.23
 		 * @since   1.0.6
@@ -83,7 +83,7 @@
 			// its own. The filter is the seam, kept for a theme that wants to suppress Intro on
 			// a particular layout:
 			//
-			//   add_filter('erdc_disable_layout_intro', function($disabled) {
+			//   add_filter('acbs_disable_layout_intro', function($disabled) {
 			//       $disabled[] = 'full_width_image';
 			//       return $disabled;
 			//   });
@@ -91,7 +91,7 @@
 			// Anything added here is also read by should_add_intro(), which is what
 			// Layout_Row_Type::supports() and the flexible-layout-tabs script both go through, so
 			// one callback is enough to keep the whole plugin consistent about it.
-			$disabled = apply_filters('erdc_disable_layout_intro', []);
+			$disabled = apply_filters('acbs_disable_layout_intro', []);
 
 			// Adds the common fields to each layout
 			foreach($field['layouts'] as $parent_index => &$layout) {
@@ -218,7 +218,7 @@
 		 * @return bool
 		 */
 		public static function should_add_intro($layout_name) {
-			return !in_array($layout_name, apply_filters('erdc_disable_layout_intro', []), true);
+			return !in_array($layout_name, apply_filters('acbs_disable_layout_intro', []), true);
 		}
 
 		/**
@@ -250,7 +250,7 @@
 		 */
 		public static function get_intro_fields($layout_name) {
 
-			$fields = apply_filters('erdc/intro/fields', Intro::get_base_fields());
+			$fields = apply_filters('acbs/intro/fields', Intro::get_base_fields());
 			$fields = Intro_Site_Fields::merge($fields);
 
 			$prefix = 'field_intro_clone_'.$layout_name.'_';

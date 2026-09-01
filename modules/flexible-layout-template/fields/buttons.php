@@ -122,17 +122,17 @@
 						],
 						[
 							'key' => 'field_6a9621c4b7e12',
-							'label' => 'Outline',
+							'label' => 'Outline Button',
 							'name' => 'button_outline',
 							'type' => 'true_false',
 							'required' => 0,
 							'message' => '',
 							'default_value' => 0,
-							// Supplied with these two the way round they are: the toggle reads
-							// "Solid" when on and "Outline" when off, which is the opposite of what
-							// the field name suggests. Kept verbatim rather than silently corrected -
-							// flip the two strings if it was a slip.
-							'ui_on_text' => 'Outline',
+							// On = outlined, off = solid, which matches the field name. This was
+							// queried once because "Outline"/"Solid" beside a field called
+							// button_outline reads ambiguously - the STATES were always right, the
+							// labels just did not say so. "Outlined" is the state, not the action.
+							'ui_on_text' => 'Outlined',
 							'ui_off_text' => 'Solid',
 							'ui' => 1,
 						],
@@ -234,11 +234,11 @@
 		}
 
 		public static function label(): string {
-			return __('Buttons Repeater', 'erdc');
+			return __('Buttons Repeater', 'acbs');
 		}
 
 		public static function filter_tag(): string {
-			return 'erdc/buttons/fields';
+			return 'acbs/buttons/fields';
 		}
 
 		public static function site_fields_class(): string {
@@ -253,7 +253,7 @@
 		 * get_base_row_fields function
 		 *
 		 * The plugin's OWN button row fields - the repeater's sub_fields, with the
-		 * `erdc/buttons/fields` filter applied but WITHOUT any site-tagged override merged
+		 * `acbs/buttons/fields` filter applied but WITHOUT any site-tagged override merged
 		 * in. Deliberately not Buttons_Site_Fields::get_row_fields(): a site field
 		 * replacing one of ours by name would otherwise take its place here too, and this
 		 * is used to describe what the PLUGIN offers (see conditional_logic_fields()).
@@ -295,7 +295,7 @@
 		 * @return string
 		 */
 		public static function conditional_logic_label(): string {
-			return __('Buttons', 'erdc');
+			return __('Buttons', 'acbs');
 		}
 
 	}

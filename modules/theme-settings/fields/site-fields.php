@@ -128,7 +128,7 @@
 		 * ACF stores an options page rule's value as the page's menu slug. Sites that
 		 * registered their own options page under a different slug before adopting this
 		 * plugin can have those slugs recognised here via the
-		 * `erdc/theme_settings/options_page_slugs` filter, so their existing fields still
+		 * `acbs/theme_settings/options_page_slugs` filter, so their existing fields still
 		 * take precedence.
 		 *
 		 * @version 1.0.20
@@ -140,7 +140,7 @@
 		 */
 		private static function targets_our_options_page(array $group) {
 
-			$slugs = apply_filters('erdc/theme_settings/options_page_slugs', [Module::MENU_SLUG]);
+			$slugs = apply_filters('acbs/theme_settings/options_page_slugs', [Module::MENU_SLUG]);
 
 			foreach($group['location'] ?? [] as $rule_group) {
 

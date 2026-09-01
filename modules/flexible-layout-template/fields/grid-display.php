@@ -60,7 +60,7 @@
 		 * Which fields each layout takes, in the order they should appear.
 		 *
 		 * A layout absent from here, or mapped to an empty array, gets no Grid & Display
-		 * tab. Adjust per site through the `erdc/grid_display/layout_fields` filter rather
+		 * tab. Adjust per site through the `acbs/grid_display/layout_fields` filter rather
 		 * than by editing this - see fields_for_layout().
 		 */
 		const LAYOUTS = [
@@ -134,7 +134,7 @@
 		public static function card_bg_choices(): array {
 
 			$choices = Colour_Palette::choices();
-			$choices['custom'] = __('Custom', 'erdc');
+			$choices['custom'] = __('Custom', 'acbs');
 
 			/**
 			 * Filters the Card BG Colour choices.
@@ -333,7 +333,7 @@
 			 * @param array  $wanted      Field names, in display order.
 			 * @param string $layout_name
 			 */
-			$wanted = (array) apply_filters('erdc/grid_display/layout_fields', $wanted, $layout_name);
+			$wanted = (array) apply_filters('acbs/grid_display/layout_fields', $wanted, $layout_name);
 
 			if(empty($wanted)) {
 				return [];
@@ -427,11 +427,11 @@
 		}
 
 		public static function label(): string {
-			return __('Grid & Display', 'erdc');
+			return __('Grid & Display', 'acbs');
 		}
 
 		public static function filter_tag(): string {
-			return 'erdc/grid_display/fields';
+			return 'acbs/grid_display/fields';
 		}
 
 		public static function site_fields_class(): string {
@@ -460,7 +460,7 @@
 		 * @return string
 		 */
 		public static function conditional_logic_label(): string {
-			return __('Grid & Display', 'erdc');
+			return __('Grid & Display', 'acbs');
 		}
 
 	}

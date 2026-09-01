@@ -25,7 +25,7 @@
 	 * NO PER-SITE SVG LOOKUP, deliberately. The bundled icons are the plugin's, shipped in
 	 * assets/svg, and a theme cannot add to or replace them - that is what the `custom`
 	 * choice is for, where an editor uploads their own SVG per button. The CHOICE LIST is
-	 * still filterable through `erdc/buttons/fields` like every other field setting, which
+	 * still filterable through `acbs/buttons/fields` like every other field setting, which
 	 * means it is possible to filter in a key with no file behind it; see the note on
 	 * render() for what happens then.
 	 *
@@ -113,7 +113,7 @@
 		 * filtered into the choice list with no file behind it. A button with no icon is a
 		 * perfectly good button; a button with a broken one is not.
 		 *
-		 * THAT LAST CASE IS THE TRAP. `erdc/buttons/fields` can add a choice, but nothing
+		 * THAT LAST CASE IS THE TRAP. `acbs/buttons/fields` can add a choice, but nothing
 		 * adds a FILE - there is no per-site icon directory by design. A filtered-in key
 		 * therefore renders nothing at all, and does it silently, so it warns under
 		 * WP_DEBUG rather than leaving someone to wonder why their new option does nothing.

@@ -99,8 +99,8 @@
 			}
 
 			return self::describe_fields_as_group(
-				apply_filters('erdc/page_header/fields', Page_Header_Field_Group::get_base_fields()),
-				__('Page Header', 'erdc')
+				apply_filters('acbs/page_header/fields', Page_Header_Field_Group::get_base_fields()),
+				__('Page Header', 'acbs')
 			);
 
 		}
@@ -235,7 +235,7 @@
 			//
 			// Working from the definitions also gives precisely the right set: the plugin's
 			// own fields, without the site's own contributions mixed back in.
-			$layouts = apply_filters('erdc/flexible_layout/layouts', Page_Content::get_base_layouts());
+			$layouts = apply_filters('acbs/flexible_layout/layouts', Page_Content::get_base_layouts());
 			$layouts = Page_Content::remove_disabled_layouts($layouts);
 
 			if(empty($layouts)) {

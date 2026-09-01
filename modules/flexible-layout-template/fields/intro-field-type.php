@@ -53,9 +53,9 @@
 			parent::initialize();
 
 			$this->name = self::NAME;
-			$this->label = __('Intro Fields', 'erdc');
+			$this->label = __('Intro Fields', 'acbs');
 			$this->category = 'layout';
-			$this->description = __("The plugin's standard Section Content field, ready to use in a custom flexible layout without a Clone field. Its fields come from the plugin, or a site's own override tagged \"Flexible Layout Component = Intro\" - never from this field's own settings, so there is nothing here to duplicate or get out of sync.", 'erdc');
+			$this->description = __("The plugin's standard Section Content field, ready to use in a custom flexible layout without a Clone field. Its fields come from the plugin, or a site's own override tagged \"Flexible Layout Component = Intro\" - never from this field's own settings, so there is nothing here to duplicate or get out of sync.", 'acbs');
 
 			$this->add_field_filter('acf/prepare_field_for_export', [$this, 'prepare_field_for_export']);
 			$this->add_field_filter('acf/prepare_field_for_import', [$this, 'prepare_field_for_import']);
@@ -86,7 +86,7 @@
 		 */
 		public function load_field($field) {
 
-			$fields = apply_filters('erdc/intro/fields', Intro::get_base_fields());
+			$fields = apply_filters('acbs/intro/fields', Intro::get_base_fields());
 			$fields = Intro_Site_Fields::merge($fields);
 
 			foreach($fields as &$sub_field) {
@@ -116,26 +116,26 @@
 			?>
 			<div class="acf-field" data-name="erdc_intro_fields_notice">
 				<div class="acf-label">
-					<label><?php esc_html_e('Fields', 'erdc'); ?></label>
+					<label><?php esc_html_e('Fields', 'acbs'); ?></label>
 				</div>
 				<div class="acf-input">
 					<p class="description">
-						<?php esc_html_e('Section Content - the same field as every other Intro section in this plugin. To add or change one, tag your own field group with "Flexible Layout Component = Intro" rather than editing this field.', 'erdc'); ?>
+						<?php esc_html_e('Section Content - the same field as every other Intro section in this plugin. To add or change one, tag your own field group with "Flexible Layout Component = Intro" rather than editing this field.', 'acbs'); ?>
 					</p>
 				</div>
 			</div>
 			<?php
 
 			acf_render_field_setting($field, [
-				'label' => __('Layout', 'erdc'),
+				'label' => __('Layout', 'acbs'),
 				'instructions' => '',
 				'type' => 'radio',
 				'name' => 'layout',
 				'layout' => 'horizontal',
 				'choices' => [
-					'block' => __('Block', 'erdc'),
-					'table' => __('Table', 'erdc'),
-					'row' => __('Row', 'erdc'),
+					'block' => __('Block', 'acbs'),
+					'table' => __('Table', 'acbs'),
+					'row' => __('Row', 'acbs'),
 				],
 			]);
 

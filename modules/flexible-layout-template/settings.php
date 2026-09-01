@@ -77,7 +77,7 @@
 			]);
 
 			$settings->add_field(self::TAB_ID, self::SECTION_ID, 'disabled_flexible_layouts', [
-				'label' => esc_html__('Disable Default Flexible Layouts', 'erdc'),
+				'label' => esc_html__('Disable Default Flexible Layouts', 'acbs'),
 				'full_field_id' => self::DISABLED_OPTION,
 				'render' => [__CLASS__, 'render_layout_list'],
 				// Carried through to field_args and from there to the field's <tr>, via WP
@@ -105,8 +105,8 @@
 		public static function render_section_heading() {
 			?>
 			<hr>
-			<h2><?php esc_html_e('Disable Default Flexible Layouts', 'erdc'); ?></h2>
-			<p class="e-experiment__description"><?php esc_html_e("Check the default flexible layouts you'd like to not include in your site. You can still add them yourself via the ACF Add Field Group page.", 'erdc'); ?></p>
+			<h2><?php esc_html_e('Disable Default Flexible Layouts', 'acbs'); ?></h2>
+			<p class="e-experiment__description"><?php esc_html_e("Check the default flexible layouts you'd like to not include in your site. You can still add them yourself via the ACF Add Field Group page.", 'acbs'); ?></p>
 			<?php
 		}
 

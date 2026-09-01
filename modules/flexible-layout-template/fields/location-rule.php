@@ -50,7 +50,7 @@
 		 */
 		public function initialize() {
 			$this->name = self::RULE_NAME;
-			$this->label = __('Flexible Layout', 'erdc');
+			$this->label = __('Flexible Layout', 'acbs');
 			$this->category = 'forms';
 		}
 

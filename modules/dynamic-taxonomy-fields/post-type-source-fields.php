@@ -15,7 +15,7 @@
 	 * post type changes (see assets/js/dynamic-taxonomy-fields.js).
 	 *
 	 * Add further layouts to FIELD_PAIRS (or via the
-	 * `erdc/dynamic_taxonomy_fields/post_type_pairs` filter) as more Source: Post Type
+	 * `acbs/dynamic_taxonomy_fields/post_type_pairs` filter) as more Source: Post Type
 	 * layouts are introduced.
 	 *
 	 * @version 1.0.19
@@ -55,7 +55,7 @@
 		 * @return array
 		 */
 		public static function get_pairs() {
-			return apply_filters('erdc/dynamic_taxonomy_fields/post_type_pairs', self::FIELD_PAIRS);
+			return apply_filters('acbs/dynamic_taxonomy_fields/post_type_pairs', self::FIELD_PAIRS);
 		}
 
 		/**

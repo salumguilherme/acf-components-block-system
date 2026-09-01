@@ -89,7 +89,7 @@
 			);
 
 			wp_localize_script('erdc-acf-copy-to-clipboard', 'erdcAcfCopyToClipboard', [
-				'tooltip' => esc_html__('Copy field name to clipboard', 'erdc'),
+				'tooltip' => esc_html__('Copy field name to clipboard', 'acbs'),
 			]);
 
 		}

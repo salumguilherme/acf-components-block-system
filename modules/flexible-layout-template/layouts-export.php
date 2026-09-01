@@ -100,12 +100,12 @@
 
 			?>
 			<hr>
-			<h2><?php esc_html_e('Download Flexible Layouts', 'erdc'); ?></h2>
+			<h2><?php esc_html_e('Download Flexible Layouts', 'acbs'); ?></h2>
 			<p class="e-experiment__description">
-				<?php esc_html_e('Download a JSON copy of every flexible layout available on this site - the layouts this plugin ships, plus any this site has added or extended through its own ACF field groups.', 'erdc'); ?>
+				<?php esc_html_e('Download a JSON copy of every flexible layout available on this site - the layouts this plugin ships, plus any this site has added or extended through its own ACF field groups.', 'acbs'); ?>
 			</p>
 			<p>
-				<a href="<?php echo esc_url($url); ?>" class="button"><?php esc_html_e('Download JSON', 'erdc'); ?></a>
+				<a href="<?php echo esc_url($url); ?>" class="button"><?php esc_html_e('Download JSON', 'acbs'); ?></a>
 			</p>
 			<?php
 
@@ -120,7 +120,7 @@
 		public static function handle_export() {
 
 			if(!current_user_can('manage_options')) {
-				wp_die(esc_html__('You are not allowed to do this.', 'erdc'), 403);
+				wp_die(esc_html__('You are not allowed to do this.', 'acbs'), 403);
 			}
 
 			check_admin_referer(self::ACTION);

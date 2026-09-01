@@ -13,9 +13,11 @@ node_modules/
 # plugin runs from a checkout without a build step.
 
 # Local tooling
-composer.json
-composer.lock
-demo_sdk_vault/
+#$composer.json
+#composer.lock
+#demo_sdk_vault/
+
+vendor/
 
 # Session primer is TRACKED in this repo - see CLAUDE.md's own note.
 #CLAUDE.md

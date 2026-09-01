@@ -41,7 +41,7 @@
 		 * The base set of layouts shipped with the plugin.
 		 *
 		 * Per-site custom layouts can be appended (or these can be adjusted) via the
-		 * `erdc/flexible_layout/layouts` filter, without editing this file.
+		 * `acbs/flexible_layout/layouts` filter, without editing this file.
 		 *
 		 * Note: the common "Section Content" / "Other Settings" tab fields (background,
 		 * padding, section ID etc.) are intentionally NOT part of these layouts - they are
@@ -780,7 +780,7 @@
 		 * inactive, anything disabled via the plugin's "Disable Default Flexible Layouts"
 		 * setting removed, then merged with any layout a site has added purely through
 		 * tagging its own field group "Flexible Layout = Page Content" (Site_Layouts),
-		 * then the code-based `erdc/flexible_layout/layouts` extension filter, then sorted.
+		 * then the code-based `acbs/flexible_layout/layouts` extension filter, then sorted.
 		 *
 		 * Anything that needs "every layout currently available on this site" - not just
 		 * the plugin's own hardcoded set - should call this rather than rebuilding a
@@ -808,7 +808,7 @@
 			$layouts = self::get_base_layouts();
 			$layouts = self::remove_disabled_layouts($layouts);
 			$layouts = Site_Layouts::merge($layouts);
-			$layouts = apply_filters('erdc/flexible_layout/layouts', $layouts);
+			$layouts = apply_filters('acbs/flexible_layout/layouts', $layouts);
 			$layouts = Site_Layouts::sort($layouts);
 
 			return $layouts;
@@ -855,7 +855,7 @@
 				],
 			];
 
-			$location = apply_filters('erdc/flexible_layout/location', $location);
+			$location = apply_filters('acbs/flexible_layout/location', $location);
 
 			acf_add_local_field_group([
 				'key' => self::GROUP_KEY,

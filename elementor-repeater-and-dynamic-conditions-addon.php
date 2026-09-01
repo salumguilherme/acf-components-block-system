@@ -11,7 +11,7 @@
 	 * Author URI:        https://fivecreative.com.au
 	 * License:           GPL v2 or later
 	 * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
-	 * Text Domain:       erdc
+	 * Text Domain:       acbs
 	 * Domain Path:       /languages
 	 * Requires Plugins:  advanced-custom-fields-pro
      */
@@ -37,10 +37,10 @@
 		define('ACBS_UPDATE_REPO', 'https://github.com/salumguilherme/acf-components-block-system');
 	}
 	
-	define('ERDC_VERSION', ACBS_VERSION);
-	define('ERDC__FILE__', ACBS__FILE__);
-	define('ERDC_PATH', ACBS_PATH);
-	define('ERDC_URL', ACBS_URL);
+	// The ERDC_VERSION / ERDC__FILE__ / ERDC_PATH / ERDC_URL aliases were dropped on
+	// 02/09/2026 with the rest of the erdc prefix. They existed for one release so a client
+	// snippet written against the pre-fork plugin kept working; nothing in the plugin, the
+	// child theme or any snippet we ship reads them.
 
 	// ACBS_UPDATER_TOKEN (a GitHub personal access token, scoped to this plugin's private
 	// update repository) is expected to be defined in wp-config.php, not shipped in the

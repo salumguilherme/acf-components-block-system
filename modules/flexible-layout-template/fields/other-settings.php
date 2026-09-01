@@ -151,11 +151,11 @@
 		}
 
 		public static function label(): string {
-			return __('Other Settings', 'erdc');
+			return __('Other Settings', 'acbs');
 		}
 
 		public static function filter_tag(): string {
-			return 'erdc/other_settings/fields';
+			return 'acbs/other_settings/fields';
 		}
 
 		public static function site_fields_class(): string {
@@ -185,7 +185,7 @@
 		 * @return string
 		 */
 		public static function conditional_logic_label(): string {
-			return __('Other Settings', 'erdc');
+			return __('Other Settings', 'acbs');
 		}
 
 	}

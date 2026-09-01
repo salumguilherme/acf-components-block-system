@@ -204,7 +204,7 @@
 				$templates = [];
 			}
 
-			$templates[self::SLUG] = __('Page Builder', 'erdc');
+			$templates[self::SLUG] = __('Page Builder', 'acbs');
 
 			return $templates;
 

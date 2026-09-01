@@ -74,8 +74,8 @@
 		public function register_options_page() {
 
 			acf_add_options_page([
-				'page_title' => __('Theme Settings', 'erdc'),
-				'menu_title' => __('Theme Settings', 'erdc'),
+				'page_title' => __('Theme Settings', 'acbs'),
+				'menu_title' => __('Theme Settings', 'acbs'),
 				'menu_slug' => self::MENU_SLUG,
 				'parent_slug' => 'options-general.php',
 				'capability' => 'manage_options',

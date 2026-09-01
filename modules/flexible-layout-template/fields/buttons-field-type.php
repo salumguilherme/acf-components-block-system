@@ -67,9 +67,9 @@
 			parent::initialize();
 
 			$this->name = self::NAME;
-			$this->label = __('Buttons Repeater', 'erdc');
+			$this->label = __('Buttons Repeater', 'acbs');
 			$this->category = 'layout';
-			$this->description = __("The plugin's standard Buttons repeater (Button Text, Button Link, Button Style), ready to use in a custom flexible layout without a Clone field. Its row fields come from the plugin, or a site's own override tagged \"Flexible Layout Component = Buttons Repeater\" - never from this field's own settings, so there is nothing here to duplicate or get out of sync.", 'erdc');
+			$this->description = __("The plugin's standard Buttons repeater (Button Text, Button Link, Button Style), ready to use in a custom flexible layout without a Clone field. Its row fields come from the plugin, or a site's own override tagged \"Flexible Layout Component = Buttons Repeater\" - never from this field's own settings, so there is nothing here to duplicate or get out of sync.", 'acbs');
 
 			$this->add_field_filter('acf/prepare_field_for_export', [$this, 'prepare_field_for_export']);
 			$this->add_field_filter('acf/prepare_field_for_import', [$this, 'prepare_field_for_import']);
@@ -117,7 +117,7 @@
 			}
 
 			if('' === $field['button_label']) {
-				$field['button_label'] = __('Add Row', 'erdc');
+				$field['button_label'] = __('Add Row', 'acbs');
 			}
 
 			return $field;
@@ -142,27 +142,27 @@
 			?>
 			<div class="acf-field" data-name="erdc_buttons_repeater_notice">
 				<div class="acf-label">
-					<label><?php esc_html_e('Row Fields', 'erdc'); ?></label>
+					<label><?php esc_html_e('Row Fields', 'acbs'); ?></label>
 				</div>
 				<div class="acf-input">
 					<p class="description">
-						<?php esc_html_e('Button Text, Button Link and Button Style - the same row fields as every other Buttons repeater in this plugin. To add or change one, tag your own field group with "Flexible Layout Component = Buttons Repeater" rather than editing this field.', 'erdc'); ?>
+						<?php esc_html_e('Button Text, Button Link and Button Style - the same row fields as every other Buttons repeater in this plugin. To add or change one, tag your own field group with "Flexible Layout Component = Buttons Repeater" rather than editing this field.', 'acbs'); ?>
 					</p>
 				</div>
 			</div>
 			<?php
 
 			acf_render_field_setting($field, [
-				'label' => __('Layout', 'erdc'),
+				'label' => __('Layout', 'acbs'),
 				'instructions' => '',
 				'class' => 'acf-repeater-layout',
 				'type' => 'radio',
 				'name' => 'layout',
 				'layout' => 'horizontal',
 				'choices' => [
-					'table' => __('Table', 'erdc'),
-					'block' => __('Block', 'erdc'),
-					'row' => __('Row', 'erdc'),
+					'table' => __('Table', 'acbs'),
+					'block' => __('Block', 'acbs'),
+					'row' => __('Row', 'acbs'),
 				],
 			]);
 
@@ -184,11 +184,11 @@
 		public function render_field_presentation_settings($field) {
 
 			acf_render_field_setting($field, [
-				'label' => __('Button Label', 'erdc'),
+				'label' => __('Button Label', 'acbs'),
 				'instructions' => '',
 				'type' => 'text',
 				'name' => 'button_label',
-				'placeholder' => __('Add Row', 'erdc'),
+				'placeholder' => __('Add Row', 'acbs'),
 			]);
 
 		}

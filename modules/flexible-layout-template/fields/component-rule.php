@@ -79,7 +79,7 @@
 		 */
 		public function initialize() {
 			$this->name = self::RULE_NAME;
-			$this->label = __('Flexible Layout Component', 'erdc');
+			$this->label = __('Flexible Layout Component', 'acbs');
 			$this->category = 'forms';
 		}
 
@@ -126,8 +126,8 @@
 			// interface), so they stay literal entries - the same way Page Content does on
 			// Location_Rule.
 			$values = [
-				self::PAGE_HEADER => __('Page Header', 'erdc'),
-				self::THEME_SETTINGS => __('Theme Settings', 'erdc'),
+				self::PAGE_HEADER => __('Page Header', 'acbs'),
+				self::THEME_SETTINGS => __('Theme Settings', 'acbs'),
 			];
 
 			foreach(Flexible_Layout_Components::MODULES as $component) {

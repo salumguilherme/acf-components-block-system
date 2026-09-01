@@ -86,7 +86,7 @@
 						__METHOD__,
 						sprintf(
 							/* translators: 1: component class name, 2: field group key, 3: the class that already claimed it */
-							esc_html__('%1$s declares group key %2$s, which %3$s already registered. The later component will not appear until one of them is given its own key.', 'erdc'),
+							esc_html__('%1$s declares group key %2$s, which %3$s already registered. The later component will not appear until one of them is given its own key.', 'acbs'),
 							esc_html($component),
 							esc_html($group_key),
 							esc_html($seen[$group_key])

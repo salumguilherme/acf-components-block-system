@@ -172,7 +172,7 @@
 			// all. register() turns an empty location into "do not register", which is the
 			// correct reading - an empty location array would otherwise show it everywhere.
 			if(in_array('page', $excluded, true)) {
-				return apply_filters('erdc/page_header/location', []);
+				return apply_filters('acbs/page_header/location', []);
 			}
 
 			$location = [
@@ -185,7 +185,7 @@
 				],
 			];
 
-			return apply_filters('erdc/page_header/location', $location);
+			return apply_filters('acbs/page_header/location', $location);
 
 		}
 
@@ -205,7 +205,7 @@
 				return;
 			}
 
-			$fields = apply_filters('erdc/page_header/fields', self::get_base_fields());
+			$fields = apply_filters('acbs/page_header/fields', self::get_base_fields());
 			$fields = Site_Fields::merge($fields);
 
 			acf_add_local_field_group([

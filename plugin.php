@@ -163,11 +163,12 @@
 			// Initiates our modules manager - this class is responsible for loading our modules
 			$this->modules_manager = new Modules_Manager();
 			
-			// Action for possible future functionality
+			// Action for possible future functionality.
+			//
+			// The deprecated `erdc/init` alias that used to fire beside this was dropped on
+			// 02/09/2026 with the rest of the erdc/ hook prefix. Nothing in the plugin or the
+			// child theme listens for it.
 			do_action('acbs/init');
-			
-			// Deprecated alias, kept for one release for client snippets.
-			do_action('erdc/init');
 			
 		}
 		
@@ -288,7 +289,7 @@
 					<?php
 						printf(
 							/* translators: 1: opening code tag, 2: constant name, 3: closing code tag */
-							esc_html__('ACF Components Block System: the %1$s%2$s%3$s constant is not defined in wp-config.php. Without it, this site will not receive future plugin updates - add it to wp-config.php to keep updates working.', 'erdc'),
+							esc_html__('ACF Components Block System: the %1$s%2$s%3$s constant is not defined in wp-config.php. Without it, this site will not receive future plugin updates - add it to wp-config.php to keep updates working.', 'acbs'),
 							'<code>',
 							'ACBS_UPDATER_TOKEN',
 							'</code>'

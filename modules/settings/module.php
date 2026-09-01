@@ -68,7 +68,7 @@
 		public function register_tab($settings) {
 
 			$settings->add_tab(self::TAB_ID, [
-				'label' => esc_html__('Flexible Content', 'erdc'),
+				'label' => esc_html__('Flexible Content', 'acbs'),
 				'sections' => [
 					'intro' => [
 						'callback' => [$this, 'render_intro_section'],
@@ -87,8 +87,8 @@
 		 */
 		public function render_intro_section() {
 			?>
-			<h2><?php esc_html_e('Flexible Content', 'erdc'); ?></h2>
-			<p class="e-experiment__description"><?php esc_html_e('Configure the Flexible Content settings for this site here.', 'erdc'); ?></p>
+			<h2><?php esc_html_e('Flexible Content', 'acbs'); ?></h2>
+			<p class="e-experiment__description"><?php esc_html_e('Configure the Flexible Content settings for this site here.', 'acbs'); ?></p>
 			<hr>
 			<?php
 		}
