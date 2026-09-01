@@ -21,4 +21,11 @@
 
 	if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-?><h2><?php echo esc_html( $row->label() ); ?></h2>
+?><ul class="fl-grid fl-columned-content">
+	<?php
+		while ( have_rows( 'columns' ) ) {
+			the_row();
+			acbs_row_partial( 'item', $row );
+		}
+	?>
+</ul>

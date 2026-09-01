@@ -1,1 +1,48 @@
-.fl-acbs .fl-type-icon_leaders .fl-leader-inner{color:inherit;display:flex;flex-direction:column;gap:.75rem;height:100%;text-decoration:none}.fl-acbs .fl-type-icon_leaders.fl-loop-grid-columns-align-center .fl-leader-inner{align-items:center}.fl-acbs .fl-type-icon_leaders.fl-loop-grid-columns-align-right .fl-leader-inner{align-items:flex-end}.fl-acbs .fl-type-icon_leaders .fl-leader-media{display:block;flex:0 0 auto;height:3rem;height:var(--fl-leader-icon-size,3rem);width:3rem;width:var(--fl-leader-icon-size,3rem)}.fl-acbs .fl-type-icon_leaders .fl-leader-icon{height:100%;-o-object-fit:contain;object-fit:contain;width:100%}.fl-acbs .fl-type-icon_leaders .fl-leader-title{font-size:1.25rem;font-size:var(--fl-leader-title-size,1.25rem);margin:0}.fl-acbs .fl-type-icon_leaders .fl-leader-content>:last-child{margin-bottom:0}.fl-acbs .fl-type-icon_leaders a.fl-leader-inner{transition:color .2s ease}.fl-acbs .fl-type-icon_leaders a.fl-leader-inner:focus-visible .fl-leader-title,.fl-acbs .fl-type-icon_leaders a.fl-leader-inner:hover .fl-leader-title{text-decoration:underline;text-decoration-thickness:from-font}
+/*!*******************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[1].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[1].use[2]!./node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[1].use[3]!./src/css/rows/icon_leaders.scss ***!
+  \*******************************************************************************************************************************************************************************************************************************************************/
+.fl-acbs .fl-type-icon_leaders .fl-leader-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+.fl-acbs .fl-type-icon_leaders.fl-loop-grid-columns-align-center .fl-leader-inner {
+  align-items: center;
+}
+.fl-acbs .fl-type-icon_leaders.fl-loop-grid-columns-align-right .fl-leader-inner {
+  align-items: flex-end;
+}
+.fl-acbs .fl-type-icon_leaders .fl-leader-media {
+  display: block;
+  flex: 0 0 auto;
+  width: 3rem;
+  width: var(--fl-leader-icon-size, 3rem);
+  height: 3rem;
+  height: var(--fl-leader-icon-size, 3rem);
+}
+.fl-acbs .fl-type-icon_leaders .fl-leader-icon {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: contain;
+     object-fit: contain;
+}
+.fl-acbs .fl-type-icon_leaders .fl-leader-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-size: var(--fl-leader-title-size, 1.25rem);
+}
+.fl-acbs .fl-type-icon_leaders .fl-leader-content > :last-child {
+  margin-bottom: 0;
+}
+.fl-acbs .fl-type-icon_leaders a.fl-leader-inner {
+  transition: color 0.2s ease;
+}
+.fl-acbs .fl-type-icon_leaders a.fl-leader-inner:hover .fl-leader-title, .fl-acbs .fl-type-icon_leaders a.fl-leader-inner:focus-visible .fl-leader-title {
+  text-decoration: underline;
+  text-decoration-thickness: from-font;
+}
+
+/*# sourceMappingURL=icon_leaders.css.map*/

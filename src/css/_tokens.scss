@@ -54,8 +54,8 @@ $tertiary-text:   #ffffff;
 $text-colour:     #404040;
 $text-colour-dark:     #ffffff;
 $heading-colour:    #171717;
-$heading-colour-dark:    #ffffff;
-$headings-colour:    #171717;
+$heading-colour-dark:    #171717;
+$headings-colour:    #ffffff;
 
 // --------------------------------------------------------------------------------------
 // Palette
@@ -137,3 +137,10 @@ $h3-font-size:                null;
 $h4-font-size:                null;
 $h5-font-size:                null;
 $h6-font-size:                null;
+
+$container-max-widths: (
+		sm: 540px,
+		md: 720px,
+		lg: 960px,
+		xl: 1140px
+)

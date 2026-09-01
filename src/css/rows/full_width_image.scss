@@ -7,11 +7,16 @@
 
 .fl-acbs .fl-type-full_width_image {
 
+	&:first-child {
+
+		padding-top: calc(var(--fl-space-y-lg) + 60px);
+	}
+
 	&.fl-full-width-image-overlay {
 		position: relative;
 
-		--heading-colour: var(--heading-colour-dark);
-		--text-colour: var(--text-colour-dark);
+		--heading-colour: var(--white);
+		--text-colour: var(--white);
 		color: var(--text-colour);
 
 		.container {

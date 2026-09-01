@@ -78,6 +78,13 @@ html {
 	--heading-colour: #{$heading-colour};
 	--heading-colour-dark: #{$heading-colour-dark};
 
+	--section-space-y-xl: 7.5rem;
+	--section-space-y-lg: 6rem;
+	--section-space-y: 4rem;
+	--section-space-y-md: 3rem;
+	--section-space-y-sm: 2rem;
+	--section-space-y-xs: 2rem;
+
 }
 
 // --------------------------------------------------------------------------------------
@@ -116,9 +123,9 @@ html {
 		position: relative;
 		// The vertical rhythm every padding step below adjusts. Declared on the section
 		// rather than hardcoded per step so a theme can retune all of them at once.
-		--fl-space-y: var(--section-space-y, 4rem);
-		--fl-space-y-sm: var(--section-space-y-sm, 2rem);
-		--fl-space-y-lg: var(--section-space-y-lg, 7rem);
+		--fl-space-y: var(--section-space-y-lg, 6rem);
+		--fl-space-y-sm: var(--section-space-y, 4rem);
+		--fl-space-y-lg: var(--section-space-y-xl, 7.5rem);
 
 		padding-top: var(--fl-space-y);
 		padding-bottom: var(--fl-space-y);
