@@ -12,7 +12,7 @@
     "release:major": "node bin/release.js major",
     "package": "node bin/release.js --no-bump",
     "fixture": "node tools/fixture/build.js",
-    "deploy": "bash bin/deploy.sh",
+    "deploy": "npm run build && bash bin/deploy.sh",
     "deploy:dry": "bash bin/deploy.sh --dry-run"
   },
   "dependencies": {

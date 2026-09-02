@@ -26,7 +26,39 @@
 		return;
 	}
 
-?><ul class="fl-grid fl-columns">
+	// A PRE-PASS, because the <ul> is printed before a single column has been read and the
+	// class has to be on it. `fl-is-accordion` says at least one column in this row is a
+	// toggle, which is the one thing a rule on the grid itself cannot work out from its
+	// children.
+	//
+	// READ AS AN ARRAY, not through a second have_rows() loop. A plain foreach can stop at
+	// the first match; an ACF loop cannot, because breaking out of one leaves it on the
+	// stack half consumed and the render loop below would then resume it mid-way rather
+	// than starting over - see CLAUDE.md 05.2. A completed have_rows() pass would be safe
+	// but would have to walk every column to stay safe, which is the wrong trade for a
+	// question answered by the first `true`.
+	//
+	// No id is consumed here: the pre-pass reads a field and never includes the partial,
+	// so acbs_unique_id() is untouched and the columns still number from one.
+	$acbs_columns = get_sub_field( 'columns' );
+	$acbs_is_accordion = false;
+
+	if ( is_array( $acbs_columns ) ) {
+
+		foreach ( $acbs_columns as $acbs_column ) {
+
+			if ( ! empty( $acbs_column['column_accordion'] ) ) {
+				$acbs_is_accordion = true;
+				break;
+			}
+
+		}
+
+	}
+
+	$acbs_grid_class = 'fl-grid fl-columns' . ( $acbs_is_accordion ? ' fl-is-accordion fl-columns-have-accordion' : '' );
+
+?><ul class="<?php echo esc_attr( $acbs_grid_class ); ?>">
 	<?php
 		while ( have_rows( 'columns' ) ) {
 			the_row();
