@@ -48,11 +48,11 @@
 		return;
 	}
 
-	static $acbs_accordion_n = 0;
-	$acbs_accordion_n++;
-
+	// Same fix as columned_content: a `static` in an included template does not survive
+	// between includes, so a page with two accordions rows gave both the same base id.
+	// Only visible with more than one such row, which is why it went unnoticed.
 	$acbs_id = $row->wrapper_id();
-	$acbs_id = '' !== $acbs_id ? $acbs_id . '-accordion' : 'fl-accordion-' . $acbs_accordion_n;
+	$acbs_id = '' !== $acbs_id ? $acbs_id . '-accordion' : acbs_unique_id( 'fl-accordion' );
 	$acbs_i  = 0;
 
 ?><div class="fl-accordions" id="<?php echo esc_attr( $acbs_id ); ?>">

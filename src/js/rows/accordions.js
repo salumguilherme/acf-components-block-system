@@ -10,22 +10,116 @@
  * correct whether it loads before or after the announcement instead of relying on the
  * order holding - see src/js/rows.js for why the runtime keeps that list at all.
  *
- * The panel animation lives in _accordion.js, shared with columned_content. What stays
- * here is the only thing that differs: this row is a GROUP, where opening one item closes
- * the others.
+ * SELF-CONTAINED. This briefly shared its animation with columned_content's per-column
+ * toggle. They are not the same component - this one is a GROUP, where opening an item
+ * closes its siblings, and that one is a set of independent columns - so the sharing
+ * coupled two unrelated rows that usually appear on the same page. The duplicated code is
+ * a few dozen well-understood lines; the coupling was a dependency nobody would look for.
  *
- * @version 1.0.1
+ * @version 1.1.0
  * @since   1.0.0
  */
-import { bind, panelOf, isOpen, close } from '../_accordion.js';
-
-( function ( window ) {
+( function ( window, document ) {
 	'use strict';
 
 	var acbs = window.acbs;
 
 	if ( ! acbs || ! acbs.onRowReady ) {
 		return;
+	}
+
+	function prefersReduced() {
+		return !! ( window.matchMedia && window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches );
+	}
+
+	function isOpen( trigger ) {
+		return 'true' === trigger.getAttribute( 'aria-expanded' );
+	}
+
+	/**
+	 * getElementById rather than querySelector('#' + id): an id built from an editor-set
+	 * section id can legally contain characters that are not valid in a CSS identifier,
+	 * and querySelector would throw on them.
+	 */
+	function panelOf( trigger ) {
+		var id = trigger.getAttribute( 'aria-controls' );
+
+		return id ? document.getElementById( id ) : null;
+	}
+
+	function duration( panel ) {
+		var value = ( window.getComputedStyle( panel ).transitionDuration || '0s' ).split( ',' )[ 0 ].trim();
+		var ms = parseFloat( value ) || 0;
+
+		return /ms$/.test( value ) ? ms : ms * 1000;
+	}
+
+	/** The state a panel must end in, whether or not the animation happened. Idempotent. */
+	function finish( trigger, panel ) {
+		if ( panel.acbsTimer ) {
+			window.clearTimeout( panel.acbsTimer );
+			panel.acbsTimer = null;
+		}
+
+		if ( isOpen( trigger ) ) {
+			panel.style.height = '';
+		} else {
+			panel.hidden = true;
+			panel.style.height = '';
+		}
+	}
+
+	/**
+	 * Guarantees finish() runs. transitionend is not a promise that something ends - it
+	 * does not fire when the height did not really change (an answer that is empty
+	 * animates 0px to 0px), when the tab is hidden and the compositor never advances, or
+	 * when anything has zeroed the duration. The CLOSED case is the one that bites:
+	 * without finish(), `hidden` is never set, so a collapsed panel keeps its links in the
+	 * tab order at zero height and a keyboard user tabs into content they cannot see.
+	 */
+	function settle( trigger, panel ) {
+		if ( panel.acbsTimer ) {
+			window.clearTimeout( panel.acbsTimer );
+		}
+
+		panel.acbsTimer = window.setTimeout( function () {
+			finish( trigger, panel );
+		}, duration( panel ) + 80 );
+	}
+
+	function open( trigger, panel, animate ) {
+		trigger.setAttribute( 'aria-expanded', 'true' );
+		panel.hidden = false;
+
+		if ( ! animate ) {
+			panel.style.height = '';
+			return;
+		}
+
+		panel.style.height = '0px';
+
+		// Forces the 0px to be committed before the target height is set.
+		void panel.offsetHeight;
+
+		panel.style.height = panel.scrollHeight + 'px';
+		settle( trigger, panel );
+	}
+
+	function close( trigger, panel, animate ) {
+		trigger.setAttribute( 'aria-expanded', 'false' );
+
+		if ( ! animate ) {
+			panel.hidden = true;
+			panel.style.height = '';
+			return;
+		}
+
+		// From `auto` there is nothing to transition from, so the current height is pinned
+		// first and released on the next frame.
+		panel.style.height = panel.scrollHeight + 'px';
+		void panel.offsetHeight;
+		panel.style.height = '0px';
+		settle( trigger, panel );
 	}
 
 	function initGroup( group ) {
@@ -49,26 +143,37 @@ import { bind, panelOf, isOpen, close } from '../_accordion.js';
 				return;
 			}
 
-			bind( trigger, panel, function ( self, ownPanel, willOpen, animate ) {
-				if ( ! willOpen || ! single ) {
-					return;
+			panel.addEventListener( 'transitionend', function ( e ) {
+				if ( e.target === panel && 'height' === e.propertyName ) {
+					finish( trigger, panel );
 				}
-
-				Array.prototype.forEach.call( triggers, function ( other ) {
-					if ( other === self || ! isOpen( other ) ) {
-						return;
-					}
-
-					var otherPanel = panelOf( other );
-
-					if ( otherPanel ) {
-						close( other, otherPanel, animate );
-					}
-				} );
 			} );
 
 			trigger.addEventListener( 'click', function () {
-				acbs.doAction( 'accordions/toggle', trigger, panel, isOpen( trigger ) );
+				var animate = ! prefersReduced();
+				var willOpen = ! isOpen( trigger );
+
+				if ( willOpen && single ) {
+					Array.prototype.forEach.call( triggers, function ( other ) {
+						if ( other === trigger || ! isOpen( other ) ) {
+							return;
+						}
+
+						var otherPanel = panelOf( other );
+
+						if ( otherPanel ) {
+							close( other, otherPanel, animate );
+						}
+					} );
+				}
+
+				if ( willOpen ) {
+					open( trigger, panel, animate );
+				} else {
+					close( trigger, panel, animate );
+				}
+
+				acbs.doAction( 'accordions/toggle', trigger, panel, willOpen );
 			} );
 		} );
 
@@ -82,4 +187,4 @@ import { bind, panelOf, isOpen, close } from '../_accordion.js';
 			initGroup( groups[ i ] );
 		}
 	} );
-} )( window );
+} )( window, document );

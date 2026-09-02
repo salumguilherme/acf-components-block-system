@@ -69,7 +69,47 @@
 
 	if(!function_exists('acbs_row_part')) {
 
-		/**
+				/**
+		 * acbs_unique_id function
+		 *
+		 * A DOM id that is unique for the rest of this request.
+		 *
+		 * WHY THIS IS A FUNCTION AND NOT A `static` IN THE TEMPLATE. Both accordion
+		 * templates used to declare `static $n = 0;` at the top of the file and increment
+		 * it. That works in an ordinary function and does NOT work here: a template is
+		 * pulled in with `include` from inside Wrapper::include_template(), and a static
+		 * declared in included code is re-initialised on every include rather than
+		 * persisting across them. Every columned_content column therefore rendered
+		 * `fl-column-accordion-1`, so four panels shared one id and every trigger's
+		 * aria-controls pointed at the first of them.
+		 *
+		 * It failed silently in the worst way: the markup validates, the first panel still
+		 * opens, and assistive technology follows aria-controls to the wrong element.
+		 *
+		 * The counter lives in this function's own scope, which is a real function called
+		 * normally, so it behaves the way the template author expected in the first place.
+		 * Ids are per prefix, so accordions and columns number independently.
+		 *
+		 * @version 1.0.0
+		 * @since   1.0.0
+		 *
+		 * @param string $prefix
+		 *
+		 * @return string
+		 */
+		function acbs_unique_id($prefix = 'acbs') {
+
+			static $counts = [];
+
+			$prefix = '' !== (string) $prefix ? (string) $prefix : 'acbs';
+
+			$counts[$prefix] = isset($counts[$prefix]) ? $counts[$prefix] + 1 : 1;
+
+			return $prefix.'-'.$counts[$prefix];
+
+		}
+
+/**
 		 * acbs_row_part function
 		 *
 		 * Renders a shared template part - parts/{name}.php - with $row in scope. A

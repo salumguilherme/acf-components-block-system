@@ -77,10 +77,11 @@
 	$acbs_accordion = (bool) get_sub_field( 'column_accordion' ) && '' !== $acbs_title;
 	$acbs_open      = 'open' === (string) get_sub_field( 'column_accordion_initial_status' );
 
-	static $acbs_column_n = 0;
-	$acbs_column_n++;
-
-	$acbs_panel = 'fl-column-accordion-' . $acbs_column_n;
+	// acbs_unique_id() rather than a `static` counter in this file. A static declared in
+	// an included template is re-initialised on every include, so the counter never got
+	// past 1 and every column produced the same id - four panels sharing one id, and every
+	// trigger's aria-controls pointing at the first of them. See the function's docblock.
+	$acbs_panel = acbs_unique_id( 'fl-column-accordion' );
 	$acbs_label = $acbs_panel . '-label';
 
 	$acbs_classes = 'fl-column fl-card fl-align-' . $acbs_align . ( $acbs_accordion ? ' fl-column-has-accordion' : '' );

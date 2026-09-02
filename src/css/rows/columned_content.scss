@@ -190,6 +190,19 @@
 	.fl-column-accordion-body > :first-child { margin-top: 0; }
 	.fl-column-accordion-body > :last-child  { margin-bottom: 0; }
 
+	&.fl-card-box .fl-card.fl-column-has-accordion {
+		padding: 0;
+
+		.fl-column-accordion-trigger {
+			padding: var(--fl-card-accordion-trigger-space, 2rem);
+		}
+
+		.fl-column-accordion-body {
+			padding: var(--fl-card-accordion-body-space, 2rem);
+			padding-top: 0;
+		}
+	}
+
 	// Alignment is inherited, not redeclared. `text-align` reaches the panel's prose on
 	// its own, but a flex container ignores it - so the lead is aligned explicitly, from
 	// BOTH the item's own `column_alignment` and the row's `layout_columns_alignment`, so
