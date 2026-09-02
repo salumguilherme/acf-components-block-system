@@ -25,6 +25,16 @@
 		const STYLE_PREFIX = 'acbs-row-';
 
 		/**
+		 * Script handle prefix.
+		 *
+		 * Deliberately the same string as STYLE_PREFIX, and legal: WordPress keeps styles
+		 * and scripts in two separate WP_Dependencies registries, so `acbs-row-accordions`
+		 * names a sheet in one and a script in the other with no collision. It is a
+		 * separate constant so the two can diverge without touching every caller.
+		 */
+		const SCRIPT_PREFIX = 'acbs-row-';
+
+		/**
 		 * label function
 		 *
 		 * Falls back to the layout name title-cased, so a row type that forgets a label
@@ -79,12 +89,20 @@
 		/**
 		 * scripts function
 		 *
-		 * @version 1.0.0
+		 * Same arrangement as styles(): the handle is declared unconditionally and Assets
+		 * only registers it if `assets/js/rows/{layout}.js` actually exists, so a layout
+		 * with no behaviour of its own costs nothing and adding behaviour is one new file
+		 * in src/js/rows/ with no PHP change at all.
+		 *
+		 * This used to return an empty array, which made the whole script path dead code:
+		 * Assets looked for handles no row type ever declared.
+		 *
+		 * @version 1.0.1
 		 * @since   1.0.0
 		 * @return array
 		 */
 		public function scripts() {
-			return [];
+			return [self::SCRIPT_PREFIX.$this->name()];
 		}
 
 		/**

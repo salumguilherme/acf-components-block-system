@@ -20,13 +20,18 @@
 	$acbs_wrapper_id    = $row->wrapper_id();
 	$acbs_wrapper_style = $row->wrapper_style();
 
-?><section class="<?php echo esc_attr( $row->wrapper_class() ); ?>"<?php
+?>
+<?php do_action( 'acbs/wrapper/before_section', $row); ?>
+<section class="<?php echo esc_attr( $row->wrapper_class() ); ?>"<?php
 	echo '' !== $acbs_wrapper_id ? ' id="' . esc_attr( $acbs_wrapper_id ) . '"' : '';
 	// Already run through safecss_filter_attr() / custom-property validation in
 	// Wrapper::style(); esc_attr here is the second pass, not the only one.
 	echo '' !== $acbs_wrapper_style ? ' style="' . esc_attr( $acbs_wrapper_style ) . '"' : '';
 ?>>
+	<?php do_action( 'acbs/wrapper/before_container', $row); ?>
 	<div class="fl-container container">
 		<?php echo $row->content(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- row templates escape their own output. ?>
 	</div>
+	<?php do_action( 'acbs/wrapper/after_container', $row); ?>
 </section>
+<?php do_action( 'acbs/wrapper/after_section', $row); ?>

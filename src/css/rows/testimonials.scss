@@ -1,0 +1,74 @@
+//
+// Row: Testimonials
+//
+// Enqueued only on a page that actually has a testimonials row - Rows\Assets registers
+// this as `acbs-row-testimonials` and enqueues it in the footer for the layouts that
+// rendered. Loads after structure.scss, so it can override the shared grid and card rules.
+//
+// Markup: templates/rows/testimonials.php and rows/testimonials/item.php. The row is a
+// flat `<ul class="fl-grid fl-testimonials">` of `<li class="fl-testimonial fl-card">`,
+// each holding one `<figure>`: a `<blockquote>` for the quote and a `<figcaption>` for the
+// attribution. The author sits OUTSIDE the blockquote because it is not part of the
+// quotation - which is also why this sheet has to do a little work to keep the two
+// looking like one block.
+//
+// Type, colour and the card itself are all inherited. Column count, gap and text
+// alignment come from Grid & Display via structure.scss; there is nothing here that the
+// shared rules already handle.
+//
+
+@import "../tokens";
+
+.fl-acbs .fl-type-testimonials {
+
+	// The <figure> is the item's only child, so it has to fill the <li> for anything
+	// inside it to be able to align against the item's full height.
+	//
+	// `height: 100%` resolves here because the parent's height is definite in both of the
+	// arrangements this row appears in: `.fl-grid` is `display: grid`, whose items stretch
+	// to the row height by default, and with Content Box on, `.fl-card-box .fl-card` adds
+	// its own `height: 100%`. A percentage height against an auto-height parent would
+	// simply compute to auto and the attribution below would not move.
+	//
+	// `margin: 0` is undoing the user agent, not the theme: browsers still ship
+	// `figure { margin: 1em 40px }` from the HTML rendering suggestions, so without this
+	// every quote carries a 40px inset that no stylesheet in this project asked for.
+	.fl-testimonial figure {
+		height: 100%;
+		margin: 0;
+		display: flex;
+		flex-flow: column nowrap;
+		justify-content: space-between;
+
+		// Pins the attribution to the bottom of the item, so a row of quotes of different
+		// lengths still has its names on one line rather than each floating up under its
+		// own quote.
+		//
+		// `margin-top: auto` is the load-bearing half of that, not `space-between` above:
+		// the two agree while both children are present, but the quote is optional in the
+		// item template, and with only the figcaption left `space-between` has nothing to
+		// distribute and falls back to packing at the start. The auto margin puts it at
+		// the bottom either way. Auto margins also resolve before alignment does, so this
+		// keeps working if the figure is ever given an `align-items` of its own.
+		figcaption {
+			margin-top: auto;
+
+			// The comma between the name and the role, added here rather than in the
+			// template because the role is optional and the punctuation belongs to the
+			// pair, not to either span. Written into item.php it would leave "Author,"
+			// with a trailing comma whenever an editor fills in a name and no role.
+			//
+			// Reading the selector: both spans are inline and flow onto one line, so
+			// `span:first-child` is the name and `:not(:last-child)` means "and something
+			// follows it" - which, given the item template, can only be the role. No
+			// role, no comma, and no rule to keep in step with the PHP.
+			& > span:first-child:not(:last-child):after {
+				content: ', ';
+			}
+		}
+	}
+
+	.fl-testimonial.fl-align-default figure {
+		text-align: left;
+	}
+}

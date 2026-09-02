@@ -19,6 +19,8 @@
 	 * @since   1.0.0
 	 */
 
+	use ACBS\Modules\FlexibleLayoutTemplate\Module;
+
 	if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 ?><div class="fl-full-width-image-content">

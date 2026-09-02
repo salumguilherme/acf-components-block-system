@@ -6,6 +6,7 @@
 	use ACBS\Modules\FlexibleLayoutTemplate\Fields\Field_Groups;
 	use ACBS\Modules\FlexibleLayoutTemplate\Fields\Common_Fields;
 	use ACBS\Modules\FlexibleLayoutTemplate\Fields\Page_Content;
+	use ACBS\Modules\FlexibleLayoutTemplate\Fields\Layout_Title;
 	use ACBS\Modules\FlexibleLayoutTemplate\Rows\Assets;
 	use ACBS\Modules\FlexibleLayoutTemplate\Rows\Row;
 	use ACBS\Modules\FlexibleLayoutTemplate\Rows\Row_Registry;
@@ -75,6 +76,11 @@
 				add_action('acf/include_field_types', [Field_Groups::class, 'register_field_types'], 20);
 				add_action('acf/input/admin_enqueue_scripts', [$this, 'enqueue_flexible_layout_tabs_assets']);
 				add_action('acf/input/admin_enqueue_scripts', [$this, 'enqueue_buttons_repeater_field_assets']);
+				add_action('acf/input/admin_enqueue_scripts', [$this, 'enqueue_layout_title_assets']);
+
+				// The computed layout title. Registered here rather than on acf/init
+				// because it is a filter ACF applies at render time, not a registration.
+				Layout_Title::register();
 			}
 			
 			// "Disable Default Flexible Layouts" section on the plugin's Flexible Content tab
@@ -92,6 +98,9 @@
 			add_filter('acbs/row/wrapper_classes', [$this, 'layout_wrapper_classes'], 10, 2);
 			add_filter('acbs/row/wrapper_id', [$this, 'layout_wrapper_id'], 10, 2);
 			add_filter('acbs/row/wrapper_style', [$this, 'layout_wrapper_style'], 10, 2);
+			
+			// Befopre container action - add field overlay
+			add_action('acbs/wrapper/before_container', [$this, 'layout_wrapper_before_container'], 10, 1);
 			
 		}
 		
@@ -126,6 +135,73 @@
 				wp_enqueue_style(self::STRUCTURE_HANDLE);
 			}
 
+		}
+		
+		/**
+		 * Converts a string representation of a color to its RGBA equivalent.
+		 * This function processes color strings and returns an array containing
+		 * the RGBA components. It handles color formats commonly used in web design.
+		 *
+		 * @param string $colorString The color string to be converted.
+		 *
+		 * @return array An array with 'red', 'green', 'blue', and 'alpha' components.
+		 */
+		public static function str_to_rgba(string $color, ?float $toAlpha = 1.0, ?float $fallbackAlpha = 1.0): ?string {
+			
+			$color = trim($color);
+			
+			// 1. Handle RGB or RGBA string inputs
+			if (stripos($color, 'rgb') === 0) {
+				// Extract all numeric/decimal values from the string
+				preg_match_all('/[0-9.]+(%?)/', $color, $matches);
+				$values = $matches[0] ?? [];
+				
+				if (count($values) < 3) {
+					return null; // Invalid format
+				}
+				
+				// Parse Red, Green, Blue
+				$r = (int)$values[0];
+				$g = (int)$values[1];
+				$b = (int)$values[2];
+				
+				// Parse or assign Alpha
+				$a = isset($values[3]) ? (float)$values[3] : ($fallbackAlpha ?? 1.0);
+			
+				if(isset($toAlpha)) {
+					$a = (float)$toAlpha;
+				}
+				
+				return "rgba($r, $g, $b, $a)";
+			}
+			
+			// 2. Handle HEX string inputs
+			$hex = ltrim($color, '#');
+			$length = strlen($hex);
+			
+			// Normalize shorthand HEX formats
+			if ($length === 3 || $length === 4) {
+				$hex = preg_replace('/(.)/', '$1$1', $hex);
+				$length = strlen($hex);
+			}
+			
+			// Extract channels based on resulting length (6 or 8 characters)
+			if ($length === 6) {
+				list($r, $g, $b) = sscanf($hex, "%02x%02x%02x");
+				$a = $fallbackAlpha ?? 1.0;
+			} elseif ($length === 8) {
+				list($r, $g, $b, $alphaHex) = sscanf($hex, "%02x%02x%02x%02x");
+				// Convert 0-255 hex alpha channel to a 0-1 float scale
+				$a = round($alphaHex / 255, 2);
+			} else {
+				return null; // Invalid HEX length
+			}
+			
+			if(isset($toAlpha)) {
+				$a = (float)$toAlpha;
+			}
+			
+			return "rgba($r, $g, $b, $a)";
 		}
 
 		/**
@@ -275,6 +351,79 @@
 			
 		}
 		
+		/**
+		 * enqueue_layout_title_assets function
+		 *
+		 * The inline rename button on a page_sections row handle. See
+		 * Fields\Layout_Title for what this does and, more usefully, what it deliberately
+		 * does NOT do - the rename itself is ACF's own feature and this only adds a second
+		 * way to reach it.
+		 *
+		 * Depends on 'acf-pro-input', not 'acf-input', and for the same reason
+		 * enqueue_buttons_repeater_field_assets() does: flexible content is a Pro field and
+		 * its JS model - the one carrying renameLayout(), which this script calls rather
+		 * than reimplementing - is registered by that handle. Depending on the free
+		 * handle would load us before the model exists.
+		 *
+		 * The script still guards for window.acf and falls back to DOMContentLoaded, so a
+		 * future ACF that moves the model does not leave a dead button behind.
+		 *
+		 * Versioned by filemtime rather than ACBS_VERSION: both files are hand-written and
+		 * edited without a release, so keying the cache to the plugin version serves a
+		 * stale file after every change.
+		 *
+		 * @version 1.0.0
+		 * @since   1.0.0
+		 */
+		public function enqueue_layout_title_assets() {
+
+			$js = 'assets/js/acf-layout-title.js';
+			$css = 'assets/css/acf-layout-title.css';
+
+			wp_enqueue_script(
+				'acbs-layout-title',
+				ACBS_URL.$js,
+				['acf-pro-input'],
+				self::asset_version($js),
+				true
+			);
+
+			wp_localize_script('acbs-layout-title', 'acbsLayoutTitle', [
+				'fieldKey' => Page_Content::FIELD_KEY,
+				'i18n' => [
+					'rename' => __('Rename this row', 'acbs'),
+				],
+			]);
+
+			wp_enqueue_style(
+				'acbs-layout-title',
+				ACBS_URL.$css,
+				[],
+				self::asset_version($css)
+			);
+
+		}
+
+		/**
+		 * asset_version function
+		 *
+		 * filemtime, falling back to the plugin version if the file cannot be stat'd.
+		 *
+		 * @version 1.0.0
+		 * @since   1.0.0
+		 *
+		 * @param string $relative
+		 *
+		 * @return string|int
+		 */
+		private static function asset_version($relative) {
+
+			$time = @filemtime(ACBS_PATH.$relative);
+
+			return false !== $time ? $time : ACBS_VERSION;
+
+		}
+
 		/**
 		 * layout_wrapper_classes function
 		 *
@@ -435,6 +584,29 @@
 			}
 			
 			return $id;
+			
+		}
+		
+		/**
+		 * Controls output before the container wrapper starts.
+		 * This method is responsible for emitting any initial HTML or actions
+		 * needed before the start of a layout container. While its specific
+		 * actions are not listed, it typically integrates with hooks for setup tasks.
+		 */
+		public function layout_wrapper_before_container(Row $row) {
+			
+			// Overlay container
+			if($row->layout() === 'full_width_image' && !empty(get_sub_field('overlay'))) {
+				
+				// transparent color selected
+				$color = empty(get_sub_field('overlay_colour')) ? 'rgba(0, 0, 0, .5)' : get_sub_field('overlay_colour');
+				$transparent = self::str_to_rgba($color, 0);
+				$gradient = "linear-gradient(0deg, {$transparent} 11.93%, {$color} 100%)";
+				
+				$overlay_bg = apply_filters('acbs/full_width_image/overlay', $gradient, get_sub_field('overlay'));
+				
+				echo '<div class="fl-full-width-image-overlay" style="background: '.esc_attr($overlay_bg).'"></div>';
+			}
 			
 		}
 		

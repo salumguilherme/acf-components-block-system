@@ -211,7 +211,7 @@
 					'label' => 'Grid Alignment',
 					'name' => 'layout_columns_alignment',
 					'type' => 'button_group',
-					'instructions' => 'How the columns align relative to the content width when the number of columns is lower than the layout.',
+					'instructions' => 'Text alignment inside this section\'s items. Items set to Inherit follow this; an item can override it individually.',
 					'required' => 1,
 					'choices' => [
 						'default' => 'Left',

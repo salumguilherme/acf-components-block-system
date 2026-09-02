@@ -61,9 +61,43 @@ function stylesheets() {
 				process.exit( 1 );
 			}
 
-			return `/* ---- ${ file } ---- */\n${ fs.readFileSync( full, 'utf8' ) }`;
+			return `/* ---- ${ file } ---- */\n${ inlineSvgUrls(
+				fs.readFileSync( full, 'utf8' )
+			) }`;
 		} )
 		.join( '\n' );
+}
+
+/**
+ * Rewrites `url(../../svg/name.svg)` to a data URI.
+ *
+ * A row sheet's SVG references are relative to the BUILT stylesheet - assets/css/rows/ up
+ * to assets/svg/ - which is correct when a browser fetches that file. This fixture INLINES
+ * the CSS into a <style>, and a relative url() in a style element resolves against the
+ * DOCUMENT, so `../../svg/` climbs out of dist/ and lands on /svg/. The request 404s and
+ * the icon is simply absent - no error, and every surrounding rule still applies, so it
+ * reads as "the icon has no styling" rather than "the file is not there". accordions'
+ * chevrons disappeared exactly this way.
+ *
+ * Inlining rather than repointing the path keeps the fixture self-contained, which is the
+ * same reason its placeholder images are data URIs.
+ */
+function inlineSvgUrls( css ) {
+	return css.replace(
+		/url\(\s*["']?\.\.\/\.\.\/svg\/([\w-]+\.svg)["']?\s*\)/g,
+		( match, name ) => {
+			const file = path.join( ROOT, 'assets/svg', name );
+
+			if ( ! fs.existsSync( file ) ) {
+				console.error( `  MISSING assets/svg/${ name } - referenced by a row sheet` );
+				process.exit( 1 );
+			}
+
+			return `url("data:image/svg+xml;utf8,${ encodeURIComponent(
+				fs.readFileSync( file, 'utf8' )
+			) }")`;
+		}
+	);
 }
 
 /** A placeholder image, inline so the fixture needs no network. */
@@ -173,13 +207,23 @@ const cta = ( type = 'columns' ) =>
 const enquiry = () =>
 	`<div class="fl-enquiry fl-card"><div class="fl-enquiry-content"><p>Tell us what you need.</p></div><div class="fl-enquiry-form"><p><em>[form plugin output]</em></p></div></div>`;
 
-/** templates/rows/accordions.php */
+/**
+ * templates/rows/accordions.php
+ *
+ * The fixture is static - it links the built CSS and runs no JS - so the row's script
+ * never gets to open anything. The FIRST item is therefore rendered in its open state,
+ * which is what the plugin's own JS would produce: aria-expanded="true" and no `hidden`
+ * on the panel. Without that the fixture would show four headers and no answer, and the
+ * open state - the brand-green title and the flipped chevron, which is most of what this
+ * row's sheet actually does - would go unchecked.
+ */
 const accordions = ( id ) =>
-	`<div class="fl-accordions accordion" id="${ id }">${ [ 1, 2, 3 ]
-		.map(
-			( n ) =>
-				`<div class="accordion-item"><h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${ id }-${ n }" aria-expanded="false" aria-controls="${ id }-${ n }">Question ${ n }</button></h3><div id="${ id }-${ n }" class="accordion-collapse collapse"><div class="accordion-body"><p>The answer.</p></div></div></div>`
-		)
+	`<div class="fl-accordions" id="${ id }">${ [ 1, 2, 3 ]
+		.map( ( n ) => {
+			const open = 1 === n;
+
+			return `<div class="fl-accordion-item"><h3 class="fl-accordion-heading"><button class="fl-accordion-trigger" type="button" id="${ id }-${ n }-label" aria-expanded="${ open }" aria-controls="${ id }-${ n }"><span class="fl-accordion-title">Question ${ n }${ open ? ' (open)' : '' }</span><span class="fl-accordion-icon" aria-hidden="true"></span></button></h3><div class="fl-accordion-panel" id="${ id }-${ n }" role="region" aria-labelledby="${ id }-${ n }-label"${ open ? '' : ' hidden' }><div class="fl-accordion-body"><p>The answer.</p></div></div></div>`;
+		} )
 		.join( '' ) }</div>`;
 
 const grid = ( extraClass, items ) => `<ul class="fl-grid ${ extraClass }">\n${ items.join( '\n' ) }\n</ul>`;
@@ -297,7 +341,7 @@ function build() {
 		)
 	);
 
-	label( 'accordions &mdash; Bootstrap collapse, no Content Box on this layout' );
+	label( 'accordions &mdash; own script and chevron masks, no Content Box on this layout. First item drawn open; the fixture runs no JS' );
 	parts.push(
 		section(
 			{ layout: 'accordions', bg: 'default', padding: 'sm' },

@@ -37,6 +37,14 @@
 	class Assets {
 
 		/**
+		 * The row runtime: the action bus, and the code that announces each row on the
+		 * page so scripts can attach behaviour to it. Enqueued once when any row renders,
+		 * and declared as a dependency by every per-row script, plugin or theme, so
+		 * window.acbs is guaranteed to exist before either runs.
+		 */
+		const RUNTIME_HANDLE = 'acbs-rows';
+
+		/**
 		 * @var Assets|null
 		 */
 		private static $instance = null;
@@ -140,6 +148,12 @@
 		 */
 		public function register_row_assets() {
 
+			// Registered here, enqueued in flush() and only if a row actually rendered:
+			// a page with no rows should not carry the runtime.
+			if(!wp_script_is(self::RUNTIME_HANDLE, 'registered') && file_exists(ACBS_PATH.'assets/js/rows.js')) {
+				wp_register_script(self::RUNTIME_HANDLE, ACBS_URL.'assets/js/rows.js', [], ACBS_VERSION, true);
+			}
+
 			foreach(Row_Registry::all() as $name => $type) {
 
 				foreach($type->styles() as $handle) {
@@ -172,7 +186,14 @@
 						continue;
 					}
 
-					wp_register_script($handle, ACBS_URL.$relative, [], ACBS_VERSION, true);
+					// The runtime is a hard dependency: a row script calls
+					// acbs.onRowReady() on its first line. Named only when it is actually
+					// registered, because an unregistered dependency makes
+					// WP_Dependencies::all_deps() drop the script in silence - the same
+					// failure enqueue_theme_styles() documents for stylesheets.
+					$deps = wp_script_is(self::RUNTIME_HANDLE, 'registered') ? [self::RUNTIME_HANDLE] : [];
+
+					wp_register_script($handle, ACBS_URL.$relative, $deps, ACBS_VERSION, true);
 
 				}
 
@@ -200,6 +221,14 @@
 			// what stops those dependencies silently dropping the row's own CSS.
 			if(!empty($this->recorded) && !wp_style_is(Module::STRUCTURE_HANDLE, 'enqueued')) {
 				wp_enqueue_style(Module::STRUCTURE_HANDLE);
+			}
+
+			// Same reasoning for the runtime, and it is enqueued whether or not any row
+			// on this page has a script of its own: it is what fires `acbs/row/ready`,
+			// and a theme attaching behaviour to a row the plugin does not script is the
+			// normal case, not an edge one.
+			if(!empty($this->recorded) && wp_script_is(self::RUNTIME_HANDLE, 'registered')) {
+				wp_enqueue_script(self::RUNTIME_HANDLE);
 			}
 
 			foreach($this->recorded as $type) {
@@ -253,13 +282,18 @@
 			// there is no sane way to layer two PHP files.
 			$this->enqueue_theme_styles($type, $base);
 
+			$base_scripts = [];
+
 			foreach($type->scripts() as $handle) {
 
 				if(wp_script_is($handle, 'registered')) {
 					wp_enqueue_script($handle);
+					$base_scripts[] = $handle;
 				}
 
 			}
+
+			$this->enqueue_theme_scripts($type, $base_scripts);
 
 		}
 
@@ -334,6 +368,76 @@
 				}
 
 				wp_enqueue_style($handle);
+
+				// Child theme wins; the parent's copy is not also loaded.
+				break;
+
+			}
+
+		}
+
+		/**
+		 * enqueue_theme_scripts function
+		 *
+		 * A theme's own script for a row, from {theme}/acbs/js/rows/{layout}.js. Child
+		 * theme first, then parent; the file existing is the whole trigger, there is no
+		 * hook to call. The mirror image of enqueue_theme_styles(), and it inherits both
+		 * of that method's hard-won rules:
+		 *
+		 *   1. THE DEPENDENCY IS WHAT WAS ACTUALLY ENQUEUED. A layout the plugin does not
+		 *      script has no `acbs-row-{layout}` registered, and naming an unregistered
+		 *      handle makes WP_Dependencies::all_deps() set $keep_going = false and drop
+		 *      the item silently. Falling back to the runtime handle keeps the ordering
+		 *      promise either way, and the runtime is what a theme script actually needs:
+		 *      it calls acbs.onRowReady().
+		 *
+		 *   2. VERSION IS filemtime. A theme edits its own JS without bumping the
+		 *      plugin's version, so keying the cache to ACBS_VERSION serves the old file
+		 *      after a deploy - which reads as "my change did not upload".
+		 *
+		 * Note this is additive where a theme TEMPLATE is a replacement. A theme script
+		 * layers on the plugin's rather than replacing it, so a theme can extend a row the
+		 * plugin already scripts without reimplementing it - which is the whole reason the
+		 * runtime announces rows through a replaying subscription rather than a plain
+		 * event.
+		 *
+		 * @version 1.0.0
+		 * @since   1.0.0
+		 *
+		 * @param Row_Type $type
+		 * @param array    $base Plugin script handles actually enqueued for this row.
+		 */
+		private function enqueue_theme_scripts(Row_Type $type, array $base = []) {
+
+			$name = $type->name();
+			$relative = 'acbs/js/rows/'.$name.'.js';
+
+			foreach([get_stylesheet_directory() => get_stylesheet_directory_uri(), get_template_directory() => get_template_directory_uri()] as $dir => $uri) {
+
+				$file = $dir.'/'.$relative;
+
+				if(!file_exists($file)) {
+					continue;
+				}
+
+				$handle = Row_Type_Base::SCRIPT_PREFIX.$name.'-theme';
+
+				if(!wp_script_is($handle, 'registered')) {
+
+					$deps = $base;
+
+					if(!$deps && wp_script_is(self::RUNTIME_HANDLE, 'registered')) {
+						$deps = [self::RUNTIME_HANDLE];
+					}
+
+					$version = filemtime($file);
+					$version = false !== $version ? $version : ACBS_VERSION;
+
+					wp_register_script($handle, $uri.'/'.$relative, $deps, $version, true);
+
+				}
+
+				wp_enqueue_script($handle);
 
 				// Child theme wins; the parent's copy is not also loaded.
 				break;

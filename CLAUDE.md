@@ -63,6 +63,8 @@ Builder template with no Elementor anywhere in the request.
    `<span class="text-{brand}">` instead of an inline hex. See §11.
 7. **Button icons.** Bundled SVGs inlined into a button so they inherit its text colour,
    plus a per-button custom upload. See §12.
+8. **A row JavaScript layer.** A runtime that announces every row on the page, an
+   ACF-shaped action bus, per-row scripts and theme-side row scripts. See §14.
 
 > **Client scoping.** Anything prefixed `fs_` or `sv_` belongs to two *different* client builds
 > and must never be mixed or cross-referenced. Under this fork they leave core entirely for
@@ -80,7 +82,7 @@ Builder template with no Elementor anywhere in the request.
 | Requires | WP 6.0+ · PHP 8.0+ |
 | Theme | A **child theme** is the real target. Both parent and child matter: `locate_template()` searches child first, so a child override wins over a parent override wins over the plugin |
 | Elementor | Not active. Nothing in the plugin references it |
-| Build | **webpack**. Sources in `src/`, output to `assets/css`, `assets/js` and `assets/svg`. `npm run dev` (watch) · `npm run build:dev` · `npm run build` (also rebuilds the fixture) |
+| Build | **webpack**. Sources in `src/`, output to `assets/css`, `assets/js` and `assets/svg`. `npm run dev` (watch) · `npm run build:dev` · `npm run build` (also rebuilds the fixture). Row CSS and row JS are both discovered by glob, so a new file is the whole job |
 | Deploy | `npm run deploy` · `npm run deploy:dry`. rsync over SSH, built assets only. **All host details live outside the repo** in `~/.config/acbs/deploy.env` (`ACBS_DEPLOY_TARGET` required). `--delete` is opt-in; run `-n` first. See `bin/deploy.sh --help` |
 | Release | `npm run release` (patch) · `release:minor` · `release:major` · `npm run release -- 1.1.0` · `npm run package`. Runs `bin/release.js`. `SHIP_DIRS` is `['assets','modules','core','templates','vendor']`. The staged directory and zip are named `acf-components-block-system` while the main PHP file keeps its `elementor-repeater-…` name, so `SOURCE_SLUG` and `SLUG` are separate constants on purpose |
 | Tests / lint | **None installed.** No PHPCS, no PHPStan, no `composer.json`. "Linting" here means `php -l` across the tree, `node --check` on the JS, `bash -n` on the shell script, plus the targeted checks in §13. Phase 06 |
@@ -109,10 +111,15 @@ Answered 27/08/2026 unless noted. Do not relitigate these without saying so expl
 | 13 | **Every layout gets a template**, stub or real, so the full set exists from day one. |
 | 14 | **Tokens are unprefixed** (01/09/2026): `--brand-primary`, not `--acbs-brand-primary`. They are declared on `html`, so a theme's `:root` block wins on specificity and can restate any of them. |
 | 15 | **A single top-level wrapper** (01/09/2026). `acbs_render_rows()` always emits one `<div class="acbs fl-acbs">` around every `section.fl-section`, even for one row, because the scoped Bootstrap has nothing to attach to without it. |
-| 16 | **`column_alignment = default` DEFERS** (01/09/2026). It emits the class and no rule, so the value inherits from the row's own `fl-loop-grid-columns-align-*` and from the theme otherwise. It used to declare `text-align: left`, which made it an override: a centred row came out centred everywhere except inside its items. |
+| 16 | **`column_alignment = default` DEFERS** (01/09/2026). It emits the class and no rule, so the value inherits from the row's own `fl-loop-grid-columns-align-*` and from the theme otherwise. It used to declare `text-align: left`, which made it an override: a centred row came out centred everywhere except inside its items. **The choice was still labelled "Left (default)" until 02/09/2026**, which is what made this read as a bug: the field promised left and delivered inherit. It says "Inherit" now. |
 | 17 | **The section intro is always centred** (01/09/2026), whatever `layout_columns_alignment` says. That field aligns the section's CONTENT; the intro is the section's heading. Written as an exclusion (`:not(.fl-intro)`) rather than an override, so it cannot lose a specificity race later. |
 | 18 | **Brand colours in content are classes, never inline hex** (02/09/2026). §11 exists to enforce this; WordPress's own colour button is removed from the toolbar so there is no easier route back to a frozen value. |
 | 19 | **No per-site button icon lookup** (02/09/2026). Themes cannot add or replace the bundled SVGs; `custom` is the escape hatch. The choice list stays filterable. |
+| 20 | **Row JS mirrors row CSS** (02/09/2026). A file in `src/js/rows/` is the whole contract, the handle is derived from the layout name, and a theme's own script LAYERS on the plugin's rather than replacing it. See §14. |
+| 21 | **`onRowReady()` replays; `addAction()` does not** (02/09/2026). ACF's action bus is the model and ACF never replays, which is right for a one-shot `ready` and wrong for a set of elements - a boolean per action name cannot say WHICH rows have initialised. §14. |
+| 22 | **`accordions` does not use Bootstrap's collapse** (02/09/2026). The plugin ships Bootstrap's CSS and none of its JS, so the old markup only ever opened because the child theme happens to load `bootstrap.bundle.min.js`. The row carries its own script and depends on nothing outside the plugin. |
+| 23 | **Layout renaming is ACF's, not ours** (02/09/2026). ACF Pro has shipped it since 6.5 - a hidden `acf_fc_layout_custom_label` per row, saved with the post, stored in `_page_sections_layout_meta`. The plugin adds a computed default title and a faster way to reach the rename, and stores nothing of its own. See §15. |
+| 24 | **The four `acbs/wrapper/*` hooks live in the TEMPLATE** (02/09/2026), not in `Rows\Wrapper`. That is a deliberate trade and a sharp edge: they can sit outside the `<section>`, which the class cannot do, but a theme that has copied `wrapper.php` fires none of them. §09. |
 
 ---
 
@@ -185,8 +192,8 @@ modules/flexible-layout-template/
     template-loader.php       candidate cascade, locate_template(), parts and partials
     wrapper.php               templates/wrapper.php, action points, inline custom properties
     template-tags.php         plain functions, required not autoloaded
-    assets.php                footer collector
-  fields/                     26 files
+    assets.php                footer collector, styles AND scripts (§14)
+  fields/                     27 files, incl. layout-title.php (§15)
 
 modules/editor-colours/       §11
   module.php                  toolbar wiring, TinyMCE init settings, admin styles
@@ -206,6 +213,8 @@ src/
   css/rows-bootstrap.scss     tokens + full Bootstrap, scoped at build time
   css/structure.scss          the plugin's own row structure, unscoped
   css/rows/{layout}.scss      per-row sheets, discovered by glob
+  js/rows.js                  the row runtime: action bus + row announcement (§14)
+  js/rows/{layout}.js         per-row scripts, discovered by the same glob
   svg/*.svg                   button icons, copied to assets/svg by the build (§12)
 
 assets/                       BUILT, except where noted
@@ -213,6 +222,8 @@ assets/                       BUILT, except where noted
   css/structure.css           generated
   css/rows/{layout}.css       generated, and that directory is cleaned each build
   css/mce-text-colour.css     HAND-WRITTEN (§11)
+  js/rows.js                  generated
+  js/rows/{layout}.js         generated, and that directory is cleaned each build
   js/*.js                     HAND-WRITTEN admin scripts, not in the pipeline
   images/*.svg                HAND-PLACED admin icons
   svg/{icon}.svg              copied from src/svg, cleaned each build
@@ -227,9 +238,11 @@ tools/
   fixture/build.js            builds dist/fixture.html, every layout and every modifier
 ```
 
-**Which files the build owns.** Everything under `assets/css/rows/` and `assets/svg/` is
-regenerated and those two directories are cleaned on every build, so a deleted source leaves
-no stale output. `assets/js`, `assets/images` and `assets/css/mce-text-colour.css` are hand
+**Which files the build owns.** Everything under `assets/css/rows/`, `assets/js/rows/` and
+`assets/svg/` is regenerated and those three directories are cleaned on every build, so a
+deleted source leaves no stale output. Note how narrow that is: `assets/js/rows/` is cleaned
+and `assets/js/` is not, because they have different owners. `assets/js/*.js`,
+`assets/images` and `assets/css/mce-text-colour.css` are hand
 written and deliberately outside the pipeline: `output.clean` keeps them.
 
 ### The render path
@@ -389,7 +402,7 @@ into the array literal in `page-content.php` (975 lines, down from 1,724).
 
 | Layout | Iterates | Grid & Display fields |
 |---|---|---|
-| `accordions` | `accordions` repeater | none |
+| `accordions` | `accordions` repeater | none. **The only layout with its own JS** (§14), and it does not use Bootstrap's collapse |
 | `columned_content` | `columns` repeater | full set + cards |
 | `contact_page_form` | | display + cards |
 | `content_left_image_right` | | none |
@@ -541,6 +554,8 @@ Always present: `fl-section`, `fl-type-{layout}`, `fl-item`.
 | Bootstrap | `src/css/rows-bootstrap.scss` | `assets/css/rows-bootstrap.css` | **Yes**, every selector prefixed `.acbs.fl-acbs` |
 | Structure | `src/css/structure.scss` | `assets/css/structure.css` | No |
 | Per row | `src/css/rows/{layout}.scss` | `assets/css/rows/{layout}.css` | No |
+| Runtime JS | `src/js/rows.js` | `assets/js/rows.js` | n/a |
+| Per row JS | `src/js/rows/{layout}.js` | `assets/js/rows/{layout}.js` | n/a |
 
 `webpack.config.js` does the scoping with `postcss-prefix-selector` under
 `SCOPE_SELECTOR = '.acbs.fl-acbs'`. Selectors in `ROOT_SELECTORS` (`:root`, `html`, `body`,
@@ -640,7 +655,10 @@ alignment, so those three sections were moved to `columned_content` rather than 
 | `acbs/row/show` | Skip **one row** at render time |
 | `acbs/row/wrapper_classes` · `/wrapper_id` | Attributes on **one** `section.fl-section`. Note the singular/plural distinction from `acbs/rows/wrapper_classes` |
 | `acbs/row/wrapper_style` | Inline declarations on one section. Custom properties only |
-| `acbs/row/before` · `/after` | Extension points emitted by the wrapper |
+| `acbs/row/before` · `/after` | Extension points emitted by `Rows\Wrapper::content()`, so they fire INSIDE `.fl-container` and cannot be lost to a theme override |
+| `acbs/wrapper/before_section` · `/before_container` · `/after_container` · `/after_section` | The four positions the class-level hooks cannot reach: outside the `<section>` and between it and the container. Passed `$row`. **Fired from `templates/wrapper.php`**, which a theme REPLACES - see decision 24 and §09 |
+| `acbs/full_width_image/overlay` | The overlay's `background` value, before it is written to the section's inline style. Passed the gradient string and the `overlay` toggle |
+| `acbs/layout_title/separator` | What sits between the computed prefix and the layout label in the admin. Default `–`. §15 |
 | `acbs/template/candidates` · `/path` | Template cascade |
 | `acbs/styles/enqueue_default` | Drop the plugin's base sheet for a layout |
 | `acbs/bootstrap/handle` | Handle the Bootstrap build registers under, so a site can point rows at its own |
@@ -851,7 +869,10 @@ Added 01–02/09/2026, each one caught by measuring output rather than by a buil
   the code.
 - **A theme stylesheet whose dependency is not registered is dropped in silence.**
   `WP_Dependencies::all_deps()` computes `array_diff($deps, array_keys($registered))` and, with
-  anything missing, sets `$keep_going = false` and skips the item. No warning, no output. This
+  anything missing, sets `$keep_going = false` and skips the item. **WordPress 6.9.1 added a
+  `_doing_it_wrong()` here**, so it is no longer strictly silent - but that only surfaces under
+  `WP_DEBUG`, and the item is still dropped either way, so in production it is as quiet as it
+  ever was. This
   bit `enqueue_theme_styles()` twice: a layout registered BY A THEME has no plugin sheet, so
   `acbs-row-{layout}` is never registered and naming it as a dependency killed the theme's own
   file; and because a dependency is enqueued whether or not anyone asked, the same line dragged
@@ -887,6 +908,50 @@ Added 01–02/09/2026, each one caught by measuring output rather than by a buil
   `calc(50% - gap/2)`, which is the same guarantee measured against what is actually
   available. Caught by comparing `document.documentElement.scrollWidth` against
   `clientWidth`, which is the cheapest overflow check there is.
+- **A `transitionend` that never fires leaves the element mid-flight.** It is not a promise
+  that something ends, it is an event fired when a transition actually ran - so it is absent
+  when the value did not really change (an accordion whose answer is empty animates 0px to
+  0px), when the tab is hidden and the compositor never advances, or when anything has
+  zeroed the duration. `accordions` drove its end state entirely from that event, and the
+  CLOSED case is the one that bites: without it `hidden` is never set, so a collapsed panel
+  keeps its links in the tab order at zero height and a keyboard user tabs into content they
+  cannot see. There is a duration-derived fallback timer now. Found because the verification
+  browser ran with its pane hidden.
+- **A loader named in webpack.config.js and absent from package.json breaks silently until
+  something uses it.** The `babel-loader` rule sat there through every build while the
+  pipeline had no JS entries, so nothing ever resolved it; the first row script turned a
+  config that had always "worked" into a hard failure. The same applies in reverse: with an
+  all-modern target list babel is a NO-OP, output is byte-identical, and `compareBeforeEmit`
+  skips the write - so built files keep an old mtime and look stale when they are correct.
+- **The fixture inlines the CSS, so a relative `url()` resolves against the DOCUMENT.**
+  A row sheet's `../../svg/` is right for the built file at `assets/css/rows/` and wrong once
+  the same bytes sit in a `<style>` in `dist/`, where it climbs out and 404s. Every
+  surrounding rule still applies, so it reads as "the icon has no styling" rather than "the
+  file is missing" - `accordions`' chevrons vanished exactly that way. The fixture now
+  inlines those SVGs as data URIs.
+- **A field label can be the bug.** `column_alignment` offered "Left (default)" while
+  decision 16 had made `default` mean INHERIT, so an editor picking it inside a centred
+  section got centre and reasonably called it broken. The behaviour was right and the promise
+  was wrong. Relabelled "Inherit" 02/09/2026. Its sibling `layout_columns_alignment` is
+  worse: it still DEFAULTS to `center`, so a row nobody has touched is centred.
+- **An unsupported conditional-logic operator hides a field permanently, it does not
+  ignore the rule.** ACF resolves a rule with
+  `new (acf.getConditionTypes({fieldType, operator})[0] || acf.Condition)(n)`, and the base
+  `acf.Condition.match()` is `function(){ return !1 }`. So a rule whose operator is not
+  registered for that field's TYPE never matches and the dependent field never appears.
+  Condition types are registered per type: `!=empty` exists for text-ish and choice fields
+  and NOT for `true_false`, which ships only `==`/`!=` against a single "Checked" choice.
+  Live case: `overlay_colour` carries two OR groups for exactly this reason.
+- **A conditional-logic rule targets a field KEY, never a name.** The same silent
+  permanent hide by a second route, and an ACF export written by hand is where it comes
+  from - the exported JSON for a sub field names the field, and that has to be swapped for
+  its key on the way in.
+- **A hook fired from a template is only as reliable as the template.** `acbs/row/before`
+  and `/after` come from `Rows\Wrapper::content()`, which nothing can replace. The four
+  `acbs/wrapper/*` hooks come from `templates/wrapper.php`, which a theme REPLACES
+  wholesale - so a theme that copied that file before 02/09/2026 fires none of them, and
+  anything the plugin renders through one of them disappears on that theme. Rendering
+  core output from a hook a theme can silently remove is the part to be careful about.
 - **A blanket prefix rename will merge a deprecated alias into its own target.** Renaming
   `erdc/` to `acbs/` turned `do_action('erdc/init')` - the deprecated alias sitting directly
   below `do_action('acbs/init')` - into a second `acbs/init`, firing every listener twice. A
@@ -911,9 +976,14 @@ Added 01–02/09/2026, each one caught by measuring output rather than by a buil
 
 ### Row stylesheets
 
-`columned_content`, `content_left_image_right`, `cta`, `full_width_image`, `icon_list`,
-`logo_gallery` and `stats` have sheets. `testimonials`, `accordions` and
-`contact_page_form` have real templates and no sheet.
+`accordions`, `columned_content`, `content_left_image_right`, `cta`, `full_width_image`,
+`icon_list`, `logo_gallery`, `stats` and `testimonials` have sheets. Only
+`contact_page_form` and the `image_gallery` stub have none.
+
+### Row scripts
+
+`accordions` is the only layout with one. Everything else needs no behaviour, and costs
+nothing for it: `Assets` registers a script handle only when the built file exists.
 
 ### Decisions taken on cta, 02/09/2026
 
@@ -961,6 +1031,20 @@ answers were, because three of them were decisions rather than fixes:
 | `.text-dark` renders green while the editor previewed `#171717` | **Fixed** in the palette, not the token. The swatch is a promise about the result, so it follows the compiled class: `dark` is `#175e54` |
 | `ACBS_UPDATER_TOKEN` has no fallback | **Accepted.** Not a public release; the constant is updated by hand on the sites that have it |
 
+### Open defects, 02/09/2026
+
+Found by reading, not by running - staging and local were both reported working, so treat
+these as "the next person will hit it" rather than "it is broken now".
+
+| Where | What |
+|---|---|
+| `page-content.php` → `overlay_colour` | The field is `return_format => 'array'`, so `get_sub_field()` returns `['red','green','blue','alpha']`. `Module::str_to_rgba()` is typed `string $color` and `layout_wrapper_before_container()` passes the value straight in, which is a **fatal TypeError** - an array is not coercible to string. `return_format => 'string'` is what `str_to_rgba()` is written for: its first branch parses `rgb…` and its second parses hex |
+| same | The `default_value` is `rgba(0, 0, 0, .7)` **with spaces**, and ACF's own `string_to_array()` matches on `/^rgba?\(([0-9,.]+)\)/` - no space in the class - so under `return_format => 'array'` an untouched field falls through to its `alpha => 0` fallback and the overlay is invisible |
+| `Module::str_to_rgba()` | `$toAlpha` defaults to `1.0` and the body does `if(isset($toAlpha))`, which is always true for a non-null default. So the parsed alpha and `$fallbackAlpha` are both unreachable unless a caller passes `null` explicitly, and `str_to_rgba($c)` always returns alpha 1. Defaulting `$toAlpha` to `null` makes "no override" the default and the two fallbacks live |
+| same | The docblock says `@return array An array with 'red', 'green', 'blue', and 'alpha' components`; the signature says `?string` and it returns `"rgba(…)"` |
+| `.fl-acbs { overflow: hidden }` | Clips on both axes over every row on the page. It also establishes a scroll container, which silently disables `position: sticky` anywhere inside a row, and trims focus rings and shadows at the edges. `overflow-x: clip` clips without creating that container, so sticky keeps working |
+| `templates/rows/full_width_image.php` | `use ACBS\Modules\FlexibleLayoutTemplate\Module;` with no reference to `Module` in the file - left over from before the overlay moved to the hook. Its docblock also still describes a stub that "prints the layout's label", and mentions "fifteen stubs" |
+
 ### Open questions
 
 - **`layout_display_bg` still defaults to `light`** while both colour fields now default to
@@ -994,8 +1078,6 @@ AJAX capability checks were fixed on 27/08/2026: all three handlers go through
   if the pattern does not match exactly once, so they cannot drift.
 - `Core\Environment` has no callers left. Kept in case a per-client add-on registering product
   row types wants it; delete it if none appears.
-
----
 
 ## 11 — Editor colours
 
@@ -1141,7 +1223,10 @@ same three are the fastest route next time:
   the thing under test IS a WordPress function's behaviour - `wp_kses`, say - require the real
   file rather than stubbing it, or the test proves nothing.
 - **Reading the dependency's source.** ACF, TinyMCE and WordPress are all on disk. Every
-  non-obvious entry in §09 came from reading one of them, not from remembering it.
+  non-obvious entry in §09 came from reading one of them, not from remembering it. The
+  action-bus design in §14 came from reading `acf.min.js`, not from the documented API:
+  the documented surface does not say that `doAction` never replays, and that is the whole
+  reason `onRowReady()` exists.
 
 Three checks worth re-running after any change in their area:
 
@@ -1172,5 +1257,192 @@ Built assets only - never `src/`. It is a **multisite** install: do not touch an
 the plugin folder or the child theme.
 
 ---
+---
+
+## 14 — Row JavaScript
+
+Added 02/09/2026. The mirror image of the per-row CSS pipeline, and it follows the same
+rule: **a file in `src/js/rows/` is the whole contract.** `Rows\Assets` derives the handle
+from the layout name and registers it only if the built file exists, so adding behaviour to
+a row is one new file and no PHP.
+
+| Layer | Source | Handle | Loads |
+|---|---|---|---|
+| Runtime | `src/js/rows.js` | `acbs-rows` | whenever ANY row renders |
+| Plugin row script | `src/js/rows/{layout}.js` | `acbs-row-{layout}` | only when that layout is on the page |
+| Theme row script | `{theme}/acbs/js/rows/{layout}.js` | `acbs-row-{layout}-theme` | automatically, the file existing is the trigger |
+
+`SCRIPT_PREFIX` is the same string as `STYLE_PREFIX` and that is legal: WordPress keeps
+styles and scripts in two separate `WP_Dependencies` registries, so `acbs-row-accordions`
+names a sheet in one and a script in the other with no collision. Separate constants so the
+two can diverge later.
+
+**`Row_Type_Base::scripts()` used to return `[]`**, which made the whole script path dead
+code - `Assets` looked for handles no row type ever declared. It now mirrors `styles()`.
+
+### The public API
+
+```js
+acbs.onRowReady( 'accordions', fn )   // fn( element, layout ); replays. THE one to use
+acbs.onRowReady( fn )                  // every layout
+acbs.addAction( name, fn )             // ACF-shaped, does NOT replay
+acbs.doAction( name, ...args )
+acbs.didAction( name )
+acbs.removeAction( name, fn )
+acbs.initRows( root )                  // announce rows injected after load
+acbs.rows() · acbs.layoutOf( el )
+```
+
+Also a DOM event, for a listener that would rather not know about `window.acbs`:
+`acbs/row/ready`, bubbling, `detail = { el, layout }`. And `row/ready/{layout}` and
+`rows/ready` go through `doAction`.
+
+### Why onRowReady() replays and addAction() does not
+
+Modelled on ACF's JS API deliberately - it is the vocabulary anyone on this stack already
+has - but smaller: no priorities, no contexts, no filters. ACF needs those because it has
+hundreds of internal callers ordering themselves against each other; here there are two
+parties.
+
+The one place it deviates matters. Verified in `acf.min.js`:
+
+```js
+var c = {};
+acf.doAction  = function(t){ c[t]=1; hooks.doAction.apply(this,arguments); c[t]=0; };
+acf.didAction = function(t){ return c[t] !== undefined; };
+```
+
+**ACF never replays.** `doAction` records that a name fired; a late subscriber gets nothing,
+and the caller is expected to branch on `didAction()` itself - `acf.Model` does exactly that
+in one line. That works for a one-shot lifecycle event like `ready`, where "has it happened"
+has a single boolean answer.
+
+Rows are not one-shot. They are a set of ELEMENTS, and "has it happened" has one answer per
+element, which a boolean cannot carry. So `onRowReady()` keeps the list of rows already
+announced and replays it for a late subscriber, which makes attaching behaviour to a row
+order-independent by construction rather than by luck.
+
+> **In the ordinary footer-script case nothing would be missed anyway**, because
+> `document.readyState` is still `loading` while the footer is being parsed, so the runtime
+> defers to `DOMContentLoaded` and every footer subscriber is registered first. The replay
+> is what makes async/deferred scripts, late `acbs_render_rows()` calls and DOM-injected
+> rows work rather than happen to work. Measured both ways: a late `onRowReady` subscriber
+> receives the row; a plain `addEventListener` registered at the same instant receives
+> nothing, ever.
+
+### The layout comes off the CLASS, not a data attribute
+
+`rows.js` reads `fl-type-{layout}` off the section rather than a `data-acbs-layout`
+attribute, and that is load-bearing. `templates/wrapper.php` is overridable and a theme
+template REPLACES the plugin's, so a theme that copied `wrapper.php` last month would never
+grow a new attribute and every row it renders would silently stop initialising.
+`fl-type-{layout}` comes from `Wrapper::classes()` in PHP, which a copied template still
+calls.
+
+### Theme scripts layer, they do not replace
+
+Same as stylesheets, and the opposite of templates. `enqueue_theme_scripts()` inherits both
+of `enqueue_theme_styles()`'s hard-won rules: **the dependency is what was actually
+enqueued** (falling back to `acbs-rows`, never a handle that may not be registered), and
+**the version is `filemtime`**, not `ACBS_VERSION`.
+
+Proved against WordPress's real `WP_Dependencies` rather than a stand-in:
+
+| Case | Result |
+|---|---|
+| plugin scripts the layout too | `acbs-rows` → `acbs-row-accordions` → `acbs-row-accordions-theme` |
+| layout the plugin does NOT script | `acbs-rows` → `acbs-row-video_player-theme` |
+| runtime not registered | theme script still enqueued, no dangling dep |
+| naming an unregistered dep (the old bug) | **theme script vanishes**, only `acbs-rows` prints |
+
+That second row is not hypothetical: `video_player` is a layout the Golden Rise child theme
+registers itself.
+
+### babel-loader
+
+`webpack.config.js` had a `babel-loader` rule from before the pipeline had any JS, and the
+package was not in `package.json`. Nothing exercised it, so it "worked" until the first row
+script turned it into a hard build failure. The three packages are real devDependencies as
+of 02/09/2026.
+
+**Against the current target list babel is a no-op.** Every browser
+`> 0.25%, last 3 versions, not dead` resolves to in 2026 supports the syntax the row scripts
+use, so output is byte-identical to input and webpack's `compareBeforeEmit` skips the write,
+leaving the built files with an old mtime. That is correct, not a broken loader - confirmed
+by pinning `targets: 'ie 11'`, which does transpile.
+
+---
+
+---
+
+## 15 — Layout titles in the admin
+
+Added 02/09/2026. A page with a dozen rows is a list of identical handles: every Accordions
+row is called "Accordions". Two halves, and **only the first is ours**.
+
+### The computed title
+
+`Fields\Layout_Title` filters `acf/fields/flexible_content/layout_title/key=<page_sections>`
+and PREPENDS the first of:
+
+1. the text of the first `<h1>`–`<h6>` in `section_content`
+2. `#` plus `section_container_id`
+3. nothing, in which case the layout label stands alone exactly as before
+
+```
+Frequently Asked Questions – Accordions
+#enquire – Enquiry Form
+Accordions
+```
+
+The `key=` variant of the filter is used rather than the bare one, so this can only ever
+touch `page_sections` - a site is free to register flexible content fields of its own.
+
+Values are read with `get_sub_field($name, false)`: ACF sets up a loop around this filter
+in `Layout::get_title()`, and the unformatted form avoids running a wysiwyg through
+`acf_the_content` for every row on every admin page load just to regex a heading out of it.
+The heading is `wp_strip_all_tags`ed, so the `<span class="text-primary">` half of a
+two-tone heading contributes its text and nothing else, then entity-decoded, whitespace
+collapsed and trimmed to 60 characters.
+
+**It also refreshes over ajax.** ACF's `renderLayout()` posts a row's current values to
+`wp_ajax_acf/fields/flexible_content/layout_title` whenever the row is COLLAPSED, so typing
+a heading and folding the row up updates the handle immediately.
+
+### The rename is ACF's
+
+ACF Pro has done this since 6.5 and it was easy to miss, because it lives behind the
+row's "More layout actions" (⋯) menu:
+
+| Piece | |
+|---|---|
+| storage | `_page_sections_layout_meta`, as `['disabled' => [...], 'renamed' => [i => label]]` |
+| the input | a hidden `acf_fc_layout_custom_label` per row - **not ajax**, saved with the post |
+| reorder | safe: the input sits inside the row's own `<div class="layout">` and moves with it, and `update_value()` rebuilds the index from the submitted order |
+| precedence | a renamed row shows the custom label, and ACF puts the COMPUTED title in `.acf-fc-layout-original-title` beside it in brackets |
+
+So the plugin stores nothing of its own and there is no `section_display_title` field. What
+it adds is a second, faster way in: an edit button on the row handle, which hands the value
+to ACF's own `renameLayout()`.
+
+### Three things about that button that are not arbitrary
+
+- **It is a SIBLING of `.acf-fc-layout-title`, never a child.** ACF refreshes the title with
+  `$title.html(response)`, so anything inside that element is destroyed on the next collapse.
+- **Its click listener is on `document` in the CAPTURE phase.** `.acf-fc-layout-handle`
+  carries `data-name="collapse-layout"` and ACF listens for that with a delegated handler on
+  the FIELD element, which is below `document` in the tree - a bubble-phase listener here
+  runs after the row has already collapsed. Capturing lets `stopPropagation()` land first.
+- **Nothing is bound per row.** The button is injected into the clone template as well as
+  the live rows, so a row added from the cloner arrives with one already in place.
+
+A value equal to what is already displayed is skipped rather than written: storing it would
+pin the row to a custom label that happens to match today's computed title, and the title
+would stop following the heading the moment an editor changed it.
+
+Files: `modules/flexible-layout-template/fields/layout-title.php`, plus the hand-written
+`assets/js/acf-layout-title.js`, `assets/css/acf-layout-title.css` and
+`assets/images/acbs-layout-edit.svg` - none of the three are in the webpack pipeline.
+
 
 *ACF Components Block System · v1.0.0 · forked from ERDC 1.0.36 · Five Creative · 02/09/2026*

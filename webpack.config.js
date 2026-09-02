@@ -94,8 +94,17 @@ class CopySvgPlugin {
  */
 const ROOT_SELECTORS = [ ':root', 'html', 'body', ':host' ];
 
-function rowEntries() {
-	const dir = path.resolve( __dirname, 'src/css/rows' );
+/**
+ * One entry per file in a row directory, discovered rather than listed, so adding a
+ * layout's CSS or JS is one new file and no config change.
+ *
+ * Output paths line up with what Rows\Assets looks for - assets/css/rows/{layout}.css
+ * and assets/js/rows/{layout}.js - because that class derives both from the layout name
+ * and checks the file exists before registering a handle. A file here and a layout of
+ * that name are the whole contract; there is no list to keep in step.
+ */
+function rowEntries( kind, test ) {
+	const dir = path.resolve( __dirname, `src/${ kind }/rows` );
 
 	if ( ! fs.existsSync( dir ) ) {
 		return {};
@@ -104,10 +113,10 @@ function rowEntries() {
 	return Object.fromEntries(
 		fs
 			.readdirSync( dir )
-			.filter( ( file ) => /\.(sa|sc)ss$/.test( file ) && ! file.startsWith( '_' ) )
+			.filter( ( file ) => test.test( file ) && ! file.startsWith( '_' ) )
 			.map( ( file ) => [
-				`css/rows/${ path.parse( file ).name }`,
-				`./src/css/rows/${ file }`,
+				`${ kind }/rows/${ path.parse( file ).name }`,
+				`./src/${ kind }/rows/${ file }`,
 			] )
 	);
 }
@@ -124,23 +133,35 @@ module.exports = ( env, argv ) => {
 			// backgrounds, padding steps, grid and intro.
 			'css/structure': './src/css/structure.scss',
 
-			// One entry per row stylesheet, discovered rather than listed, so adding a
-			// layout's CSS is one new file and no config change. Output paths line up
-			// with what Rows\Assets looks for: assets/css/rows/{layout}.css.
-			...rowEntries(),
+			// One entry per row stylesheet - see rowEntries().
+			...rowEntries( 'css', /\.(sa|sc)ss$/ ),
+
+			// The row runtime: the action bus and the code that announces each row on the
+			// page. Always enqueued when any row renders, and every per-row script
+			// depends on it.
+			'js/rows': './src/js/rows.js',
+
+			// One entry per row script, same discovery rule as the sheets above.
+			...rowEntries( 'js', /\.jsx?$/ ),
 		},
 
 		output: {
 			path: path.resolve( __dirname, 'assets' ),
 			filename: '[name].js',
 			// Global clean stays off - assets/js holds hand-written admin scripts that are
-			// not part of this build and must survive it. The row stylesheets ARE fully
-			// generated, though, so that one directory is cleaned: without it, deleting
+			// not part of this build and must survive it. The row directories ARE fully
+			// generated, though, so those are cleaned: without it, deleting
 			// src/css/rows/{layout}.scss leaves its compiled CSS behind and the release
-			// packager happily ships a sheet for a layout that no longer exists.
+			// packager happily ships assets for a layout that no longer exists.
+			//
+			// Note how narrow this is. `js/rows/` is cleaned and `js/` is not, because
+			// the two directories have different owners: everything under js/rows/ comes
+			// out of this build, while assets/js/*.js is hand-written and predates it.
 			clean: {
 				keep: ( asset ) =>
-					! asset.startsWith( 'css/rows/' ) && ! asset.startsWith( 'svg/' ),
+					! asset.startsWith( 'css/rows/' ) &&
+					! asset.startsWith( 'js/rows/' ) &&
+					! asset.startsWith( 'svg/' ),
 			},
 		},
 
@@ -152,6 +173,24 @@ module.exports = ( env, argv ) => {
 
 		module: {
 			rules: [
+				// Row and runtime JS. `browserslist` is not set anywhere in this repo, so
+				// the target list is stated here rather than inherited from a default that
+				// would change under us on a dependency bump.
+				//
+				// The three babel packages are all real devDependencies as of 02/09/2026.
+				// They were not, for a while: this rule existed while the pipeline had no
+				// JS entries at all, so nothing ever exercised it, and the first row script
+				// turned a config that had always "worked" into a hard build failure. If
+				// this rule is ever removed again, remove the packages with it - a loader
+				// named in config and absent from package.json is a build that breaks for
+				// the next person rather than for whoever wrote it.
+				//
+				// Worth knowing before anyone debugs it: against this target list babel is
+				// currently a NO-OP. Every browser it resolves to in 2026 supports the
+				// syntax the row scripts use, so the output is byte-identical to the input
+				// and webpack's compareBeforeEmit then skips the write entirely, leaving
+				// the built files with an old mtime. That is correct, not a broken loader -
+				// verified by pinning `targets: 'ie 11'`, which does transpile.
 				{
 					test: /\.jsx?$/,
 					exclude: /node_modules/,

@@ -88,6 +88,14 @@ html {
 	--fl-intro-max-width: 900px;
 	--fl-intro-space: 3.125rem;
 
+	@media (max-width: 991.98px) {
+		--fl-intro-space: 2rem;
+	}
+
+	@media (max-width: 767.98px) {
+		--fl-intro-space: 1.5rem;
+	}
+
 	// Corner radius. Two steps rather than a full scale, because two is all any row asks
 	// for so far: the base step for tablet and mobile, the -xl step for desktop, where a
 	// larger image can carry a larger curve without looking like a rounded button.
@@ -232,6 +240,8 @@ html {
 	@media (max-width: 767.98px) {
 		@include fl-padding-steps('-xs');
 	}
+
+	overflow: hidden;
 }
 
 // --------------------------------------------------------------------------------------

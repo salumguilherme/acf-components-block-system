@@ -170,7 +170,7 @@
 									'instructions' => 'Alignment of the content within the column',
 									'required' => 1,
 									'choices' => [
-										'default' => 'Left (default)',
+										'default' => 'Inherit',
 										'center' => 'Center',
 										'right' => 'Right',
 									],
@@ -443,7 +443,7 @@
 							'name' => 'image',
 							'type' => 'image',
 							'instructions' => 'This image spans the full width of the page. If a height is set the image is cropped and stays centred on the page. If no height, the image resizes in proportion to browsers window.',
-							'required' => 1,
+							'required' => 0,
 							'return_format' => 'array',
 							'library' => 'all',
 							'min_width' => '',
@@ -466,6 +466,56 @@
 							'ui_on_text' => '',
 							'ui_off_text' => '',
 							'ui' => 1,
+						],
+						[
+							'key' => 'field_b4d5436647875',
+							'label' => 'Overlay Colour',
+							'name' => 'overlay_colour',
+							'type' => 'color_picker',
+							'required' => 1,
+							// TWO GROUPS, WHICH IS AN OR - and both are needed.
+							//
+							// ACF resolves a rule to a condition type by (field type,
+							// operator) and falls back to the base acf.Condition when the
+							// pair matches nothing. That base's match() returns false
+							// unconditionally, so an unsupported operator does not degrade
+							// to "always show", it hides the field permanently.
+							//
+							// `!=empty` is registered for text-ish and choice fields but
+							// NOT for true_false, which only ships `==` and `!=` against a
+							// single "Checked" choice. So `!=empty` alone is right for a
+							// site that has overridden `overlay` to another field type,
+							// and would silently hide this field wherever `overlay` is
+							// still the true_false declared above. The second group covers
+							// that case; whichever group applies, the other simply never
+							// matches.
+							//
+							// The target is the field KEY, not the name: ACF looks
+							// conditional logic up by key, and a name here resolves to
+							// nothing - which is the same permanent hide by another route.
+							'conditional_logic' => [
+								[
+									[
+										'field' => 'field_6a9619fb7c339',
+										'operator' => '!=empty',
+									],
+								],
+								[
+									[
+										'field' => 'field_6a9619fb7c339',
+										'operator' => '==',
+										'value' => '1',
+									],
+								],
+							],
+							'default_value' => 'rgba(0, 0, 0, .7)',
+							'enable_opacity' => 1,
+							'return_format' => 'string',
+							'allow_in_bindings' => 0,
+							'show_custom_palette' => 0,
+							'show_color_wheel' => 1,
+							'custom_palette_source' => '',
+							'palette_colors' => '',
 						],
 						[
 							'key' => 'field_6a9617d6e525d',
@@ -624,7 +674,7 @@
 									'instructions' => 'Alignment of the content within the column',
 									'required' => 1,
 									'choices' => [
-										'default' => 'Left (default)',
+										'default' => 'Inherit',
 										'center' => 'Center',
 										'right' => 'Right',
 									],
@@ -714,7 +764,7 @@
 									'instructions' => 'Alignment of the content within the column',
 									'required' => 1,
 									'choices' => [
-										'default' => 'Left (default)',
+										'default' => 'Inherit',
 										'center' => 'Center',
 										'right' => 'Right',
 									],
