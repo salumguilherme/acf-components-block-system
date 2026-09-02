@@ -331,11 +331,43 @@
 
 				if(0 === strpos($declaration, '--')) {
 
-					// A custom property: name must look like one, and the value is restricted to
-					// the characters a colour, length or keyword needs. Nothing with a bracket or
-					// a quote gets through, which rules out url() and expression().
+					// A custom property: the name must look like one, and the value is checked
+					// here rather than by safecss_filter_attr(), which does not recognise custom
+					// properties at all and would silently eat the declaration.
+					//
+					// The plain case first - a colour, a length or a keyword, no brackets.
 					if(preg_match('/^--[a-z0-9-]+:\s*[#a-z0-9%,.\s\/-]+$/i', $declaration)) {
 						$safe[] = $declaration;
+						continue;
+					}
+
+					// And the bracketed case, which exists because a gradient cannot be written
+					// without one. This used to be refused outright, and the reason given was
+					// url() and expression() - so those are still refused, by NAMING what is
+					// allowed instead of guessing at what is not.
+					//
+					// Quotes and backslashes are rejected before the function check rather than
+					// after, because they are how a value escapes its own context: without them
+					// there is no way to reopen the attribute or smuggle a second declaration
+					// past the split on `;` that already happened above.
+					if(preg_match('/^--[a-z0-9-]+:\s*([#a-z0-9%,.\s\/()+*-]+)$/i', $declaration, $match)) {
+
+						preg_match_all('/([a-z-]+)\s*\(/i', $match[1], $functions);
+
+						$allowed = [
+							'rgb', 'rgba', 'hsl', 'hsla',
+							'var', 'calc', 'min', 'max', 'clamp',
+							'linear-gradient', 'radial-gradient', 'conic-gradient',
+							'repeating-linear-gradient', 'repeating-radial-gradient',
+						];
+
+						// Every function the value names has to be on the list. An empty diff
+						// means nothing unrecognised appeared - including url(, which is the
+						// case this whole branch exists to keep refusing.
+						if(!array_diff(array_map('strtolower', $functions[1]), $allowed)) {
+							$safe[] = $declaration;
+						}
+
 					}
 
 					continue;

@@ -241,7 +241,19 @@ html {
 		@include fl-padding-steps('-xs');
 	}
 
-	overflow: hidden;
+	// A guard against a row spilling sideways and giving the whole PAGE a horizontal
+	// scrollbar - a full-bleed image, a negative margin, a grid that does not quite fit.
+	//
+	// `clip` rather than `hidden`, and the difference is not cosmetic. `overflow: hidden`
+	// makes this a scroll container, which silently disables `position: sticky` on
+	// ANYTHING inside any row and clips focus rings and shadows at the edges. `clip` clips
+	// without creating that container, so sticky keeps working.
+	//
+	// One axis only. Clipping the block axis as well would cut off anything a row
+	// deliberately hangs outside itself, and it is not the axis that causes the problem.
+	// `overflow-x: clip` leaves the y axis `visible`, which is legal precisely because
+	// `clip` is the one value `visible` may be paired with.
+	overflow-x: clip;
 }
 
 // --------------------------------------------------------------------------------------

@@ -119,7 +119,8 @@ Answered 27/08/2026 unless noted. Do not relitigate these without saying so expl
 | 21 | **`onRowReady()` replays; `addAction()` does not** (02/09/2026). ACF's action bus is the model and ACF never replays, which is right for a one-shot `ready` and wrong for a set of elements - a boolean per action name cannot say WHICH rows have initialised. §14. |
 | 22 | **`accordions` does not use Bootstrap's collapse** (02/09/2026). The plugin ships Bootstrap's CSS and none of its JS, so the old markup only ever opened because the child theme happens to load `bootstrap.bundle.min.js`. The row carries its own script and depends on nothing outside the plugin. |
 | 23 | **Layout renaming is ACF's, not ours** (02/09/2026). ACF Pro has shipped it since 6.5 - a hidden `acf_fc_layout_custom_label` per row, saved with the post, stored in `_page_sections_layout_meta`. The plugin adds a computed default title and a faster way to reach the rename, and stores nothing of its own. See §15. |
-| 24 | **The four `acbs/wrapper/*` hooks live in the TEMPLATE** (02/09/2026), not in `Rows\Wrapper`. That is a deliberate trade and a sharp edge: they can sit outside the `<section>`, which the class cannot do, but a theme that has copied `wrapper.php` fires none of them. §09. |
+| 24 | **The four `acbs/wrapper/*` hooks live in the TEMPLATE** (02/09/2026), not in `Rows\Wrapper`, because they can sit outside the `<section>` where the class cannot reach. They are extension points ONLY: a theme that copied `wrapper.php` fires none of them, so the plugin renders nothing of its own through them. The `full_width_image` overlay was moved off one for exactly that reason. §09. |
+| 25 | **A custom property may carry a gradient** (02/09/2026). `Wrapper::style()` used to refuse every bracketed value to keep `url()` out. It now names the functions it allows - colours, `var`, `calc`, the gradients - so `url()`, `expression()` and `image-set()` are still refused, by safelist rather than by banning the character. |
 
 ---
 
@@ -657,7 +658,7 @@ alignment, so those three sections were moved to `columned_content` rather than 
 | `acbs/row/wrapper_style` | Inline declarations on one section. Custom properties only |
 | `acbs/row/before` · `/after` | Extension points emitted by `Rows\Wrapper::content()`, so they fire INSIDE `.fl-container` and cannot be lost to a theme override |
 | `acbs/wrapper/before_section` · `/before_container` · `/after_container` · `/after_section` | The four positions the class-level hooks cannot reach: outside the `<section>` and between it and the container. Passed `$row`. **Fired from `templates/wrapper.php`**, which a theme REPLACES - see decision 24 and §09 |
-| `acbs/full_width_image/overlay` | The overlay's `background` value, before it is written to the section's inline style. Passed the gradient string and the `overlay` toggle |
+| `acbs/full_width_image/overlay` | The overlay's `background` value, before it becomes the `--fl-overlay-bg` custom property on the section. Fired from `Module::layout_wrapper_style()`, so it survives a theme's own `wrapper.php` |
 | `acbs/layout_title/separator` | What sits between the computed prefix and the layout label in the admin. Default `–`. §15 |
 | `acbs/template/candidates` · `/path` | Template cascade |
 | `acbs/styles/enqueue_default` | Drop the plugin's base sheet for a layout |
@@ -1019,6 +1020,13 @@ Reference: Figma "Untitled", node 27:690.
 - **The design's card radius is 4px; the shared `--fl-card-radius` is 8px.** Left alone rather
   than special-cased for one row.
 
+### Closed 02/09/2026, second pass
+
+| Was | Resolution |
+|---|---|
+| `.fl-acbs { overflow: hidden }` disabled `position: sticky` everywhere | **Fixed.** `overflow-x: clip` clips the inline axis without becoming a scroll container, so sticky works and the block axis stays visible. Verified: a sticky probe still sticks, and a deliberate 150vw child produces no horizontal scrollbar at 375, 768, 1280 or 1440 |
+| The overlay rendered from an action fired in `templates/wrapper.php` | **Fixed.** It is a pseudo-element now, fed by `--fl-overlay-bg` from `Module::layout_wrapper_style()`. That filter is called by `Wrapper::style()`, a class - and a copied `wrapper.php` still calls `$row->wrapper_style()`, so the overlay cannot be removed by a template. The four hooks stay as extension points |
+
 ### Closed 02/09/2026
 
 All four of the defects listed here previously are resolved. Kept as a record of what the
@@ -1042,8 +1050,8 @@ these as "the next person will hit it" rather than "it is broken now".
 | same | The `default_value` is `rgba(0, 0, 0, .7)` **with spaces**, and ACF's own `string_to_array()` matches on `/^rgba?\(([0-9,.]+)\)/` - no space in the class - so under `return_format => 'array'` an untouched field falls through to its `alpha => 0` fallback and the overlay is invisible |
 | `Module::str_to_rgba()` | `$toAlpha` defaults to `1.0` and the body does `if(isset($toAlpha))`, which is always true for a non-null default. So the parsed alpha and `$fallbackAlpha` are both unreachable unless a caller passes `null` explicitly, and `str_to_rgba($c)` always returns alpha 1. Defaulting `$toAlpha` to `null` makes "no override" the default and the two fallbacks live |
 | same | The docblock says `@return array An array with 'red', 'green', 'blue', and 'alpha' components`; the signature says `?string` and it returns `"rgba(…)"` |
-| `.fl-acbs { overflow: hidden }` | Clips on both axes over every row on the page. It also establishes a scroll container, which silently disables `position: sticky` anywhere inside a row, and trims focus rings and shadows at the edges. `overflow-x: clip` clips without creating that container, so sticky keeps working |
-| `templates/rows/full_width_image.php` | `use ACBS\Modules\FlexibleLayoutTemplate\Module;` with no reference to `Module` in the file - left over from before the overlay moved to the hook. Its docblock also still describes a stub that "prints the layout's label", and mentions "fifteen stubs" |
+| `templates/rows/full_width_image.php` | `use ACBS\Modules\FlexibleLayoutTemplate\Module;` with no reference to `Module` in the file. Its docblock also still describes a stub that "prints the layout's label", and mentions "fifteen stubs" |
+| `bin/release.js` | Reads the version with `/Version:\s*(\d+\.\d+\.\d+)/` - three numeric parts, no pre-release suffix - so the `1.0.0-alpha` bump makes `npm run release` and `npm run package` fail outright. Widening both that and the `ACBS_VERSION` pattern to `(\d+\.\d+\.\d+(?:-[0-9a-z.]+)?)` is four lines, plus teaching `nextVersion()` to drop the suffix when it bumps |
 
 ### Open questions
 

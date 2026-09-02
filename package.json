@@ -1,6 +1,6 @@
 {
   "name": "acbs-assets",
-  "version": "1.0.0",
+  "version": "1.0.0-alpha",
   "description": "Source assets for the ACF Components Block System. Compiled by webpack into assets/js and assets/css. Only the sources under ./src are built - the hand-written JS already in assets/js is left alone.",
   "private": true,
   "scripts": {

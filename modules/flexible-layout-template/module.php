@@ -100,7 +100,6 @@
 			add_filter('acbs/row/wrapper_style', [$this, 'layout_wrapper_style'], 10, 2);
 			
 			// Befopre container action - add field overlay
-			add_action('acbs/wrapper/before_container', [$this, 'layout_wrapper_before_container'], 10, 1);
 			
 		}
 		
@@ -550,6 +549,39 @@
 				$declarations[] = 'background: url('.$image['url'].') no-repeat center center; background-position: 50% 50%; background-size: cover;';
 			}
 
+			// The overlay.
+			//
+			// A CUSTOM PROPERTY on the section, not a <div>, and emitted from here rather
+			// than from an action in templates/wrapper.php. Both halves of that matter:
+			//
+			//   - The section already carries the image as its own background, so a second
+			//     background-image here would replace it rather than sit over it. The
+			//     overlay is drawn by a pseudo-element in the row sheet, which needs its
+			//     colour handed to it and has nowhere else to read one from.
+			//
+			//   - This filter is called by Wrapper::style(), a PHP class. The wrapper
+			//     TEMPLATE is overridable and a theme replaces it wholesale, so anything
+			//     the plugin renders through an action fired in that file disappears on a
+			//     theme that copied it. A copied wrapper.php still calls
+			//     $row->wrapper_style(), so this survives.
+			if(get_row_layout() == 'full_width_image' && !empty(get_sub_field('overlay'))) {
+
+				$colour = get_sub_field('overlay_colour');
+				$colour = empty($colour) ? 'rgba(0, 0, 0, .5)' : $colour;
+
+				$transparent = self::str_to_rgba($colour, 0);
+				$gradient = "linear-gradient(0deg, {$transparent} 11.93%, {$colour} 100%)";
+
+				/**
+				 * Filters the overlay's background.
+				 *
+				 * @param string $gradient
+				 * @param mixed  $overlay The overlay toggle's value.
+				 */
+				$declarations[] = '--fl-overlay-bg: '.apply_filters('acbs/full_width_image/overlay', $gradient, get_sub_field('overlay'));
+
+			}
+
 			if('card' !== get_sub_field('layout_display') || 'custom' !== get_sub_field('layout_display_bg')) {
 				return $declarations;
 			}
@@ -587,27 +619,4 @@
 			
 		}
 		
-		/**
-		 * Controls output before the container wrapper starts.
-		 * This method is responsible for emitting any initial HTML or actions
-		 * needed before the start of a layout container. While its specific
-		 * actions are not listed, it typically integrates with hooks for setup tasks.
-		 */
-		public function layout_wrapper_before_container(Row $row) {
-			
-			// Overlay container
-			if($row->layout() === 'full_width_image' && !empty(get_sub_field('overlay'))) {
-				
-				// transparent color selected
-				$color = empty(get_sub_field('overlay_colour')) ? 'rgba(0, 0, 0, .5)' : get_sub_field('overlay_colour');
-				$transparent = self::str_to_rgba($color, 0);
-				$gradient = "linear-gradient(0deg, {$transparent} 11.93%, {$color} 100%)";
-				
-				$overlay_bg = apply_filters('acbs/full_width_image/overlay', $gradient, get_sub_field('overlay'));
-				
-				echo '<div class="fl-full-width-image-overlay" style="background: '.esc_attr($overlay_bg).'"></div>';
-			}
-			
 		}
-		
-	}
