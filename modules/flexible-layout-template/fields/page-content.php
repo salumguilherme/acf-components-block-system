@@ -129,6 +129,19 @@
 							'button_label' => 'Add Column',
 							'sub_fields' => [
 								[
+									'key' => 'field_6a97ae207d538',
+									'label' => 'Enable Accordion',
+									'name' => 'column_accordion',
+									'type' => 'true_false',
+									'instructions' => 'When checked, the content of the column will be placed in an accordion toggle.',
+									'required' => 0,
+									'message' => 'Display the content of this column in an accordion',
+									'default_value' => 0,
+									'ui' => 0,
+									'ui_on_text' => '',
+									'ui_off_text' => '',
+								],
+								[
 									'key' => 'field_6a9611670d868',
 									'label' => 'Icon',
 									'name' => 'icon',
@@ -149,6 +162,58 @@
 									'max_size' => '',
 									'mime_types' => 'svg',
 									'preview_size' => 'thumbnail',
+								],
+								[
+									'key' => 'field_6a97aef29038d',
+									'label' => 'Status on Page Load',
+									'name' => 'column_accordion_initial_status',
+									'type' => 'button_group',
+									'instructions' => 'Select if this accrodion is open or closed when the page loads',
+									'required' => 1,
+									// Targets the toggle's KEY, and `==` against "1" rather than `!=empty`. ACF
+									// registers condition types per FIELD TYPE, and true_false ships only `==` and
+									// `!=` against a single "Checked" choice. An operator it does not register for
+									// the type falls back to the base acf.Condition, whose match() returns false
+									// unconditionally - so the wrong operator here would hide these two fields
+									// permanently rather than simply ignoring the rule.
+									'conditional_logic' => [
+										[
+											[
+												'field' => 'field_6a97ae207d538',
+												'operator' => '==',
+												'value' => '1',
+											],
+										],
+									],
+									'choices' => [
+										'default' => 'Closed',
+										'open' => 'Open',
+									],
+									'default_value' => 'default',
+									'return_format' => 'value',
+									'allow_null' => 0,
+									'layout' => 'horizontal',
+								],
+								[
+									'key' => 'field_6a97ae8676310',
+									'label' => 'Accordion Title',
+									'name' => 'column_accordion_title',
+									'type' => 'text',
+									'required' => 0,
+									'conditional_logic' => [
+										[
+											[
+												'field' => 'field_6a97ae207d538',
+												'operator' => '==',
+												'value' => '1',
+											],
+										],
+									],
+									'default_value' => '',
+									'maxlength' => '',
+									'placeholder' => '',
+									'prepend' => '',
+									'append' => '',
 								],
 								[
 									'key' => 'field_7a6fd966a6de4',

@@ -33,6 +33,25 @@
 	 * 'full' is the right size for an SVG: there are no intermediate files, and asking for
 	 * one returns the full image with a misleading srcset attached.
 	 *
+	 * THE ACCORDION. With `column_accordion` ticked the column becomes a disclosure: the
+	 * icon and `column_accordion_title` form the button, and the content and buttons move
+	 * into the panel it opens. Everything else about the column is unchanged, including
+	 * `.fl-card` - the design draws these as cards but the accordion does not depend on
+	 * that, and a row with Content Box off gets the same toggle without the box.
+	 *
+	 * It renders open or closed from `column_accordion_initial_status` rather than being
+	 * corrected by JS on load: a panel that starts open and is closed by a script flashes,
+	 * and one that starts closed and is opened by a script arrives late.
+	 *
+	 * A TITLE IS REQUIRED FOR THE ACCORDION TO RENDER, even though the field is not marked
+	 * required. A disclosure button with no label has no accessible name, which is worse
+	 * than no disclosure at all - so a column with the box ticked and no title falls back
+	 * to rendering normally rather than producing an unusable control.
+	 *
+	 * The id has to be unique per column on the page and is a per-request counter.
+	 * get_row_index() is NOT used: it is a position, not an identity, and renumbers when an
+	 * editor disables a row - see CLAUDE.md 05.4.
+	 *
 	 * @var ACBS\Modules\FlexibleLayoutTemplate\Rows\Row $row
 	 *
 	 * @version 1.0.0
@@ -54,16 +73,59 @@
 		$acbs_icon_id = (int) $acbs_icon;
 	}
 
-?><li class="fl-column fl-card fl-align-<?php echo esc_attr( $acbs_align ); ?>">
-	<?php if ( 0 !== $acbs_icon_id ) : ?>
-		<span class="fl-column-media">
-			<?php echo wp_get_attachment_image( $acbs_icon_id, 'full', false, [ 'class' => 'fl-column-icon' ] ); ?>
-		</span>
+	$acbs_title     = trim( (string) get_sub_field( 'column_accordion_title' ) );
+	$acbs_accordion = (bool) get_sub_field( 'column_accordion' ) && '' !== $acbs_title;
+	$acbs_open      = 'open' === (string) get_sub_field( 'column_accordion_initial_status' );
+
+	static $acbs_column_n = 0;
+	$acbs_column_n++;
+
+	$acbs_panel = 'fl-column-accordion-' . $acbs_column_n;
+	$acbs_label = $acbs_panel . '-label';
+
+	$acbs_classes = 'fl-column fl-card fl-align-' . $acbs_align . ( $acbs_accordion ? ' fl-column-has-accordion' : '' );
+
+?><li class="<?php echo esc_attr( $acbs_classes ); ?>">
+
+	<?php if ( $acbs_accordion ) : ?>
+
+		<h4 class="fl-column-accordion-heading">
+			<button class="fl-column-accordion-trigger" type="button" id="<?php echo esc_attr( $acbs_label ); ?>" aria-expanded="<?php echo $acbs_open ? 'true' : 'false'; ?>" aria-controls="<?php echo esc_attr( $acbs_panel ); ?>">
+				<span class="fl-column-accordion-lead">
+					<?php if ( 0 !== $acbs_icon_id ) : ?>
+						<span class="fl-column-media">
+							<?php echo wp_get_attachment_image( $acbs_icon_id, 'full', false, [ 'class' => 'fl-column-icon' ] ); ?>
+						</span>
+					<?php endif; ?>
+					<span class="fl-column-accordion-title"><?php echo esc_html( $acbs_title ); ?></span>
+				</span>
+				<span class="fl-column-accordion-icon" aria-hidden="true"></span>
+			</button>
+		</h4>
+
+		<div class="fl-column-accordion-panel" id="<?php echo esc_attr( $acbs_panel ); ?>" role="region" aria-labelledby="<?php echo esc_attr( $acbs_label ); ?>"<?php echo $acbs_open ? '' : ' hidden'; ?>>
+			<div class="fl-column-accordion-body">
+				<?php if ( '' !== $acbs_content ) : ?>
+					<div class="fl-column-content"><?php echo wp_kses_post( apply_filters( 'the_content', $acbs_content ) ); ?></div>
+				<?php endif; ?>
+				<?php acbs_row_part( 'buttons', $row ); ?>
+			</div>
+		</div>
+
+	<?php else : ?>
+
+		<?php if ( 0 !== $acbs_icon_id ) : ?>
+			<span class="fl-column-media">
+				<?php echo wp_get_attachment_image( $acbs_icon_id, 'full', false, [ 'class' => 'fl-column-icon' ] ); ?>
+			</span>
+		<?php endif; ?>
+
+		<?php if ( '' !== $acbs_content ) : ?>
+			<div class="fl-column-content"><?php echo wp_kses_post( apply_filters( 'the_content', $acbs_content ) ); ?></div>
+		<?php endif; ?>
+
+		<?php acbs_row_part( 'buttons', $row ); ?>
+
 	<?php endif; ?>
 
-	<?php if ( '' !== $acbs_content ) : ?>
-		<div class="fl-column-content"><?php echo wp_kses_post( apply_filters( 'the_content', $acbs_content ) ); ?></div>
-	<?php endif; ?>
-
-	<?php acbs_row_part( 'buttons', $row ); ?>
 </li>

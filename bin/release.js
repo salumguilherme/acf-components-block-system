@@ -51,9 +51,23 @@ function fail( msg ) {
 	process.exit( 1 );
 }
 
+/**
+ * x.y.z, with an optional pre-release suffix: 1.0.0, 1.0.0-alpha, 1.2.0-rc.2.
+ *
+ * As a source string rather than a literal because the same shape is needed in four
+ * places - reading the header, validating an explicit argument, and rewriting both the
+ * header and the constant - and three of those were written out by hand. The version was
+ * bumped to 1.0.0-alpha on 02/09/2026 and every one of them stopped matching at once,
+ * which failed the release outright rather than producing anything wrong.
+ *
+ * Released versions are expected back at plain x.y.z once the first round of development
+ * is done; the suffix is tolerated, not encouraged.
+ */
+const VERSION = '\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.]+)?';
+
 /** Current version, taken from the plugin header - the single source of truth. */
 function currentVersion() {
-	const match = read( SOURCE_MAIN_FILE ).match( /^\s*\*\s*Version:\s*(\d+\.\d+\.\d+)\s*$/m );
+	const match = read( SOURCE_MAIN_FILE ).match( new RegExp( `^\\s*\\*\\s*Version:\\s*(${ VERSION })\\s*$`, 'm' ) );
 	if ( ! match ) {
 		fail( `could not read the Version header from ${ SOURCE_MAIN_FILE }` );
 	}
@@ -64,10 +78,13 @@ function nextVersion( current, arg ) {
 	if ( ! arg || arg === '--no-bump' ) {
 		return arg === '--no-bump' ? current : nextVersion( current, 'patch' );
 	}
-	if ( /^\d+\.\d+\.\d+$/.test( arg ) ) {
+	if ( new RegExp( `^${ VERSION }$` ).test( arg ) ) {
 		return arg;
 	}
-	const [ major, minor, patch ] = current.split( '.' ).map( Number );
+	// A bump DROPS any pre-release suffix: the next patch after 1.0.0-alpha is 1.0.1, not
+	// 1.0.1-alpha. Splitting on the dash first is also what stops `patch` reading NaN off
+	// the "0-alpha" segment and producing "1.0.NaN".
+	const [ major, minor, patch ] = current.split( '-' )[ 0 ].split( '.' ).map( Number );
 	switch ( arg ) {
 		case 'major': return `${ major + 1 }.0.0`;
 		case 'minor': return `${ major }.${ minor + 1 }.0`;
@@ -90,8 +107,8 @@ function replaceOnce( file, body, pattern, replacement, label ) {
 
 function setVersion( version ) {
 	let main = read( SOURCE_MAIN_FILE );
-	main = replaceOnce( SOURCE_MAIN_FILE, main, /^(\s*\*\s*Version:\s*)\d+\.\d+\.\d+\s*$/m, `$1${ version }`, 'Version header' );
-	main = replaceOnce( SOURCE_MAIN_FILE, main, /(define\(\s*'ACBS_VERSION'\s*,\s*')\d+\.\d+\.\d+(')/, `$1${ version }$2`, 'ACBS_VERSION define' );
+	main = replaceOnce( SOURCE_MAIN_FILE, main, new RegExp( `^(\\s*\\*\\s*Version:\\s*)${ VERSION }\\s*$`, 'm' ), `$1${ version }`, 'Version header' );
+	main = replaceOnce( SOURCE_MAIN_FILE, main, new RegExp( `(define\\(\\s*'ACBS_VERSION'\\s*,\\s*')${ VERSION }(')` ), `$1${ version }$2`, 'ACBS_VERSION define' );
 	write( SOURCE_MAIN_FILE, main );
 
 	const readme = read( 'readme.txt' );

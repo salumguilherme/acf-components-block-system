@@ -6,10 +6,13 @@
 //
 // Markup: templates/rows/columned_content.php and rows/columned_content/item.php.
 //
-// Type is the theme's. The column body is a wysiwyg, so whatever headings and paragraphs
-// the editor writes are styled by the theme sheet and the scoped Bootstrap - there is not
-// a single font-size in this file.
+// Type is mostly the theme's. The column body is a wysiwyg, so whatever headings and
+// paragraphs the editor writes are styled by the theme sheet and the scoped Bootstrap;
+// the one exception is the accordion title at the foot of this file, which the design
+// pitches at a size and colour no theme heading supplies.
 //
+
+@import "../tokens";
 
 .fl-acbs .fl-type-columned_content {
 
@@ -78,3 +81,133 @@
 	.fl-align-right  .fl-buttons { justify-content: flex-end; }
 
 }
+
+// --------------------------------------------------------------------------------------
+// The per-column accordion
+//
+// `column_accordion` turns one column into a disclosure: the icon and title become the
+// button, the content and buttons move into the panel. Reference: Figma "Golden Rise
+// Bendigo Design System", node 9044:16092.
+//
+// PER COLUMN, not per row. Two columns can be open at once and opening one does not touch
+// its neighbour - the group behaviour that `accordions` has is deliberately absent, which
+// is why only the panel animation is shared between them.
+//
+// The chevrons are CSS masks painted with `currentColor`, the same technique the
+// accordions row uses. Three things fall out of it: the icon follows the title's colour
+// with no rule of its own, the open/closed swap is one declaration keyed on
+// `aria-expanded` so the script never touches the icon, and a theme can replace the
+// artwork by restating one mask-image - which is what "so the theme can take over" asks
+// for. The urls are relative to the BUILT sheet at assets/css/rows/.
+// --------------------------------------------------------------------------------------
+
+.fl-acbs .fl-type-columned_content {
+
+	.fl-column-accordion-heading {
+		margin: 0;
+		// The heading exists for document outline; its SIZE is the title's business, set
+		// on .fl-column-accordion-title below so the h4 can be restyled without moving the
+		// button's layout.
+		font: inherit;
+	}
+
+	// A real <button>, so keyboard and screen-reader behaviour come for free. Most of this
+	// is undoing what a button looks like by default.
+	.fl-column-accordion-trigger {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--fl-column-accordion-gap, 1.25rem);
+		width: 100%;
+		padding: 0;
+		border: 0;
+		background: none;
+		font: inherit;
+		color: inherit;
+		text-align: inherit;
+		cursor: pointer;
+	}
+
+	// Icon and title travel together, so the chevron can sit hard against the far edge
+	// whatever the title's length.
+	.fl-column-accordion-lead {
+		display: flex;
+		align-items: center;
+		gap: var(--fl-column-accordion-gap, 1.25rem);
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
+	.fl-column-accordion-title {
+		font-size: var(--fl-column-accordion-title-size, 1.75rem);
+		line-height: 1.286;
+		color: var(--fl-column-accordion-title-colour, var(--primary, #{$brand-primary}));
+	}
+
+	// Design: 32px in the accordion header, where the plain column's icon box is 46px.
+	// Scoped to the header rather than changing the shared box, so a row with some columns
+	// toggled and some not keeps both at their intended size.
+	.fl-column-has-accordion .fl-column-accordion-lead .fl-column-media {
+		width: var(--fl-column-accordion-icon-size, 32px);
+		height: var(--fl-column-accordion-icon-size, 32px);
+		flex: 0 0 var(--fl-column-accordion-icon-size, 32px);
+	}
+
+	.fl-column-accordion-icon {
+		flex: 0 0 var(--fl-column-accordion-chevron, 30px);
+		width: var(--fl-column-accordion-chevron, 30px);
+		height: var(--fl-column-accordion-chevron, 30px);
+		background-color: currentColor;
+		-webkit-mask: url("../../svg/chevron-down.svg") no-repeat center / contain;
+		mask: url("../../svg/chevron-down.svg") no-repeat center / contain;
+	}
+
+	.fl-column-accordion-trigger[aria-expanded="true"] .fl-column-accordion-icon {
+		-webkit-mask-image: url("../../svg/chevron-up.svg");
+		mask-image: url("../../svg/chevron-up.svg");
+	}
+
+	// The panel is animated on height by the script, so it must carry no padding of its
+	// own: padding is not part of the height being animated to 0, and an item would
+	// collapse to a sliver rather than to nothing. The spacing lives on the body inside.
+	.fl-column-accordion-panel {
+		overflow: hidden;
+		transition: height var(--fl-column-accordion-speed, 250ms) ease;
+	}
+
+	// `hidden` is an attribute the script toggles, and the scoped Bootstrap's reboot
+	// carries nothing strong enough to survive a `display: flex` arriving from a theme.
+	// Stated explicitly so a closed panel is closed whatever else is loaded.
+	.fl-column-accordion-panel[hidden] {
+		display: none;
+	}
+
+	// Design: 20px between the header and the content.
+	.fl-column-accordion-body {
+		padding-top: var(--fl-column-accordion-body-gap, 1.25rem);
+	}
+
+	.fl-column-accordion-body > :first-child { margin-top: 0; }
+	.fl-column-accordion-body > :last-child  { margin-bottom: 0; }
+
+	// Alignment is inherited, not redeclared. `text-align` reaches the panel's prose on
+	// its own, but a flex container ignores it - so the lead is aligned explicitly, from
+	// BOTH the item's own `column_alignment` and the row's `layout_columns_alignment`, so
+	// a toggled column lines up with an untoggled one either way.
+	.fl-align-center .fl-column-accordion-lead { justify-content: center; }
+	.fl-align-right  .fl-column-accordion-lead { justify-content: flex-end; }
+
+	@media (prefers-reduced-motion: reduce) {
+		.fl-column-accordion-panel {
+			transition: none;
+		}
+	}
+
+}
+
+.fl-acbs .fl-loop-grid-columns-align-center .fl-column-accordion-lead { justify-content: center; }
+.fl-acbs .fl-loop-grid-columns-align-right  .fl-column-accordion-lead { justify-content: flex-end; }
+
+// An item that sets its own alignment beats the row's - four classes against three, so it
+// wins on specificity rather than on which rule happens to come last.
+.fl-acbs .fl-type-columned_content .fl-column.fl-align-default .fl-column-accordion-lead { justify-content: flex-start; }

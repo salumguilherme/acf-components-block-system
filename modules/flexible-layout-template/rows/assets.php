@@ -50,6 +50,42 @@
 		private static $instance = null;
 
 		/**
+		 * version function
+		 *
+		 * filemtime, falling back to ACBS_VERSION if the file cannot be stat'd.
+		 *
+		 * NOT ACBS_VERSION, and this cost half a day to find. Row assets are deployed on
+		 * their own - `npm run deploy` uploads built files and nothing bumps the plugin
+		 * version - so every deploy between releases reuses the same `?ver=` string. The
+		 * CDN in front of staging serves these with `cache-control: public,
+		 * max-age=31536000`, so the old bytes are kept for a YEAR against a URL that never
+		 * changes: the page ends up running today's markup against yesterday's CSS and JS.
+		 *
+		 * It reads as a broken feature rather than a stale file, because the markup is
+		 * right and the behaviour is not. When it happened, staging was serving a
+		 * columned_content.css with no accordion rules in it at all.
+		 *
+		 * Module::register_assets() already versions structure and Bootstrap this way, and
+		 * enqueue_theme_styles() does it for a theme's own files, for the same reason
+		 * written out at more length there. The plugin's own row assets were simply never
+		 * moved across.
+		 *
+		 * @version 1.0.0
+		 * @since   1.0.0
+		 *
+		 * @param string $relative Path below the plugin root.
+		 *
+		 * @return string|int
+		 */
+		private static function version($relative) {
+
+			$time = @filemtime(ACBS_PATH.$relative);
+
+			return false !== $time ? $time : ACBS_VERSION;
+
+		}
+
+		/**
 		 * Row types recorded this request, keyed by layout name.
 		 *
 		 * @var Row_Type[]
@@ -151,7 +187,7 @@
 			// Registered here, enqueued in flush() and only if a row actually rendered:
 			// a page with no rows should not carry the runtime.
 			if(!wp_script_is(self::RUNTIME_HANDLE, 'registered') && file_exists(ACBS_PATH.'assets/js/rows.js')) {
-				wp_register_script(self::RUNTIME_HANDLE, ACBS_URL.'assets/js/rows.js', [], ACBS_VERSION, true);
+				wp_register_script(self::RUNTIME_HANDLE, ACBS_URL.'assets/js/rows.js', [], self::version('assets/js/rows.js'), true);
 			}
 
 			foreach(Row_Registry::all() as $name => $type) {
@@ -170,7 +206,7 @@
 						continue;
 					}
 
-					wp_register_style($handle, ACBS_URL.$relative, [Module::STRUCTURE_HANDLE], ACBS_VERSION, 'all');
+					wp_register_style($handle, ACBS_URL.$relative, [Module::STRUCTURE_HANDLE], self::version($relative), 'all');
 
 				}
 
@@ -193,7 +229,7 @@
 					// failure enqueue_theme_styles() documents for stylesheets.
 					$deps = wp_script_is(self::RUNTIME_HANDLE, 'registered') ? [self::RUNTIME_HANDLE] : [];
 
-					wp_register_script($handle, ACBS_URL.$relative, $deps, ACBS_VERSION, true);
+					wp_register_script($handle, ACBS_URL.$relative, $deps, self::version($relative), true);
 
 				}
 
