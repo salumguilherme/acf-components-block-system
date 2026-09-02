@@ -13,9 +13,9 @@
 // SPECIFICITY. Every layout rule below is written `.fl-cta.fl-cta-columns` rather than
 // `.fl-cta-columns`, and the reason is not cosmetic. structure.scss carries
 //
-//     .fl-acbs .fl-card-box .fl-card { display: flex; flex-flow: column nowrap; }
+//     .acbs .fl-card-box .fl-card { display: flex; flex-flow: column nowrap; }
 //
-// at (0,3,0), which is exactly what a plain `.fl-acbs .fl-type-cta .fl-cta-columns`
+// at (0,3,0), which is exactly what a plain `.acbs .fl-type-cta .fl-cta-columns`
 // scores. A tie is settled by load order, and load order happens to favour this sheet -
 // but only because row sheets are enqueued in the footer, which is an asset-pipeline
 // detail and not something a layout should depend on. The doubled class makes these
@@ -30,7 +30,7 @@
 
 @import "../tokens";
 
-.fl-acbs .fl-type-cta {
+.acbs .fl-type-cta {
 
 	// The wysiwyg brings the theme's own heading and paragraph margins with it. In a
 	// centred card those margins are measured from the card's padding edge, so a leading
@@ -120,7 +120,7 @@
 
 	// Card padding, stacked only.
 	//
-	// `--fl-card-space` is read by `.fl-acbs .fl-card-box .fl-card` in structure.scss, so
+	// `--fl-card-space` is read by `.acbs .fl-card-box .fl-card` in structure.scss, so
 	// setting it here retunes that rule rather than competing with it - no specificity
 	// race, and a card that is switched off still has no padding because nothing reads
 	// the property. `&.fl-card-box` is on the SECTION, which is the same element as

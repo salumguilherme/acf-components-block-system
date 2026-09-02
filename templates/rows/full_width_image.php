@@ -2,24 +2,24 @@
 	/**
 	 * Flexible layout row: Full Width Image
 	 *
-	 * Stub. Override at {theme}/acbs/rows/full_width_image.php
+	 * Override at {theme}/acbs/rows/full_width_image.php, or full-width-image.php.
 	 *
-	 * Prints the layout's label and nothing else. The wrapper is already printing the
-	 * <section>, the container and the row classes around this, so a stub only has to
-	 * prove which file the cascade reached.
+	 * The image itself is NOT printed here. It is the section's background, applied by
+	 * rows/full_width_image.css, and the darkening gradient over it is a pseudo-element fed
+	 * by the `--fl-overlay-bg` custom property that Module::layout_wrapper_style() emits.
+	 * Both of those reach the <section>, which this template sits inside rather than owns,
+	 * so there is nothing for the markup to do but the content that sits on top.
 	 *
-	 * The label is read off $row rather than hardcoded, which is what makes all fifteen
-	 * stubs genuinely identical: any difference between two of them is a bug, and a stub
-	 * that still prints the right title after the registry changes is proving the registry
-	 * rather than the file.
+	 * That split is deliberate. The overlay used to render from `acbs/wrapper/before_container`,
+	 * a hook fired by templates/wrapper.php - which a theme REPLACES wholesale, so any theme
+	 * that had copied that file lost the overlay silently. A custom property emitted by a
+	 * CLASS survives a copied wrapper, because the copy still calls $row->wrapper_style().
 	 *
 	 * @var ACBS\Modules\FlexibleLayoutTemplate\Rows\Row $row
 	 *
 	 * @version 1.0.0
 	 * @since   1.0.0
 	 */
-
-	use ACBS\Modules\FlexibleLayoutTemplate\Module;
 
 	if ( ! defined( 'ABSPATH' ) ) { exit; }
 

@@ -3,7 +3,7 @@
 //
 // The site's own theme already loads full Bootstrap 5.2.3 globally (the child theme
 // registers it as `gr-bootstrap`). This is a SECOND, deliberately isolated copy that only
-// applies inside `.acbs.fl-acbs`, so a row's markup gets stock Bootstrap behaviour no
+// applies inside `.acbs`, so a row's markup gets stock Bootstrap behaviour no
 // matter what the surrounding site has done to its own copy.
 //
 // Stock and unmodified on purpose. Every selector here is rewritten by
@@ -11,7 +11,7 @@
 // to the wrapper. Do NOT nest this import inside a Sass selector instead: Bootstrap's
 // _root.scss is one `:root` block holding 26 groups of --bs-* custom properties, and
 // _reboot.scss adds `:root`, `body` and `*` rules. Sass nesting turns those into
-// `.acbs.fl-acbs :root` and `.acbs.fl-acbs body`, which match nothing, so the custom
+// `.acbs :root` and `.acbs body`, which match nothing, so the custom
 // properties and all base typography would disappear without a single error.
 //
 // Row-specific rules do not belong here - they go in structure.scss and rows/{layout}.scss,

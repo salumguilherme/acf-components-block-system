@@ -1,6 +1,6 @@
 {
   "name": "acbs-assets",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Source assets for the ACF Components Block System. Compiled by webpack into assets/js and assets/css. Only the sources under ./src are built - the hand-written JS already in assets/js is left alone.",
   "private": true,
   "scripts": {
@@ -12,11 +12,13 @@
     "release:major": "node bin/release.js major",
     "package": "node bin/release.js --no-bump",
     "fixture": "node tools/fixture/build.js",
-    "deploy": "npm run build && bash bin/deploy.sh",
+    "deploy": "bash bin/deploy.sh",
     "deploy:dry": "bash bin/deploy.sh --dry-run"
   },
   "dependencies": {
-    "mengram-ai": "^2.25.3"
+    "mengram-ai": "^2.25.3",
+    "photoswipe": "^5.4.4",
+    "swiper": "^14.2.0"
   },
   "devDependencies": {
     "@babel/core": "^8.0.1",

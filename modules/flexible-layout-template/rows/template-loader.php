@@ -26,9 +26,29 @@
 	 *     rows/{layout}.php
 	 *     rows/default.php                   ships empty, terminal candidate
 	 *
-	 * Resolution goes through locate_template(), so child theme then parent theme then
-	 * plugin works - per site on multisite, since each site has its own active theme -
-	 * without reimplementing any of it.
+	 * Every candidate is also looked for with its underscores written as dashes, so
+	 * `columned-content.php` renders the `columned_content` layout exactly as
+	 * `columned_content.php` does. The spellings come from Filenames::variants(), which
+	 * row stylesheets and row scripts share.
+	 *
+	 * The two rules that settles are worth stating precisely, because they pull in
+	 * opposite directions:
+	 *
+	 *     underscore beats dash   WITHIN ONE DIRECTORY
+	 *     child beats parent beats plugin   ACROSS directories, whatever the spelling
+	 *
+	 * So a theme's `acbs/rows/columned-content.php` still wins over the plugin's
+	 * `templates/rows/columned_content.php`, and a child theme's dashed file still wins
+	 * over a parent theme's underscored one.
+	 *
+	 * THAT ORDERING IS WHY THIS NO LONGER CALLS locate_template(). It searches child then
+	 * parent for EACH candidate in turn, which is candidate-major: handed both spellings
+	 * it would return the parent theme's underscore ahead of the child theme's dash, and
+	 * the child theme would silently lose. Walking the directories ourselves is the only
+	 * way to keep the directory the outer loop. Nothing else locate_template() does is
+	 * used here - the theme-compat directory and `$load` were never in play - and the
+	 * per-site behaviour on multisite is unchanged, because get_stylesheet_directory()
+	 * is per site just as locate_template() was.
 	 *
 	 * @version 1.0.0
 	 * @since   1.0.0
@@ -141,19 +161,10 @@
 
 			foreach($candidates as $candidate) {
 
-				// Child theme, then parent theme.
-				$located = locate_template(self::THEME_DIR.'/'.$candidate);
+				$located = self::locate_file($candidate);
 
-				if($located) {
+				if('' !== $located) {
 					$path = $located;
-					break;
-				}
-
-				// Then the plugin's own.
-				$plugin_path = ACBS_PATH.'templates/'.$candidate;
-
-				if(file_exists($plugin_path)) {
-					$path = $plugin_path;
 					break;
 				}
 
@@ -168,6 +179,71 @@
 			 * @param Row    $row
 			 */
 			return (string) apply_filters('acbs/template/path', $path, $candidates, $row);
+
+		}
+
+		/**
+		 * locate_file function
+		 *
+		 * Finds one relative candidate across the three directories, trying both spellings
+		 * inside each before moving to the next. Directory is the outer loop and spelling
+		 * the inner one, which is what makes a child theme's dashed file beat a parent
+		 * theme's underscored one while an underscored file still wins inside any single
+		 * directory.
+		 *
+		 * @version 1.0.0
+		 * @since   1.0.0
+		 *
+		 * @param string $candidate Relative path under the templates directory.
+		 *
+		 * @return string Absolute path, or '' if nothing was found.
+		 */
+		public static function locate_file($candidate) {
+
+			foreach(self::directories() as $directory) {
+
+				foreach(Filenames::variants($candidate) as $variant) {
+
+					$file = $directory.$variant;
+
+					if(file_exists($file)) {
+						return $file;
+					}
+
+				}
+
+			}
+
+			return '';
+
+		}
+
+		/**
+		 * directories function
+		 *
+		 * Where templates are looked for, most specific first. The parent theme is skipped
+		 * when it IS the active theme, so a non-child setup does not test the same path
+		 * twice.
+		 *
+		 * @version 1.0.0
+		 * @since   1.0.0
+		 *
+		 * @return array Absolute directory paths, each with a trailing slash.
+		 */
+		private static function directories() {
+
+			$stylesheet = trailingslashit(get_stylesheet_directory());
+			$template = trailingslashit(get_template_directory());
+
+			$directories = [$stylesheet.self::THEME_DIR.'/'];
+
+			if($template !== $stylesheet) {
+				$directories[] = $template.self::THEME_DIR.'/';
+			}
+
+			$directories[] = ACBS_PATH.'templates/';
+
+			return $directories;
 
 		}
 
@@ -197,15 +273,7 @@
 			$key = 'part:'.$candidate;
 
 			if(!isset(self::$resolved[$key])) {
-
-				$located = locate_template(self::THEME_DIR.'/'.$candidate);
-
-				if(!$located && file_exists(ACBS_PATH.'templates/'.$candidate)) {
-					$located = ACBS_PATH.'templates/'.$candidate;
-				}
-
-				self::$resolved[$key] = (string) $located;
-
+				self::$resolved[$key] = self::locate_file($candidate);
 			}
 
 			return self::$resolved[$key];
@@ -300,15 +368,7 @@
 			$key = 'partial:'.$candidate;
 
 			if(!isset(self::$resolved[$key])) {
-
-				$located = locate_template(self::THEME_DIR.'/'.$candidate);
-
-				if(!$located && file_exists(ACBS_PATH.'templates/'.$candidate)) {
-					$located = ACBS_PATH.'templates/'.$candidate;
-				}
-
-				self::$resolved[$key] = (string) $located;
-
+				self::$resolved[$key] = self::locate_file($candidate);
 			}
 
 			return self::$resolved[$key];

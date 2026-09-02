@@ -4,7 +4,7 @@ Session primer for the ACF Components Block System (ACBS), forked from the Eleme
 and Dynamic Conditions Addon (ERDC) on 27/08/2026. Mirrors the team's "ACBS Handbook"
 artifact, keep both in sync whenever a module, field, hook, decision or pending item changes.
 
-- **Version:** 1.0.0
+- **Version:** 1.2.0
 - **Repo:** `https://github.com/salumguilherme/acf-components-block-system` (`origin`), plus a
   mirror outside the webroot at `~/acbs-git-mirror/acbs.git` (`mirror`). Folder name unchanged:
   `elementor-repeater-and-dynamic-conditions-addon`
@@ -40,15 +40,19 @@ a theme location, a widget, and Theme Builder display conditions choosing a temp
 | 02 | Render layer | **Done 28/08/2026** |
 | 03 | Site kit | **Parked** (decision 6) |
 | 04 | Bootstrap, tokens, structure.scss, per-row webpack entries | **Done 01/09/2026** |
-| 05 | Field set rebuild, page template, row templates | **In progress**: 9 of 11 templates real, `full_width_image` and `image_gallery` outstanding |
+| 05 | Field set rebuild, page template, row templates | **Done 02/09/2026**: all 11 templates real |
 | 06 | Theme integration, PHPStan, PHPCS | |
 
 Since 01/09/2026 the plugin also gained a **staging deploy path** (`bin/deploy.sh`), an
-**editor colour button** (§11), and **button icons** (§12). Those three are features rather
-than migration phases, so they sit outside the table.
+**editor colour button** (§11), **button icons** (§12), a **row JavaScript layer** (§14),
+**editable layout titles** in the admin (§15), and **dashed filenames** as an alternative
+spelling for row templates, stylesheets and scripts (§04). Those are features rather than
+migration phases, so they sit outside the table.
 
-The front end works end to end. `https://erdc-plugin.local/5562-2/` renders through the Page
-Builder template with no Elementor anywhere in the request.
+The front end works end to end. `https://erdc-plugin.local/about/` renders five rows through
+the Page Builder template with no Elementor anywhere in the request. (`/5562-2/` is cited in a
+few older notes and no longer carries any `page_sections` data, so it renders the template and
+nothing inside it.)
 
 ### What the plugin provides
 
@@ -106,11 +110,12 @@ Answered 27/08/2026 unless noted. Do not relitigate these without saying so expl
 | 8 | **Source resolution lives in the flexible-layout-template module**, not `core/`. |
 | 9 | **Drilldown menu removed**, its webpack/Sass bundler kept and grown into the asset pipeline. |
 | 10 | **Client-specific layouts and query filters leave core** into per-client add-ons. |
-| 11 | **Bootstrap 5, compiled and scoped** (revised 01/09/2026). The plugin ships a full Bootstrap build whose every selector is prefixed `.acbs.fl-acbs` at build time, so it styles layout rows and cannot touch the theme. Handle name is filterable. |
+| 11 | **Bootstrap 5, compiled and scoped** (revised 02/09/2026). The plugin ships a full Bootstrap build whose every selector is prefixed **`.acbs`** at build time, so it styles layout rows and cannot touch the theme. Handle name is filterable. The scope was `.acbs.fl-acbs` until 02/09/2026; see decision 29. |
+| 29 | **The styling scope is `.acbs` alone** (02/09/2026). Bootstrap, `structure.scss` and every row sheet. `fl-acbs` stays on the wrapper and stays in templates and PHP, it simply is not part of any selector the build emits. The point is that the plugin's own sheets no longer sit one class BELOW the Bootstrap they are meant to override: everything is `.acbs …` on both sides now, so a structure rule ties with Bootstrap and wins on load order rather than losing silently (§09). Checked mechanically: only six selectors collide across the two sheets, all of them the button overrides that were already written at the full scope and already won, so no rule changed its outcome. |
 | 12 | **Caching dropped entirely.** Page cache at the server handles it. |
 | 13 | **Every layout gets a template**, stub or real, so the full set exists from day one. |
 | 14 | **Tokens are unprefixed** (01/09/2026): `--brand-primary`, not `--acbs-brand-primary`. They are declared on `html`, so a theme's `:root` block wins on specificity and can restate any of them. |
-| 15 | **A single top-level wrapper** (01/09/2026). `acbs_render_rows()` always emits one `<div class="acbs fl-acbs">` around every `section.fl-section`, even for one row, because the scoped Bootstrap has nothing to attach to without it. |
+| 15 | **A single top-level wrapper** (01/09/2026). `acbs_render_rows()` always emits one `<div class="acbs fl-acbs">` around every `section.fl-section`, even for one row, because the scoped Bootstrap has nothing to attach to without it. Since 02/09/2026 only `acbs` carries the styling; `fl-acbs` is still emitted and is still load-bearing, because `src/js/rows.js` finds rows with `.fl-acbs .fl-section`. Filtering it away keeps the CSS and silently loses the row JavaScript. |
 | 16 | **`column_alignment = default` DEFERS** (01/09/2026). It emits the class and no rule, so the value inherits from the row's own `fl-loop-grid-columns-align-*` and from the theme otherwise. It used to declare `text-align: left`, which made it an override: a centred row came out centred everywhere except inside its items. **The choice was still labelled "Left (default)" until 02/09/2026**, which is what made this read as a bug: the field promised left and delivered inherit. It says "Inherit" now. |
 | 17 | **The section intro is always centred** (01/09/2026), whatever `layout_columns_alignment` says. That field aligns the section's CONTENT; the intro is the section's heading. Written as an exclusion (`:not(.fl-intro)`) rather than an override, so it cannot lose a specificity race later. |
 | 18 | **Brand colours in content are classes, never inline hex** (02/09/2026). §11 exists to enforce this; WordPress's own colour button is removed from the toolbar so there is no easier route back to a frozen value. |
@@ -121,6 +126,9 @@ Answered 27/08/2026 unless noted. Do not relitigate these without saying so expl
 | 23 | **Layout renaming is ACF's, not ours** (02/09/2026). ACF Pro has shipped it since 6.5 - a hidden `acf_fc_layout_custom_label` per row, saved with the post, stored in `_page_sections_layout_meta`. The plugin adds a computed default title and a faster way to reach the rename, and stores nothing of its own. See §15. |
 | 24 | **The four `acbs/wrapper/*` hooks live in the TEMPLATE** (02/09/2026), not in `Rows\Wrapper`, because they can sit outside the `<section>` where the class cannot reach. They are extension points ONLY: a theme that copied `wrapper.php` fires none of them, so the plugin renders nothing of its own through them. The `full_width_image` overlay was moved off one for exactly that reason. §09. |
 | 25 | **A custom property may carry a gradient** (02/09/2026). `Wrapper::style()` used to refuse every bracketed value to keep `url()` out. It now names the functions it allows - colours, `var`, `calc`, the gradients - so `url()`, `expression()` and `image-set()` are still refused, by safelist rather than by banning the character. |
+| 26 | **The two accordions are DECOUPLED** (02/09/2026). `columned_content`'s per-column toggle and the `accordions` row share an animation and nothing else: one is a group where opening a panel closes its siblings, the other is a set of independent toggles that happen to sit in a grid. A shared `src/js/_accordion.js` existed for about an hour and was deleted, because it coupled two rows that routinely appear on the same page - a change made for one would have had to be proved against the other. Two files, ~90 duplicated lines, no shared surface. |
+| 27 | **Row-unique ids come from `acbs_unique_id()`, never a `static`** (02/09/2026). See §09: a `static` inside a template does not survive the next `include`. |
+| 28 | **`image_gallery` bundles Swiper and PhotoSwipe** (02/09/2026), rather than loading either from a CDN or leaning on the theme. Both are npm dependencies compiled into `assets/js/rows/image_gallery.js` by the same glob that finds every other row script, so the row still costs nothing on a page without a gallery. PhotoSwipe (MIT) replaced lightGallery: see §10 for why. |
 
 ---
 
@@ -190,7 +198,8 @@ modules/flexible-layout-template/
     layout-row-type.php       concrete, built from a Page_Content slice
     row-registry.php          name => Row_Type
     renderer.php              the have_rows() loop + the top-level wrapper
-    template-loader.php       candidate cascade, locate_template(), parts and partials
+    template-loader.php       candidate cascade, theme then plugin, parts and partials
+    filenames.php             the one definition of the underscore/dash spelling rule
     wrapper.php               templates/wrapper.php, action points, inline custom properties
     template-tags.php         plain functions, required not autoloaded
     assets.php                footer collector, styles AND scripts (§14)
@@ -268,7 +277,7 @@ Output shape:
 ```
 
 **Overriding a row's CSS from a theme.** Drop a file at `{theme}/acbs/css/rows/{layout}.css`
-(note `css/rows/`, not `rows/css/`). No hook: the file existing is the trigger. It is registered
+(note `css/rows/`, not `rows/css/`), with `{layout}` spelled either way. No hook: the file existing is the trigger. It is registered
 with the plugin's own sheet as a dependency so it always loads second, child theme beats parent,
 and it is versioned by `filemtime` so an edit busts the cache. `acbs/styles/enqueue_default`
 drops the plugin's sheet for one layout if you want to take a row over rather than layer on it.
@@ -295,9 +304,29 @@ rows/{layout}.php
 rows/default.php                   // ships empty
 ```
 
-Resolved through `locate_template()`, so child theme → parent theme → plugin works, per site on
-multisite, for free. Filters: `acbs/template/candidates`, `acbs/template/path`. Memoised per
-request.
+Child theme → parent theme → plugin, per site on multisite. Filters:
+`acbs/template/candidates`, `acbs/template/path`. Memoised per request.
+
+**Every candidate is also looked for with its underscores written as dashes** (02/09/2026), so
+`columned-content.php` renders the `columned_content` layout. ACF layout names keep their
+underscores; only filenames gained a second spelling. The replacement runs over the whole
+relative path, so a row's own directory is covered too: `rows/columned-content/item.php` works.
+**Row stylesheets and row scripts follow the same rule**, plugin side and theme side, through
+the same `Rows\Filenames::variants()`: one definition, three call sites, so the spelling cannot
+drift between templates and assets. Two rules, pulling in opposite directions:
+
+| | |
+|---|---|
+| **underscore beats dash** | within ONE directory |
+| **child beats parent beats plugin** | across directories, whatever the spelling |
+
+**That ordering is why this no longer calls `locate_template()`.** It searches child then parent
+for EACH candidate in turn, which is candidate-major: handed both spellings it returns the
+PARENT theme's underscore ahead of the CHILD theme's dash. Walking the directories ourselves
+(`Template_Loader::directories()`) is the only way to keep the directory the outer loop.
+Nothing else `locate_template()` offered was in use here - not the theme-compat directory, not
+`$load` - and multisite is unaffected, because `get_stylesheet_directory()` is per site exactly
+as `locate_template()` was.
 
 Templates reach shared markup through **parts** and **partials**, deliberately not by naming a
 class: a theme's copied templates are the one place a rename cannot reach.
@@ -399,26 +428,25 @@ so the renderer needs no check of its own. `acbs/row/show` layers on top of that
 ### The 11 layouts
 
 Rebuilt 31/08/2026 from a supplied field list, generated by `tools/fields/build-layouts.js`
-into the array literal in `page-content.php` (975 lines, down from 1,724).
+into the array literal in `page-content.php` (1,030 lines, down from 1,724).
 
 | Layout | Iterates | Grid & Display fields |
 |---|---|---|
-| `accordions` | `accordions` repeater | none. **The only layout with its own JS** (§14), and it does not use Bootstrap's collapse |
-| `columned_content` | `columns` repeater | full set + cards |
+| `accordions` | `accordions` repeater | none. Carries its own JS (§14) and does not use Bootstrap's collapse. Opening one panel closes its siblings, which is the one behaviour `columned_content` deliberately does NOT share (decision 26) |
+| `columned_content` | `columns` repeater | full set + cards. Each column can become an accordion on its own: `column_accordion` (`true_false`, first field in the row), then `column_accordion_initial_status` and `column_accordion_title` after `icon`, both conditional on it. Carries JS |
 | `contact_page_form` | | display + cards |
 | `content_left_image_right` | | none |
 | `cta` | | display + cards |
 | `full_width_image` | | none |
 | `icon_list` | `icon_list` repeater | full set + cards. **The card wraps the whole list, not each item** - the only repeater layout where that is true, because the row's content IS the list. Columns are CSS multi-column, not the shared grid |
-| `image_gallery` | gallery field | columns 1–8, default 7 |
+| `image_gallery` | gallery field | columns 1–8, default 7. Plus `aspect_ratio` (text, **required**, default `1.42:1`) on the Content tab. A Swiper carousel with a PhotoSwipe lightbox; carries JS |
 | `logo_gallery` | gallery field | columns 1–8, default 7 |
 | `stats` | `stats` repeater | full set + cards |
 | `testimonials` | `testimonials` repeater | full set + cards |
 
 Item partials exist for `columned_content`, `icon_list`, `stats`, `testimonials`. Templates
-written: `accordions`, `columned_content`, `contact_page_form`, `content_left_image_right`,
-`cta`, `icon_list`, `logo_gallery`, `stats`, `testimonials`. Still stubs: `full_width_image`,
-`image_gallery`.
+written: all eleven. `image_gallery` was the last stub and was written 02/09/2026; nothing
+in `templates/rows/` prints a layout label any more.
 
 **`icon_leaders` was removed on 01/09/2026**, layout, template, item partial and stylesheet.
 Its job is done by `columned_content`, which gained an icon of its own. `build-layouts.js`
@@ -439,7 +467,7 @@ location and never shown on an edit screen itself.
 | Component | Contributes | Notes |
 |---|---|---|
 | `Buttons` | the `buttons` repeater: `button_text`, `button_link`, `button_style`, `button_outline`, plus the icon trio `button_icon`, `button_icon_position`, `button_icon_svg` (§12) | A real ACF field type, not a Clone, because ACF's field group editor permanently flattens a seamless clone resolving to a single field. Layouts take it as a **clone** of the component's field |
-| `Intro` | `section_content` | Injected into every layout. Suppression via `erdc_disable_layout_intro` is kept but **suppresses nothing by default**, on purpose: it is there for theme-side use. `section_title` was removed 01/09/2026: the heading lives inside the wysiwyg now, so the editor picks its own level and marks a two-tone heading up with the toolbar's brand colour button instead of hand-typing a `<span>` into a text input |
+| `Intro` | `section_content` | Injected into every layout. Suppression via `acbs_disable_layout_intro` is kept but **suppresses nothing by default**, on purpose: it is there for theme-side use. `section_title` was removed 01/09/2026: the heading lives inside the wysiwyg now, so the editor picks its own level and marks a two-tone heading up with the toolbar's brand colour button instead of hand-typing a `<span>` into a text input |
 | `Other_Settings` | the "Other Settings" tab: `section_bg`, `section_container_id`, `vertical_padding`, `vertical_padding_xs` | `vertical_padding_mobile` was renamed `vertical_padding_xs` for consistency with the `-sm`/`-xs` grid steps |
 | `Grid_Display` | the "Grid & Display" tab: `layout_columns`, `layout_columns_sm`, `layout_columns_xs`, `layout_columns_alignment`, `layout_display`, `layout_display_bg`, `layout_display_bg_colour` | New 31/08/2026. Group key `group_6a9620d1a4c37` |
 
@@ -552,14 +580,14 @@ Always present: `fl-section`, `fl-type-{layout}`, `fl-item`.
 
 | Entry | Source | Output | Scoped |
 |---|---|---|---|
-| Bootstrap | `src/css/rows-bootstrap.scss` | `assets/css/rows-bootstrap.css` | **Yes**, every selector prefixed `.acbs.fl-acbs` |
+| Bootstrap | `src/css/rows-bootstrap.scss` | `assets/css/rows-bootstrap.css` | **Yes**, every selector prefixed `.acbs` |
 | Structure | `src/css/structure.scss` | `assets/css/structure.css` | No |
 | Per row | `src/css/rows/{layout}.scss` | `assets/css/rows/{layout}.css` | No |
 | Runtime JS | `src/js/rows.js` | `assets/js/rows.js` | n/a |
 | Per row JS | `src/js/rows/{layout}.js` | `assets/js/rows/{layout}.js` | n/a |
 
 `webpack.config.js` does the scoping with `postcss-prefix-selector` under
-`SCOPE_SELECTOR = '.acbs.fl-acbs'`. Selectors in `ROOT_SELECTORS` (`:root`, `html`, `body`,
+`SCOPE_SELECTOR = '.acbs'`. Selectors in `ROOT_SELECTORS` (`:root`, `html`, `body`,
 `:host`) are hoisted out rather than prefixed, since prefixing them would confine Bootstrap's
 own custom properties to a wrapper that does not contain them.
 
@@ -572,7 +600,10 @@ Two things about this build that are not obvious:
   `assets/images` and `assets/css/mce-text-colour.css` survive the build.
 
 Per-row entries are discovered by glob (`rowEntries()`), not listed, so adding
-`src/css/rows/foo.scss` is the whole job.
+`src/css/rows/foo.scss` is the whole job. A row sheet may pull in a vendor stylesheet:
+`image_gallery` imports Swiper's and PhotoSwipe's, **unnested**, because one declares on
+`:root` and the other mounts to `document.body`. Importing them without the `.css` extension
+is what makes Dart Sass inline them instead of emitting a runtime `@import`.
 
 **`CopySvgPlugin`** copies `src/svg/*.svg` to `assets/svg`. It is a small hand-written webpack
 plugin rather than `copy-webpack-plugin`: the job is `readdir` plus `emitAsset`, and a
@@ -609,9 +640,12 @@ enough by luminance. The plugin overrides hover and active to `--secondary-text`
 `--tertiary-text` with `--secondary-hover` / `--tertiary-hover` behind them, through Bootstrap's
 own `--bs-btn-*` custom properties rather than competing rules.
 
-**Those overrides must be written at the full `.acbs.fl-acbs` scope.** Written `.fl-acbs`
-(two classes) they lose to the scoped Bootstrap (three) and silently do nothing. This applies to
-anything in `structure.scss` that overrides a Bootstrap class.
+**Those overrides now TIE with the scoped Bootstrap rather than losing to it.** Both sides are
+`.acbs .btn-secondary`, two classes, and the tie is settled by load order, which structure wins
+because it declares the Bootstrap handle as a dependency and is therefore always printed second.
+That is a promise from `Module::register_assets()`, not an accident of enqueue order, but it is
+still weaker than winning outright: a rule that must not lose doubles one of its own classes,
+the way `.btn.fl-has-icon` does.
 
 Resting colour on secondary and tertiary buttons is still black. That is Bootstrap's contrast
 choice, untouched: only hover was in scope.
@@ -651,7 +685,7 @@ alignment, so those three sections were moved to `columned_content` rather than 
 | `acbs/init` | Action, after `Modules_Manager` is built |
 | `acbs/admin/settings` | The settings page's registration pass. Tab at 20, sections at 21, `Layouts_Export` at 30: those priorities are load-bearing |
 | `acbs/rows/register` | Row type registration. Passed the `Row_Registry` class name |
-| `acbs/rows/wrapper_classes` | Classes on the **single top-level** `<div>`. Default `['acbs','fl-acbs']`. Changing these breaks the scoped Bootstrap |
+| `acbs/rows/wrapper_classes` | Classes on the **single top-level** `<div>`. Default `['acbs','fl-acbs']`. Dropping `acbs` breaks the scoped Bootstrap and every row sheet; dropping `fl-acbs` breaks the row JavaScript, which queries it |
 | `acbs/rows/enqueue_base_styles` | Whether to enqueue structure and Bootstrap at all on this request |
 | `acbs/row/show` | Skip **one row** at render time |
 | `acbs/row/wrapper_classes` · `/wrapper_id` | Attributes on **one** `section.fl-section`. Note the singular/plural distinction from `acbs/rows/wrapper_classes` |
@@ -792,8 +826,12 @@ output, not by a failing build. That is the pattern: **this codebase fails quiet
 - **`get_sub_field()` returns `false` for a name that does not exist**, exactly as it does for
   an empty value. Renaming `columns_alignment` to `layout_columns_alignment` left the wrapper
   reading the old name: no error, no warning, the class just stopped being emitted.
-- **Specificity: `.fl-acbs` is two classes, `.acbs.fl-acbs` is three.** Overrides written at the
-  shorter scope lose to the scoped Bootstrap. See §07.
+- **Specificity used to be a trap here, and the fix was to remove the gap** (02/09/2026).
+  Bootstrap was scoped `.acbs.fl-acbs` (three classes) while `structure.scss` mostly wrote
+  `.fl-acbs` (two), so an override that read correctly lost silently. Everything is `.acbs` on
+  both sides now, so equal selectors tie and load order decides. **What survives of the trap:**
+  a tie is decided by the dependency chain, so anything that must win outright still has to
+  double a class of its own.
 - **A colour needs three registrations**, not one: a key in `Colour_Palette::choices()`, a rule
   in `structure.scss`, and an entry in `$theme-colors` if a `.btn-*` or `.text-*` is wanted.
   `.btn-white` was referenced for a while and never existed.
@@ -963,6 +1001,32 @@ Added 01–02/09/2026, each one caught by measuring output rather than by a buil
   silently orphans every field or contributor group already using it. §08 has the table.
 - **`sanitize_hex_color()` returns `null`, not `false`, for a bad value.** Checking `if (!$hex)`
   works; checking `if (false === $hex)` does not.
+- **A `static` inside a template does not persist across the next `include`.** Templates are
+  pulled in by `Wrapper::include_template()`, and PHP scopes a function-less file's `static`
+  to that include, so `static $n = 0;` re-initialises every time. Four accordion panels
+  therefore all came out `fl-column-accordion-1` and every `aria-controls` pointed at the
+  first one, so three of the four buttons operated a panel that was not theirs. Reproduced
+  before fixing: the old code printed `old-1, old-1, old-1, old-1`. `acbs_unique_id()` in
+  `rows/template-tags.php` keeps the counter in a plain function instead, where it does
+  survive - it is per prefix and per request, so it is a uniqueness guarantee within one
+  page and NOT a persistent anchor (§05.4 applies for the same reason).
+- **Two caches stacked on staging, and each one alone looks like "the deploy failed".**
+  Asset URLs were pinned to `ACBS_VERSION`, which is not bumped between deploys, behind a
+  one-year CDN cache; separately the page HTML carries a ten-minute server cache
+  (`x-cacheable: SHORT`, `x-cache: HIT`). The first is fixed (`Rows\Assets::version()` uses
+  `filemtime`), the second just has to be waited out. Both were live at once while chasing
+  the columned_content accordions, which is why two "identical" reports of the same bug had
+  two different causes.
+- **`locate_template()` is candidate-major, and that is the wrong axis for two spellings.**
+  For each candidate it checks the stylesheet directory then the template directory, so a list
+  of `[x_y.php, x-y.php]` resolves the PARENT theme's `x_y.php` before the CHILD theme's
+  `x-y.php`. The child theme loses silently, which is the opposite of what every other lookup
+  in WordPress promises. Any "try these filenames" feature has to iterate directories outside
+  and filenames inside.
+- **Diff the SERVED bytes against local before debugging behaviour at all.** The staging
+  `columned_content.css` was 833 bytes with no accordion rules in it while the local build
+  was 3694. `curl -s <url> | wc -c` against the same file on disk settles in one command
+  what an hour of reading CSS cannot.
 
 ---
 
@@ -970,21 +1034,86 @@ Added 01–02/09/2026, each one caught by measuring output rather than by a buil
 
 ### Row templates
 
-| Layout | State |
-|---|---|
-| `image_gallery` | **Stub.** Prints its layout label. Gallery field, 1–8 columns |
-| `full_width_image` | **Real, but its docblock still says "Stub."** It renders `written_content` and the buttons part, and it has a stylesheet. Fix the docblock |
+All eleven are real as of 02/09/2026, and every docblock now describes what its file actually
+does. `full_width_image` was the last one still calling itself a stub; it now explains the
+thing about that row that is genuinely non-obvious, which is that the image is a background on
+the section and the overlay is a pseudo-element, so the template has nothing to print but the
+content sitting on top.
 
 ### Row stylesheets
 
-`accordions`, `columned_content`, `content_left_image_right`, `cta`, `full_width_image`,
-`icon_list`, `logo_gallery`, `stats` and `testimonials` have sheets. Only
-`contact_page_form` and the `image_gallery` stub have none.
+Every layout except `contact_page_form` has one.
 
 ### Row scripts
 
-`accordions` is the only layout with one. Everything else needs no behaviour, and costs
-nothing for it: `Assets` registers a script handle only when the built file exists.
+`accordions`, `columned_content` and `image_gallery`. Everything else needs no behaviour and
+costs nothing for it: `Assets` registers a script handle only when the built file exists.
+
+### Decisions taken on image_gallery, 02/09/2026
+
+Reference: Figma "Untitled", node 40:1541.
+
+- **Swiper takes the column counts as DATA ATTRIBUTES, not off the class list.** The section
+  already carries `fl-loop-grid-columns-{n}` and its `-sm` / `-xs` steps, but those describe
+  a CSS grid; Swiper needs the same numbers as a `slidesPerView` per breakpoint, with tablet
+  and mobile carrying an extra **0.4** so the next slide peeks in and the strip reads as
+  continuing. Deriving that in JS would mean the script knowing both the project's
+  breakpoints and the +0.4 rule. Taking three numbers means it knows neither.
+- **Swiper's breakpoints are MIN-width**, the exact opposite of the max-width cascade every
+  stylesheet here uses, so they are written out in the script rather than mirrored from the
+  Sass: 0 is mobile, 768 up is tablet, 992 up is desktop.
+- **`overflow: visible` on `.swiper` is the whole design.** The first slide lines up with the
+  left edge of `.fl-container` and the rest run out past the right edge; Swiper still
+  measures against the container, so the widths come out of the container and the alignment
+  holds. What stops that becoming a page-wide scrollbar is `.fl-acbs`'s `overflow-x: clip`,
+  which is therefore load-bearing for this row and not just tidiness.
+  Measured: first slide at the container's content-left exactly, three slides filling it
+  (3 × 384 + 2 × 32 = 1216, matching the design), and 2.4 / 1.4 confirmed at 900 and 500.
+- **Swiper's and PhotoSwipe's CSS are imported UNNESTED**, at the top of the row sheet,
+  because `swiper.css` declares on `:root` and PhotoSwipe mounts its dialog to
+  `document.body` - nesting either inside `.fl-type-image_gallery` would scope rules to an
+  element that does not contain what they style. They are imported without the `.css`
+  extension, which is what makes Dart Sass INLINE them rather than emit a runtime `@import`.
+- **`pswpModule: PhotoSwipe`, the imported module, not `() => import('photoswipe')`.** The
+  dynamic form the docs lead with is right for an app that code-splits and wrong here:
+  webpack would emit a second chunk that nothing enqueues, fetched from a `publicPath` this
+  build never sets.
+- **PhotoSwipe replaced lightGallery**, which was built first and removed. Three reasons, in
+  order: it works badly with `object-fit: cover` (PhotoSwipe has `data-cropped="true"` for
+  exactly this), its licensing is GPLv3-or-commercial, and its CSS carries `url()` so it
+  needed an icon font plus a `loading.gif` copied next to the built sheet. PhotoSwipe is MIT
+  with zero `url()` in its stylesheet.
+- **The lightbox's opening `change` is ignored.** PhotoSwipe dispatches `change` from inside
+  `init()`, between `beforeOpen` and `afterInit`, so the first one reports the slide the
+  visitor just clicked rather than one they paged to. Acting on it slid the track out from
+  under the thumbnail the opening zoom animates from. Every LATER `change` still moves the
+  strip, because the closing zoom needs a thumbnail on screen to land on.
+- **The bundle is ~145KB of JS and ~9KB of CSS**, Swiper and PhotoSwipe together. It loads
+  only on a page that actually renders a gallery, which is the whole point of the per-row
+  pipeline. Only Swiper's `FreeMode` module is imported so the bundler can drop the rest.
+
+### Decisions taken on columned_content accordions, 02/09/2026
+
+Reference: Figma node 9044-16092.
+
+- **Per column, not per row.** `column_accordion` is a `true_false` on each column, so one
+  column can be a toggle and its neighbour plain text. There is no group behaviour: opening
+  one leaves the others alone, which is the opposite of the `accordions` row and the reason
+  the two scripts are separate (decision 26).
+- **The parent `<ul>` gets `fl-is-accordion` and `fl-columns-have-accordion` from a
+  PRE-PASS**, because the `<ul>` is printed before any column is. The pre-pass reads the
+  repeater as an ARRAY (`get_sub_field('columns')`) rather than opening a second
+  `have_rows()` loop, for one specific reason: a plain `foreach` can `break` on the first
+  accordion it finds, and an ACF loop cannot be broken without `reset_rows()` (§05.2).
+  Verified in ACF's source that this is safe: `get_sub_field()` only READS
+  `acf_get_loop('active')` and never mutates the loop stack, and a formatted repeater's rows
+  are keyed by `_name`, so `$column['column_accordion']` is the right lookup.
+- **No accordion renders without a title.** `column_accordion_title` is `required => 0` in
+  ACF, so an editor can tick the toggle and save nothing; a button with no accessible name
+  is worse than no button, so the template falls back to plain content. Making the field
+  genuinely required would be the better fix and is a one-line change.
+- **The chevrons are CSS masks**, not inline SVG, so a theme can replace the pointer without
+  touching the template.
 
 ### Decisions taken on cta, 02/09/2026
 
@@ -1038,6 +1167,8 @@ answers were, because three of them were decisions rather than fixes:
 | `erdc/buttons/fields` vs `acbs/buttons/fields` | **Fixed** by the prefix rename - both paths now say `acbs/buttons/fields` |
 | `.text-dark` renders green while the editor previewed `#171717` | **Fixed** in the palette, not the token. The swatch is a promise about the result, so it follows the compiled class: `dark` is `#175e54` |
 | `ACBS_UPDATER_TOKEN` has no fallback | **Accepted.** Not a public release; the constant is updated by hand on the sites that have it |
+| `overlay_colour` returned an array into a `string`-typed `str_to_rgba()`, a fatal TypeError | **Fixed.** The field is `return_format => 'string'` now, which is the form `str_to_rgba()` is written for. That also settles the `rgba(0, 0, 0, .7)` default, whose spaces ACF's own `string_to_array()` regex would not match |
+| `bin/release.js` could not read a pre-release version, so `npm run release` failed on `1.0.0-alpha` | **Fixed.** One `VERSION` pattern constant, `\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?`, used by `currentVersion()`, `nextVersion()` and `setVersion()`; a bump drops the suffix |
 
 ### Open defects, 02/09/2026
 
@@ -1046,12 +1177,10 @@ these as "the next person will hit it" rather than "it is broken now".
 
 | Where | What |
 |---|---|
-| `page-content.php` → `overlay_colour` | The field is `return_format => 'array'`, so `get_sub_field()` returns `['red','green','blue','alpha']`. `Module::str_to_rgba()` is typed `string $color` and `layout_wrapper_before_container()` passes the value straight in, which is a **fatal TypeError** - an array is not coercible to string. `return_format => 'string'` is what `str_to_rgba()` is written for: its first branch parses `rgb…` and its second parses hex |
-| same | The `default_value` is `rgba(0, 0, 0, .7)` **with spaces**, and ACF's own `string_to_array()` matches on `/^rgba?\(([0-9,.]+)\)/` - no space in the class - so under `return_format => 'array'` an untouched field falls through to its `alpha => 0` fallback and the overlay is invisible |
-| `Module::str_to_rgba()` | `$toAlpha` defaults to `1.0` and the body does `if(isset($toAlpha))`, which is always true for a non-null default. So the parsed alpha and `$fallbackAlpha` are both unreachable unless a caller passes `null` explicitly, and `str_to_rgba($c)` always returns alpha 1. Defaulting `$toAlpha` to `null` makes "no override" the default and the two fallbacks live |
-| same | The docblock says `@return array An array with 'red', 'green', 'blue', and 'alpha' components`; the signature says `?string` and it returns `"rgba(…)"` |
-| `templates/rows/full_width_image.php` | `use ACBS\Modules\FlexibleLayoutTemplate\Module;` with no reference to `Module` in the file. Its docblock also still describes a stub that "prints the layout's label", and mentions "fifteen stubs" |
-| `bin/release.js` | Reads the version with `/Version:\s*(\d+\.\d+\.\d+)/` - three numeric parts, no pre-release suffix - so the `1.0.0-alpha` bump makes `npm run release` and `npm run package` fail outright. Widening both that and the `ACBS_VERSION` pattern to `(\d+\.\d+\.\d+(?:-[0-9a-z.]+)?)` is four lines, plus teaching `nextVersion()` to drop the suffix when it bumps |
+| `Module::str_to_rgba()` | The docblock says `@return array An array with 'red', 'green', 'blue', and 'alpha' components`; the signature says `?string` and it returns `"rgba(…)"`. Also `$toAlpha` defaults to `1.0` while the body tests `isset($toAlpha)`, which is always true for a non-null default, so the parsed alpha and `$fallbackAlpha` are unreachable unless a caller passes `null`. **Accepted, not a bug in practice**: the one caller only ever asks it for a transparent value |
+| `page-content.php` → `column_accordion_title` | `required => 0` on a field the template refuses to render an accordion without. An editor can tick Enable Accordion, save, and get plain content back with no explanation |
+| `image_gallery` slides | The thumbnail uses `image-720x324`, a **2.22:1 hard crop**, inside a slide whose default ratio is 1.42:1 - so the image is cropped twice and loses more of its subject than the design intends. There is no plain `image-720` on the site; `image-1024x768` is much nearer 1.42. Used as asked, flagged as a choice rather than changed |
+| `package.json` | `swiper` and `photoswipe` sit in `dependencies`. They are compiled into a built asset and no runtime resolves them from `node_modules`, so `devDependencies` is arguably where they belong. `mengram-ai` is in there too and nothing in the plugin imports it - it looks like it was installed into the wrong `package.json` |
 
 ### Open questions
 
@@ -1059,6 +1188,10 @@ these as "the next person will hit it" rather than "it is broken now".
   `default`. Probably wants aligning.
 - **Secondary and tertiary buttons rest on black text.** Bootstrap's contrast choice; only hover
   was changed. If black at rest and white on hover is wrong, it is one line each.
+- **PhotoSwipe's open and close ANIMATIONS have never been watched to completion.** The
+  verification browser reports `document.hidden`, which freezes transitions, so every check
+  on this row measured end state rather than motion. The same blind spot is what surfaced the
+  `transitionend` bug in `accordions` (§09), so it is worth thirty seconds in a real browser.
 
 ### Carried-over defects
 
@@ -1073,15 +1206,15 @@ AJAX capability checks were fixed on 27/08/2026: all three handlers go through
 
 ### Repo hygiene
 
-- `vendor/` is gitignored and `composer.json` is not (corrected 02/09/2026, having been the
-  inverse). There is currently **no `composer.json` in the repo at all**, so `vendor/` exists
-  only on machines that already had it - which matters because `bin/release.js` lists `vendor`
-  in `SHIP_DIRS` and fails hard if it is missing. Anyone cloning fresh cannot cut a release
-  until that file is added back.
-- **`.claude/` is untracked and not gitignored**, so it shows up in every `git status`. Decide
-  which it should be. `bin/deploy.sh` and `bin/release.js` both already exclude it.
-- `templates/.DS_Store` and `src/.DS_Store` are committed. Both build excludes drop them, so
-  they never ship, but they should not be in the repo.
+- **`vendor/` is in `.gitignore` and also COMMITTED** - 128 tracked files, because git ignores
+  nothing it is already tracking. That is the arrangement that works, and it is worth knowing
+  it is deliberate rather than a mistake: `bin/release.js` lists `vendor` in `SHIP_DIRS` and
+  fails hard without it, and there is still **no `composer.json` in the repo**, so a fresh
+  clone could not rebuild the directory if it were absent. Adding `composer.json` back is what
+  would let the ignore rule mean what it says.
+- `.claude/launch.json` is tracked; nothing else under `.claude/` is. `bin/deploy.sh` and
+  `bin/release.js` both exclude the directory either way.
+- No `.DS_Store` is tracked any more, and `.gitignore` covers them.
 - Version lives in the plugin header and `define('ACBS_VERSION')`. `bin/release.js` fails hard
   if the pattern does not match exactly once, so they cannot drift.
 - `Core\Environment` has no callers left. Kept in case a per-client add-on registering product
@@ -1186,8 +1319,8 @@ id that arrived by import or a direct meta write.
 
 Only a button that HAS an icon becomes a flex container - `display: flex` on `.btn` outright
 would change every button on the site and undo Bootstrap's inline-block behaviour in running
-text. Written at `.acbs.fl-acbs .btn.fl-has-icon` (four classes) so it beats the scoped
-Bootstrap's `.btn` on specificity rather than on load order.
+text. Written at `.acbs .btn.fl-has-icon` (three classes) so it beats the scoped Bootstrap's
+`.acbs .btn` (two) on specificity rather than on load order.
 
 The box is a fixed 20px and cannot shrink (`flex: 0 0 20px`), so icons drawn at different
 proportions share one footprint and a row of buttons keeps one baseline.
@@ -1250,13 +1383,20 @@ grep -rhoE "(apply_filters|do_action)\(\s*'[a-z_]+[/_][a-z_/]+'" --include='*.ph
   modules/ core/ plugin.php | sed -E "s/.*'([^']+)'.*/\1/" | sort | uniq -c | sort -rn
 
 # 3. Every editor swatch still matches the class it previews (see §11).
-#    Compare Palette::for_js() against `.acbs.fl-acbs .text-{key}` in the built Bootstrap.
+#    Compare Palette::for_js() against `.acbs .text-{key}` in the built Bootstrap.
+
+# 4. Which of our own rules actually collide with the scoped Bootstrap. Everything is
+#    scoped `.acbs` on both sides now, so an identical selector string IS a collision and
+#    the winner is decided by load order alone. Run this before touching the scope, a
+#    specificity, or the enqueue order: it answers in one pass what reading two 200KB
+#    sheets cannot. At the time of writing it reports six, all of them intentional.
 ```
 
 ### Starting a session on this repo
 
 Read §03 (decisions), §05 (ACF loop rules) and §09 (traps), then say which item in §10 you are
-on. Local site: `https://erdc-plugin.local/`, a working Page Builder page at `/5562-2/`.
+on. Local site: `https://erdc-plugin.local/`, with `/about/` the page that actually carries
+rows - five of them, `full_width_image` plus four `content_left_image_right`.
 Staging: `https://goldenrisebendigo.stg.fivecreative.com.au/test/`, which carries a row of
 every real layout. Both run the same child theme, **Mercy Health - Golden Rise Village**.
 
@@ -1279,6 +1419,11 @@ a row is one new file and no PHP.
 | Runtime | `src/js/rows.js` | `acbs-rows` | whenever ANY row renders |
 | Plugin row script | `src/js/rows/{layout}.js` | `acbs-row-{layout}` | only when that layout is on the page |
 | Theme row script | `{theme}/acbs/js/rows/{layout}.js` | `acbs-row-{layout}-theme` | automatically, the file existing is the trigger |
+
+Every path in that table also answers to its dashed spelling (`columned-content.js`), plugin
+side and theme side, and the handle stays keyed to the underscored LAYOUT name either way, so a
+theme cannot end up loading two copies of its own file. Underscore wins inside one directory;
+child theme still beats parent whatever the spelling.
 
 `SCRIPT_PREFIX` is the same string as `STYLE_PREFIX` and that is legal: WordPress keeps
 styles and scripts in two separate `WP_Dependencies` registries, so `acbs-row-accordions`
@@ -1365,6 +1510,19 @@ Proved against WordPress's real `WP_Dependencies` rather than a stand-in:
 
 That second row is not hypothetical: `video_player` is a layout the Golden Rise child theme
 registers itself.
+
+### The three scripted layouts
+
+| Layout | Does |
+|---|---|
+| `accordions` | A GROUP: opening one panel closes its siblings |
+| `columned_content` | Independent per-column toggles, no group behaviour. A separate file on purpose (decision 26) |
+| `image_gallery` | Swiper carousel plus a PhotoSwipe lightbox. The only row with npm dependencies compiled into it |
+
+Rows announce themselves through the runtime, and may announce their own internals on top of
+it. `image_gallery` fires `image_gallery/init` (the Swiper instance) and
+`image_gallery/lightbox` (the lightbox, the Swiper and the element) through `acbs.doAction`,
+so a theme can reach either without re-querying the DOM or re-initialising anything.
 
 ### babel-loader
 
@@ -1453,4 +1611,4 @@ Files: `modules/flexible-layout-template/fields/layout-title.php`, plus the hand
 `assets/images/acbs-layout-edit.svg` - none of the three are in the webpack pipeline.
 
 
-*ACF Components Block System · v1.0.0 · forked from ERDC 1.0.36 · Five Creative · 02/09/2026*
+*ACF Components Block System · v1.2.0 · forked from ERDC 1.0.36 · Five Creative · 02/09/2026*

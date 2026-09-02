@@ -86,6 +86,78 @@
 		}
 
 		/**
+		 * locate function
+		 *
+		 * The plugin's own built file for a row, as a path below the plugin root, or ''
+		 * when the row has no such file. Both spellings are tried, underscore first, so a
+		 * source file added as src/css/rows/columned-content.scss is found exactly as
+		 * src/css/rows/columned_content.scss is - webpack names the output after the
+		 * source, and nothing in the build had to learn about this.
+		 *
+		 * @version 1.0.0
+		 * @since   1.0.0
+		 *
+		 * @param string $relative
+		 *
+		 * @return string
+		 */
+		private static function locate($relative) {
+
+			foreach(Filenames::variants($relative) as $variant) {
+
+				if(file_exists(ACBS_PATH.$variant)) {
+					return $variant;
+				}
+
+			}
+
+			return '';
+
+		}
+
+		/**
+		 * locate_theme function
+		 *
+		 * A theme's own file for a row: child theme first, then parent, and within each of
+		 * them underscore before dash. Directory is the outer loop for the same reason it
+		 * is in Template_Loader - a child theme's dashed file has to beat a parent theme's
+		 * underscored one, or the child silently loses.
+		 *
+		 * Returns the absolute path and the URL together, because the caller needs the
+		 * first to stat the file and the second to register it, and deriving one from the
+		 * other afterwards is how the two drift apart.
+		 *
+		 * @version 1.0.0
+		 * @since   1.0.0
+		 *
+		 * @param string $relative Path below the theme root, e.g. acbs/css/rows/cta.css.
+		 *
+		 * @return array|null ['file' => absolute path, 'url' => absolute URL], or null.
+		 */
+		private static function locate_theme($relative) {
+
+			$directories = [get_stylesheet_directory() => get_stylesheet_directory_uri()];
+			$directories[get_template_directory()] = get_template_directory_uri();
+
+			foreach($directories as $dir => $uri) {
+
+				foreach(Filenames::variants($relative) as $variant) {
+
+					$file = $dir.'/'.$variant;
+
+					if(file_exists($file)) {
+						return ['file' => $file, 'url' => $uri.'/'.$variant];
+					}
+
+				}
+
+			}
+
+			return null;
+
+		}
+
+		/**
 		 * Row types recorded this request, keyed by layout name.
 		 *
 		 * @var Row_Type[]
@@ -198,11 +270,10 @@
 						continue;
 					}
 
-					$relative = 'assets/css/rows/'.$name.'.css';
+					// A missing sheet is not an error - it is a row with no styling yet.
+					$relative = self::locate('assets/css/rows/'.$name.'.css');
 
-					// Phase 04 builds these. Until then there is nothing to register, and a
-					// missing sheet is not an error - it is a row with no styling yet.
-					if(!file_exists(ACBS_PATH.$relative)) {
+					if('' === $relative) {
 						continue;
 					}
 
@@ -216,9 +287,9 @@
 						continue;
 					}
 
-					$relative = 'assets/js/rows/'.$name.'.js';
+					$relative = self::locate('assets/js/rows/'.$name.'.js');
 
-					if(!file_exists(ACBS_PATH.$relative)) {
+					if('' === $relative) {
 						continue;
 					}
 
@@ -336,9 +407,10 @@
 		/**
 		 * enqueue_theme_styles function
 		 *
-		 * A theme's own sheet for a row, from {theme}/acbs/css/rows/{layout}.css. Child
-		 * theme first, then parent; the file existing is the whole trigger, there is no
-		 * hook to call.
+		 * A theme's own sheet for a row, from {theme}/acbs/css/rows/{layout}.css - or
+		 * {layout} written with dashes, which resolves identically. Child theme first, then
+		 * parent, and underscore before dash inside each of them; the file existing is the
+		 * whole trigger, there is no hook to call.
 		 *
 		 * THE DEPENDENCY IS WHAT WAS ACTUALLY ENQUEUED, not what the row type declares, and
 		 * that distinction is the whole point of this function. It used to pass
@@ -376,49 +448,44 @@
 		private function enqueue_theme_styles(Row_Type $type, array $base = []) {
 
 			$name = $type->name();
-			$relative = 'acbs/css/rows/'.$name.'.css';
 
-			foreach([get_stylesheet_directory() => get_stylesheet_directory_uri(), get_template_directory() => get_template_directory_uri()] as $dir => $uri) {
+			// Child theme wins; the parent's copy is not also loaded. The handle is keyed
+			// to the LAYOUT name, so both spellings register under acbs-row-{layout}-theme
+			// and a theme cannot end up loading two copies of its own sheet.
+			$located = self::locate_theme('acbs/css/rows/'.$name.'.css');
 
-				$file = $dir.'/'.$relative;
+			if(is_null($located)) {
+				return;
+			}
 
-				if(!file_exists($file)) {
-					continue;
+			$handle = Row_Type_Base::STYLE_PREFIX.$name.'-theme';
+
+			if(!wp_style_is($handle, 'registered')) {
+
+				$deps = $base;
+
+				if(!$deps && wp_style_is(Module::STRUCTURE_HANDLE, 'registered')) {
+					$deps = [Module::STRUCTURE_HANDLE];
 				}
 
-				$handle = Row_Type_Base::STYLE_PREFIX.$name.'-theme';
+				$version = filemtime($located['file']);
+				$version = false !== $version ? $version : ACBS_VERSION;
 
-				if(!wp_style_is($handle, 'registered')) {
-
-					$deps = $base;
-
-					if(!$deps && wp_style_is(Module::STRUCTURE_HANDLE, 'registered')) {
-						$deps = [Module::STRUCTURE_HANDLE];
-					}
-
-					$version = filemtime($file);
-					$version = false !== $version ? $version : ACBS_VERSION;
-
-					wp_register_style($handle, $uri.'/'.$relative, $deps, $version, 'all');
-
-				}
-
-				wp_enqueue_style($handle);
-
-				// Child theme wins; the parent's copy is not also loaded.
-				break;
+				wp_register_style($handle, $located['url'], $deps, $version, 'all');
 
 			}
+
+			wp_enqueue_style($handle);
 
 		}
 
 		/**
 		 * enqueue_theme_scripts function
 		 *
-		 * A theme's own script for a row, from {theme}/acbs/js/rows/{layout}.js. Child
-		 * theme first, then parent; the file existing is the whole trigger, there is no
-		 * hook to call. The mirror image of enqueue_theme_styles(), and it inherits both
-		 * of that method's hard-won rules:
+		 * A theme's own script for a row, from {theme}/acbs/js/rows/{layout}.js - or
+		 * {layout} written with dashes. Child theme first, then parent; the file existing
+		 * is the whole trigger, there is no hook to call. The mirror image of
+		 * enqueue_theme_styles(), and it inherits both of that method's hard-won rules:
 		 *
 		 *   1. THE DEPENDENCY IS WHAT WAS ACTUALLY ENQUEUED. A layout the plugin does not
 		 *      script has no `acbs-row-{layout}` registered, and naming an unregistered
@@ -446,39 +513,32 @@
 		private function enqueue_theme_scripts(Row_Type $type, array $base = []) {
 
 			$name = $type->name();
-			$relative = 'acbs/js/rows/'.$name.'.js';
 
-			foreach([get_stylesheet_directory() => get_stylesheet_directory_uri(), get_template_directory() => get_template_directory_uri()] as $dir => $uri) {
+			// Child theme wins; the parent's copy is not also loaded.
+			$located = self::locate_theme('acbs/js/rows/'.$name.'.js');
 
-				$file = $dir.'/'.$relative;
+			if(is_null($located)) {
+				return;
+			}
 
-				if(!file_exists($file)) {
-					continue;
+			$handle = Row_Type_Base::SCRIPT_PREFIX.$name.'-theme';
+
+			if(!wp_script_is($handle, 'registered')) {
+
+				$deps = $base;
+
+				if(!$deps && wp_script_is(self::RUNTIME_HANDLE, 'registered')) {
+					$deps = [self::RUNTIME_HANDLE];
 				}
 
-				$handle = Row_Type_Base::SCRIPT_PREFIX.$name.'-theme';
+				$version = filemtime($located['file']);
+				$version = false !== $version ? $version : ACBS_VERSION;
 
-				if(!wp_script_is($handle, 'registered')) {
-
-					$deps = $base;
-
-					if(!$deps && wp_script_is(self::RUNTIME_HANDLE, 'registered')) {
-						$deps = [self::RUNTIME_HANDLE];
-					}
-
-					$version = filemtime($file);
-					$version = false !== $version ? $version : ACBS_VERSION;
-
-					wp_register_script($handle, $uri.'/'.$relative, $deps, $version, true);
-
-				}
-
-				wp_enqueue_script($handle);
-
-				// Child theme wins; the parent's copy is not also loaded.
-				break;
+				wp_register_script($handle, $located['url'], $deps, $version, true);
 
 			}
+
+			wp_enqueue_script($handle);
 
 		}
 

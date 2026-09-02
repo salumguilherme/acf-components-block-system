@@ -30,10 +30,10 @@ const RemoveEmptyScriptsPlugin = require( 'webpack-remove-empty-scripts' );
  * Two classes, not one, so the scoped rules outweigh the theme's own unscoped Bootstrap
  * on specificity - the site's copy still cascades into our markup, and ours has to win.
  */
-const SCOPE_SELECTOR = '.acbs.fl-acbs';
+const SCOPE_SELECTOR = '.acbs';
 
 /**
- * Copies src/svg/*.svg to assets/svg, so the button icons ship with the plugin.
+ * Copies a flat directory of files into the build output.
  *
  * Hand-written rather than copy-webpack-plugin: it is a flat directory copy of a handful
  * of files, and a dependency whose whole job is `readdir` + `writeFile` is a dependency to
@@ -44,17 +44,18 @@ const SCOPE_SELECTOR = '.acbs.fl-acbs';
  * stale file behind - Button_Icons::ICONS and this directory have to agree, and a
  * leftover file makes a broken choice look like it works.
  */
-class CopySvgPlugin {
-	constructor( from, to ) {
+class CopyFilesPlugin {
+	constructor( from, to, match = () => true ) {
 		this.from = from;
 		this.to = to;
+		this.match = match;
 	}
 
 	apply( compiler ) {
-		compiler.hooks.thisCompilation.tap( 'CopySvgPlugin', ( compilation ) => {
+		compiler.hooks.thisCompilation.tap( 'CopyFilesPlugin', ( compilation ) => {
 			compilation.hooks.processAssets.tap(
 				{
-					name: 'CopySvgPlugin',
+					name: 'CopyFilesPlugin',
 					stage: compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
 				},
 				() => {
@@ -63,7 +64,7 @@ class CopySvgPlugin {
 					}
 
 					for ( const file of fs.readdirSync( this.from ) ) {
-						if ( ! file.endsWith( '.svg' ) ) {
+						if ( ! this.match( file ) ) {
 							continue;
 						}
 
@@ -292,7 +293,7 @@ module.exports = ( env, argv ) => {
 			new MiniCssExtractPlugin( {
 				filename: '[name].css',
 			} ),
-			new CopySvgPlugin( path.resolve( __dirname, 'src/svg' ), 'svg' ),
+			new CopyFilesPlugin( path.resolve( __dirname, 'src/svg' ), 'svg', ( f ) => f.endsWith( '.svg' ) ),
 		],
 
 		optimization: {

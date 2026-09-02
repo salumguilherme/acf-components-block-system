@@ -77,12 +77,14 @@
 		 * There is exactly one of these per render, not one per row - the per-row <section>
 		 * comes from templates/wrapper.php. It exists because it is the SCOPE the plugin's
 		 * Bootstrap is compiled behind: every selector in assets/css/rows-bootstrap.css is
-		 * rewritten to sit under `.acbs.fl-acbs`, so a row gets stock Bootstrap regardless of
-		 * what the surrounding site has done to its own copy, and nothing outside this element
-		 * is touched. Remove the wrapper and the row stylesheets stop matching anything.
+		 * rewritten to sit under `.acbs`, so a row gets stock Bootstrap regardless of what the
+		 * surrounding site has done to its own copy, and nothing outside this element is
+		 * touched. Remove `acbs` and the row stylesheets stop matching anything.
 		 *
-		 * Both classes are load-bearing: two of them give the scoped rules enough specificity
-		 * to outweigh the theme's own unscoped Bootstrap, which still cascades in.
+		 * `fl-acbs` IS NO LONGER A STYLING SCOPE (02/09/2026) - the stylesheets are scoped to
+		 * `.acbs` alone now - but it is still emitted and still load-bearing, because
+		 * src/js/rows.js finds rows with `.fl-acbs .fl-section`. A site that filters it away
+		 * therefore keeps its CSS and silently loses its row JavaScript.
 		 *
 		 * An empty render emits nothing rather than an empty wrapper, so a page whose rows
 		 * were all skipped leaves no stray element behind.
@@ -103,8 +105,9 @@
 			/**
 			 * Filters the classes on the top-level row wrapper.
 			 *
-			 * `acbs` and `fl-acbs` are what the compiled Bootstrap and every row stylesheet
-			 * are scoped to. Add to this list; removing either breaks all row styling.
+			 * `acbs` is what the compiled Bootstrap and every row stylesheet are scoped to;
+			 * `fl-acbs` is what the row runtime queries. Add to this list; removing `acbs`
+			 * breaks all row styling and removing `fl-acbs` stops rows announcing themselves.
 			 *
 			 * @param array $classes
 			 */

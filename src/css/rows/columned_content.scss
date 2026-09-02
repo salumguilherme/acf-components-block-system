@@ -14,7 +14,7 @@
 
 @import "../tokens";
 
-.fl-acbs .fl-type-columned_content {
+.acbs .fl-type-columned_content {
 
 	// A block item, not a flex column. That is what makes the icon box below positionable
 	// by text-align: a direct child of a flex container is blockified, so an inline-level
@@ -101,7 +101,7 @@
 // for. The urls are relative to the BUILT sheet at assets/css/rows/.
 // --------------------------------------------------------------------------------------
 
-.fl-acbs .fl-type-columned_content {
+.acbs .fl-type-columned_content {
 
 	.fl-column-accordion-heading {
 		margin: 0;
@@ -119,7 +119,7 @@
 		justify-content: space-between;
 		gap: var(--fl-column-accordion-gap, 1.25rem);
 		width: 100%;
-		padding: 0;
+		padding: var(--fl-card-accordion-trigger-seamless, 1rem);
 		border: 0;
 		background: none;
 		font: inherit;
@@ -203,6 +203,11 @@
 		}
 	}
 
+	&.fl-card-box .fl-grid > .fl-column-has-accordion {
+		margin-bottom: auto;
+		height: auto;
+	}
+
 	// Alignment is inherited, not redeclared. `text-align` reaches the panel's prose on
 	// its own, but a flex container ignores it - so the lead is aligned explicitly, from
 	// BOTH the item's own `column_alignment` and the row's `layout_columns_alignment`, so
@@ -218,9 +223,9 @@
 
 }
 
-.fl-acbs .fl-loop-grid-columns-align-center .fl-column-accordion-lead { justify-content: center; }
-.fl-acbs .fl-loop-grid-columns-align-right  .fl-column-accordion-lead { justify-content: flex-end; }
+.acbs .fl-loop-grid-columns-align-center .fl-column-accordion-lead { justify-content: center; }
+.acbs .fl-loop-grid-columns-align-right  .fl-column-accordion-lead { justify-content: flex-end; }
 
 // An item that sets its own alignment beats the row's - four classes against three, so it
 // wins on specificity rather than on which rule happens to come last.
-.fl-acbs .fl-type-columned_content .fl-column.fl-align-default .fl-column-accordion-lead { justify-content: flex-start; }
+.acbs .fl-type-columned_content .fl-column.fl-align-default .fl-column-accordion-lead { justify-content: flex-start; }

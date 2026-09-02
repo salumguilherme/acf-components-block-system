@@ -1,0 +1,86 @@
+//
+// Row: Image Gallery
+//
+// Enqueued as `acbs-row-image_gallery`, only on a page that has such a row. Loads after
+// structure.scss.
+//
+// Markup: templates/rows/image_gallery.php. Behaviour: src/js/rows/image_gallery.js.
+//
+// Reference: Figma "Untitled", node 40:1541. Slides are 384x270 there - 1.4222, which is
+// where the aspect_ratio field's 1.42:1 default comes from - with a 32px gap, and three
+// across exactly fill the 1216px container: 3 x 384 + 2 x 32 = 1216.
+//
+// SWIPER'S OWN CSS IS IMPORTED UNNESTED, and that is not laziness. swiper.css opens with a
+// `:root` block holding its custom properties, and nesting the file under a parent selector
+// would rewrite that to `.acbs .fl-type-image_gallery :root`, which matches nothing -
+// the same failure the scoped Bootstrap build exists to avoid, and just as silent. Only the
+// plugin's own rules below are scoped.
+//
+// It is imported without the `.css` extension on purpose: Dart Sass INLINES a plain CSS
+// file imported that way, where `@import "swiper/swiper.css"` would pass a runtime
+// `@import` through to the browser and cost a second request.
+//
+
+@import "../../../node_modules/swiper/swiper";
+
+// PhotoSwipe, UNNESTED for a stronger reason than Swiper's: it appends its lightbox to
+// document.body, outside this row entirely, so a rule scoped under the row's own selector
+// would never match the element it is meant to style.
+//
+// Nothing has to be copied alongside it. PhotoSwipe draws its controls as inline SVG and
+// its stylesheet contains no url() at all - where lightGallery, which this replaced,
+// needed an icon font and a loading gif shipped next to the compiled sheet.
+@import "../../../node_modules/photoswipe/dist/photoswipe";
+
+@import "../tokens";
+
+.acbs .fl-type-image_gallery {
+
+	// THE POINT OF THIS ROW. Swiper sets `overflow: hidden` on `.swiper`, which would clip
+	// the strip to the container and undo the whole design: the first slide is meant to
+	// line up with the container's left edge while the rest run out past its right edge
+	// towards the window.
+	//
+	// Nothing here needs to stop the page scrolling sideways - `.acbs` already carries
+	// `overflow-x: clip`, which contains the bleed at the section's own edge without
+	// becoming a scroll container.
+	.fl-gallery.swiper {
+		overflow: visible;
+
+		// The gap between slides, and the one measurement that has to cross from CSS into
+		// JS: Swiper does the slide-width arithmetic itself and takes spaceBetween as a
+		// number, so it cannot read a stylesheet.
+		//
+		// UNITLESS, and deliberately. The script reads this with parseFloat, which turns
+		// "2rem" into 2 - so a theme retuning the gap in the unit it would naturally reach
+		// for would silently get a 2px gap. A bare number has only one reading. Pixels.
+		--fl-gallery-gap: 32;
+	}
+
+	// The slide's shape is the field's, handed over as a custom property by the template.
+	// One declaration covers every screen size, because the ratio is deliberately not
+	// responsive: the images are a set and changing their shape per breakpoint would crop
+	// them differently at each one.
+	.fl-gallery-slide {
+		aspect-ratio: var(--fl-gallery-ratio, 1.42 / 1);
+		height: auto;
+		overflow: hidden;
+		border-radius: var(--fl-gallery-radius, var(--fl-border-radius, 0.5rem));
+	}
+
+	.fl-gallery-image {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	// Swiper measures slide widths itself and writes them inline, so there is deliberately
+	// no width here. The only thing it cannot know is what a slide should look like before
+	// it initialises: without this the browser lays every slide out at its natural width
+	// and the row jumps on init. `flex: 0 0 auto` plus the ratio above holds the shape.
+	.swiper-wrapper {
+		box-sizing: content-box;
+	}
+
+}

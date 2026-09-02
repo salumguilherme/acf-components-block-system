@@ -114,7 +114,7 @@
 			$bootstrap = self::bootstrap_handle();
 
 			// The plugin's own copy of Bootstrap, every selector rewritten to sit under
-			// `.acbs.fl-acbs` at build time. Registered under a filterable handle because a site
+			// `.acbs` at build time. Registered under a filterable handle because a site
 			// whose theme already ships a scoped build can point us at theirs instead and stop
 			// this one loading at all.
 			if(!wp_style_is($bootstrap, 'registered')) {
@@ -217,7 +217,7 @@
 			 *
 			 * Return a handle a site has already registered and the plugin will not register
 			 * its own - the existing registration wins. Note the site's build has to be scoped
-			 * the same way, to `.acbs.fl-acbs`, or the rows lose their grid.
+			 * the same way, to `.acbs`, or the rows lose their grid.
 			 *
 			 * @param string $handle
 			 */

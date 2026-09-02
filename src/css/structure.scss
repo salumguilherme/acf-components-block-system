@@ -16,7 +16,6 @@
 // loading after this one wins without a fight. That is decision 5: templates REPLACE,
 // styling LAYERS.
 //
-
 @import "tokens";
 
 // --------------------------------------------------------------------------------------
@@ -32,6 +31,22 @@
 // Every consumer below still reads through var() with a literal fallback, so a row also
 // survives this block being removed entirely.
 // --------------------------------------------------------------------------------------
+
+// Responsive variable
+$space-sizes-y: (
+		xl: 7rem,
+		lg: 4.5rem,
+		md: 3rem,
+		sm: 2rem,
+		xs: 1.5rem
+);
+/*
+	--fl-section-space-y-xl: 7rem;
+	--fl-section-space-y-lg: 4.5rem;
+	--fl-section-space-y: 4rem;
+	--fl-section-space-y-md: 3rem;
+	--fl-section-space-y-sm: 2rem;
+	--fl-section-space-y-xs: 2rem;*/
 
 html {
 
@@ -78,22 +93,32 @@ html {
 	--heading-colour: #{$heading-colour};
 	--heading-colour-dark: #{$heading-colour-dark};
 
-	--fl-section-space-y-xl: 7rem;
-	--fl-section-space-y-lg: 4.5rem;
-	--fl-section-space-y: 4rem;
-	--fl-section-space-y-md: 3rem;
-	--fl-section-space-y-sm: 2rem;
-	--fl-section-space-y-xs: 2rem;
-
-	--fl-intro-max-width: 900px;
 	--fl-intro-space: 3.125rem;
+	--fl-section-space-y: 4rem;
+	@each $label, $size in $space-sizes-y {
+		--fl-section-space-y-#{$label}: #{$size};
+	}
 
 	@media (max-width: 991.98px) {
 		--fl-intro-space: 2rem;
+		--fl-section-space-y: 3rem;
+		@each $label, $size in $space-sizes-y {
+			$value: $size * .75;
+			--fl-section-space-y-#{$label}: #{$value};
+		}
 	}
 
 	@media (max-width: 767.98px) {
 		--fl-intro-space: 1.5rem;
+		--fl-section-space-y: 2.5rem;
+		@each $label, $size in $space-sizes-y {
+			$value: $size * .625;
+			--fl-section-space-y-#{$label}: clamp(1rem, #{$value}, #{$value});
+		}
+	}
+
+	@media (min-width: 992px) {
+		--fl-intro-max-width: 900px;
 	}
 
 	// Corner radius. Two steps rather than a full scale, because two is all any row asks
@@ -116,7 +141,7 @@ html {
 // compiled behind (see rows-bootstrap.scss), which is why it carries the two classes.
 // --------------------------------------------------------------------------------------
 
-.acbs.fl-acbs {
+.acbs {
 	// A containing block for anything a row positions against "the row area", and a
 	// guard against a row's own overflow widening the page.
 	position: relative;
@@ -140,7 +165,7 @@ html {
 // Section
 // --------------------------------------------------------------------------------------
 
-.fl-acbs {
+.acbs {
 	.fl-section {
 		position: relative;
 		// The vertical rhythm every padding step below adjusts. Declared on the section
@@ -175,7 +200,7 @@ html {
 // has to add the matching rule too. There is one here for each of the ten shipped.
 // --------------------------------------------------------------------------------------
 
-.fl-acbs {
+.acbs {
 	// Pale grounds keep the body text colour.
 	.fl-bg-white    { background-color: var(--white, #{$white});       color: var(--text-colour, #{$text-colour}); }
 	.fl-bg-light    { background-color: var(--light, #{$light});       color: var(--text-colour, #{$text-colour}); }
@@ -231,7 +256,7 @@ html {
 	.fl-p#{$suffix}-bottom-sm { padding-top: var(--fl-space-y); padding-bottom: var(--fl-space-y-sm); }
 }
 
-.fl-acbs {
+.acbs {
 	@include fl-padding-steps();
 
 	// 767.98px, matching Bootstrap's md breakpoint minus a hair - the same boundary the
@@ -265,7 +290,7 @@ html {
 // rows come for free.
 // --------------------------------------------------------------------------------------
 
-.fl-acbs {
+.acbs {
 	.fl-grid {
 		display: grid;
 		grid-template-columns: repeat(var(--fl-columns, 1), minmax(0, 1fr));
@@ -335,7 +360,7 @@ html {
 // media box; a template with no such box is unaffected.
 // --------------------------------------------------------------------------------------
 
-.fl-acbs {
+.acbs {
 	.fl-image-fit-cover img   { object-fit: cover; }
 	.fl-image-fit-contain img { object-fit: contain; }
 }
@@ -347,7 +372,7 @@ html {
 // than repeated in each row sheet.
 // --------------------------------------------------------------------------------------
 
-.fl-acbs {
+.acbs {
 	// The intro is ALWAYS centred, whatever layout_columns_alignment says. That field aligns
 	// the section's content - the columns it is named for - and the intro is not content;
 	// it is the section's own heading, and a page whose intros wander between left, centre
@@ -399,7 +424,7 @@ html {
 // template never has to know whether cards are on.
 // --------------------------------------------------------------------------------------
 
-.fl-acbs {
+.acbs {
 
 	.fl-card-box .fl-card {
 		padding: var(--fl-card-space, 2rem);
@@ -480,7 +505,7 @@ html {
 // _tokens.scss, so there is very little to add here beyond spacing.
 // --------------------------------------------------------------------------------------
 
-.fl-acbs {
+.acbs {
 	.fl-buttons {
 		display: flex;
 		flex-wrap: wrap;
@@ -501,10 +526,10 @@ html {
 // <img>, so the artwork's `fill="currentColor"` inherits the button's own text colour -
 // which means one file covers every style, both outline variants and every dark ground.
 //
-// FULL `.acbs.fl-acbs` SCOPE, for the reason spelled out under the hover states below:
-// the scoped Bootstrap writes `.acbs.fl-acbs .btn` at three classes, so `.fl-acbs .btn`
-// is two and loses silently. `.acbs.fl-acbs .btn.fl-has-icon` is four and settles it on
-// specificity rather than on which sheet happens to load second.
+// `.btn.fl-has-icon` IS DOUBLED ON PURPOSE. The scoped Bootstrap writes `.acbs .btn` at
+// two classes, so `.acbs .btn` alone only ties with it and is settled by load order.
+// `.acbs .btn.fl-has-icon` is three, which settles it on specificity instead - worth
+// having for a rule that changes `display`, where losing the race is very visible.
 //
 // Only a button that HAS an icon becomes a flex container. Putting `display: flex` on
 // `.btn` outright would change the layout of every button on the site for the sake of a
@@ -512,7 +537,7 @@ html {
 // behaviour where buttons sit inside running text.
 // --------------------------------------------------------------------------------------
 
-.acbs.fl-acbs {
+.acbs {
 
 	.btn.fl-has-icon {
 		display: flex;
@@ -567,14 +592,19 @@ html {
 //
 // The resting colour is left as Bootstrap computed it - see the note in the handover.
 //
-// NOTE THE SELECTOR: `.acbs.fl-acbs`, not `.fl-acbs` like the rest of this sheet. The
-// scoped Bootstrap writes `.acbs.fl-acbs .btn-secondary` - three classes - so a rule
-// written `.fl-acbs .btn-secondary` is two and loses, silently. Anything here that
-// overrides a Bootstrap class needs the full two-class scope to draw level, and then wins
-// on load order because structure.css declares the Bootstrap handle as a dependency.
+// SPECIFICITY, since this overrides Bootstrap's own classes. The scope is `.acbs` on both
+// sides now, so `.acbs .btn-secondary` here and `.acbs .btn-secondary` in the scoped
+// Bootstrap are both two classes: they TIE, and the tie is settled by load order, which
+// structure.css wins because it declares the Bootstrap handle as a dependency and is
+// therefore always printed second.
+//
+// That is a promise from Module::register_assets(), not an accident of enqueue order, but
+// it is still a weaker guarantee than winning outright. A rule that must not lose can
+// double one of its own classes - see `.btn.fl-has-icon` above - and take specificity out
+// of the question entirely.
 // --------------------------------------------------------------------------------------
 
-.acbs.fl-acbs {
+.acbs {
 
 	.btn-secondary,
 	.btn-outline-secondary {
@@ -650,7 +680,7 @@ html {
 // row-level grid alignment.
 // --------------------------------------------------------------------------------------
 
-.fl-acbs {
+.acbs {
 	// `default` DEFERS - it deliberately has no rule.
 	//
 	// It used to declare `text-align: left`, which made it an override rather than a
