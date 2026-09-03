@@ -83,6 +83,10 @@
 		&:not(.fl-sticky-on-mobile) { display: none; }
 	}
 
+	.btn {
+		white-space: initial;
+	}
+
 	// ----------------------------------------------------------------------------------
 	// The floating states
 	// ----------------------------------------------------------------------------------
@@ -121,6 +125,19 @@
 
 		.fl-sticky-cta-close-rail {
 			display: flex;
+		}
+
+		// SETTLED: `position: sticky` has stopped floating on its own, because the page has
+		// scrolled to where this row actually lives, and the bar is now an ordinary section
+		// at the end of the document. It is not covering anything, so there is nothing left
+		// to close - a tab here would offer to dismiss a section that is simply part of the
+		// page. The script adds the class off the rendered box rather than a remembered
+		// offset; see watchSettle().
+		//
+		// Five classes against the reveal's four, so it wins outright rather than on the
+		// order the two rules happen to appear in.
+		&.fl-sticky-settled .fl-sticky-cta-close-rail {
+			display: none;
 		}
 	}
 

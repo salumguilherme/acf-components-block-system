@@ -17,11 +17,14 @@ node_modules/
 #composer.lock
 #demo_sdk_vault/
 
-vendor/
-
 # Session primer is TRACKED in this repo - see CLAUDE.md's own note.
 #CLAUDE.md
 
 
 # Release packages
 dist/
+
+# Static analysis tooling installs its own dependencies. Kept out of the shipped
+# vendor/ deliberately: that directory is committed AND listed in release.js SHIP_DIRS,
+# so anything landing in it is published to every site.
+tools/phpstan/vendor/

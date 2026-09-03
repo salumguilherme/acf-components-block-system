@@ -10,7 +10,7 @@ artifact, keep both in sync whenever a module, field, hook, decision or pending 
   `elementor-repeater-and-dynamic-conditions-addon`
 - **Text domain:** `erdc`, deliberately (see §08)
 - **Namespace:** `ACBS\`, renamed from `ERDC\` on 31/08/2026
-- **Doc date:** 02/09/2026
+- **Doc date:** 03/09/2026
 
 **This file is tracked in git.** Write for the team, not for one machine.
 
@@ -40,7 +40,7 @@ a theme location, a widget, and Theme Builder display conditions choosing a temp
 | 02 | Render layer | **Done 28/08/2026** |
 | 03 | Site kit | **Parked** (decision 6) |
 | 04 | Bootstrap, tokens, structure.scss, per-row webpack entries | **Done 01/09/2026** |
-| 05 | Field set rebuild, page template, row templates | **Done 02/09/2026**: all 11 templates real |
+| 05 | Field set rebuild, page template, row templates | **Done 02/09/2026**: all templates real. `sticky_cta` added 03/09/2026, so it is 12 |
 | 06 | Theme integration, PHPStan, PHPCS | |
 
 Since 01/09/2026 the plugin also gained a **staging deploy path** (`bin/deploy.sh`), an
@@ -68,7 +68,8 @@ nothing inside it.)
 7. **Button icons.** Bundled SVGs inlined into a button so they inherit its text colour,
    plus a per-button custom upload. See §12.
 8. **A row JavaScript layer.** A runtime that announces every row on the page, an
-   ACF-shaped action bus, per-row scripts and theme-side row scripts. See §14.
+   ACF-shaped action bus, per-row scripts and theme-side row scripts. See §14. Five rows
+   carry one as of 03/09/2026.
 
 > **Client scoping.** Anything prefixed `fs_` or `sv_` belongs to two *different* client builds
 > and must never be mixed or cross-referenced. Under this fork they leave core entirely for
@@ -89,7 +90,9 @@ nothing inside it.)
 | Build | **webpack**. Sources in `src/`, output to `assets/css`, `assets/js` and `assets/svg`. `npm run dev` (watch) · `npm run build:dev` · `npm run build` (also rebuilds the fixture). Row CSS and row JS are both discovered by glob, so a new file is the whole job |
 | Deploy | `npm run deploy` · `npm run deploy:dry`. rsync over SSH, built assets only. **All host details live outside the repo** in `~/.config/acbs/deploy.env` (`ACBS_DEPLOY_TARGET` required). `--delete` is opt-in; run `-n` first. See `bin/deploy.sh --help` |
 | Release | `npm run release` (patch) · `release:minor` · `release:major` · `npm run release -- 1.1.0` · `npm run package`. Runs `bin/release.js`. `SHIP_DIRS` is `['assets','modules','core','templates','vendor']`. The staged directory and zip are named `acf-components-block-system` while the main PHP file keeps its `elementor-repeater-…` name, so `SOURCE_SLUG` and `SLUG` are separate constants on purpose |
-| Tests / lint | **None installed.** No PHPCS, no PHPStan, no `composer.json`. "Linting" here means `php -l` across the tree, `node --check` on the JS, `bash -n` on the shell script, plus the targeted checks in §13. Phase 06 |
+| Static analysis | **PHPStan, level 5, clean against a baseline** (03/09/2026). `composer phpstan`, after `composer phpstan:install` once. Config in `phpstan.neon`; the analyser lives in its own Composer project at `tools/phpstan/` and **not** in `require-dev` - see §16 |
+| Tests / PHPCS | **Still none.** No test suite and no PHPCS. "Linting" also means `php -l` across the tree, `node --check` on the JS, `bash -n` on the shell script, plus the targeted checks in §13 |
+| Composer | `composer.json` + `composer.lock` since 03/09/2026, production-only: one runtime dependency, `yahnis-elsts/plugin-update-checker`, **pinned `5.6.*`** (§16) |
 | Updates | On, pointed at the fork. See §08 |
 
 ---
@@ -129,6 +132,15 @@ Answered 27/08/2026 unless noted. Do not relitigate these without saying so expl
 | 26 | **The two accordions are DECOUPLED** (02/09/2026). `columned_content`'s per-column toggle and the `accordions` row share an animation and nothing else: one is a group where opening a panel closes its siblings, the other is a set of independent toggles that happen to sit in a grid. A shared `src/js/_accordion.js` existed for about an hour and was deleted, because it coupled two rows that routinely appear on the same page - a change made for one would have had to be proved against the other. Two files, ~90 duplicated lines, no shared surface. |
 | 27 | **Row-unique ids come from `acbs_unique_id()`, never a `static`** (02/09/2026). See §09: a `static` inside a template does not survive the next `include`. |
 | 28 | **`image_gallery` bundles Swiper and PhotoSwipe** (02/09/2026), rather than loading either from a CDN or leaning on the theme. Both are npm dependencies compiled into `assets/js/rows/image_gallery.js` by the same glob that finds every other row script, so the row still costs nothing on a page without a gallery. PhotoSwipe (MIT) replaced lightGallery: see §10 for why. |
+| 30 | **`testimonials` becomes a carousel below desktop, but only with cards on** (03/09/2026). Seamless quotes have no edge to slide, so a carousel of them reads as text sliding around inside a section. The switch is one wrapper element the template emits when `layout_display = card`; no wrapper, nothing for the script to find. Desktop keeps the CSS grid untouched. |
+| 31 | **The testimonials carousel is init/destroy on `matchMedia`, NOT Swiper's `enabled` breakpoint** (03/09/2026). Swiper's `disable()` flips a flag and unsets the grab cursor and that is all - it does not undo the pixel `width` `updateSlides()` has already written onto every slide's inline style, and an inline style beats any stylesheet, so the desktop grid would come back with every item pinned to a tablet slide's width. `destroy(true, true)` is the only thing that clears them. §09. |
+| 32 | **Swiper is compiled into two row bundles, deliberately for now** (03/09/2026). `image_gallery` is ~145KB with PhotoSwipe, `testimonials` ~67KB with Swiper core alone, and a page carrying both ships Swiper twice. That falls straight out of the per-row entry design, which is what keeps a gallery off every page that has no gallery. It was a one-row cost when decision 28 was taken and it is a two-row cost now: **a third row wanting a slider is the point to revisit it**, not before. |
+| 33 | **Nothing about `sticky_cta` floats without JavaScript** (03/09/2026). Every rule that positions the section is gated on a `fl-sticky-active` class the script adds. No JS, an unfired trigger and a spent allowance all leave an ordinary in-flow section - which is also exactly what closing returns it to, so the no-JS fallback and the "closes but does not remove the row" requirement are one code path rather than two. |
+| 34 | **The Sticky CTA close tab sits in a rail carrying `fl-container container`** (03/09/2026). The tab has to clear the section's vertical padding while staying aligned to the CONTAINER's horizontal edge, and those are two different containing blocks - the section for one axis, the container for the other - which one absolutely positioned element cannot resolve against. So the rail is positioned against the section and takes the container's own classes, tracking its width, max-width and gutters including anything a theme does to them. Writing the container's geometry into a `right:` value would have been a second copy of it. |
+| 35 | **One Sticky CTA at a time, in document order** (03/09/2026). A row may show only while every row above it has finished - closed, spent, or carrying a trigger that can never fire. Note what that means: a first bar still waiting on `after_s 30` blocks a second bar on `load` for those thirty seconds, because it can still be displayed. It is an ordering rule rather than a mutex, so there is no lock - `settle()` re-asks the question whenever anything changes. |
+| 36 | **`display_period = per_day` is localStorage plus an expiry stamp, not a cookie** (03/09/2026). Same behaviour, and it sends nothing on any request: plenty of CDN and server configs bypass the page cache for requests carrying a cookie they do not recognise, and staging already serves `x-cacheable: SHORT`. The window starts at the FIRST show and is not extended by later ones, or "3 per day" quietly becomes "3 per 24 hours of inactivity". |
+| 37 | **`sticky_cta` is the first layout the plugin excludes from Intro** (03/09/2026). A bar has nowhere to put a section heading - its heading is `written_content`, inside the bar - so the field would have been an editor control that silently did nothing. `Common_Fields::intro_exclusions()` is now the one definition, because the filter used to be applied separately in two places that have to agree: one decides whether the fields exist, the other is what `Layout_Row_Type::supports()` and the tabs script read. |
+| 38 | **Every `fl-bg-*` rule publishes `--fl-section-bg`** (03/09/2026), alongside painting itself. Row chrome that has to match the ground it sits on cannot read a `background-color` back out of the cascade, and `background-color: inherit` gives it whatever its own parent painted, which is nothing. Same arrangement as `--fl-card-box-bg`. `fl-bg-default` sets neither, so a consumer carries its own fallback and gets transparency, which is what a default section actually is. |
 
 ---
 
@@ -215,7 +227,7 @@ templates/                    overridable from {theme}/acbs/
   parts/intro.php             one wysiwyg; section_title was removed 01/09/2026
   parts/buttons.php           style, outline, and the icon (§12)
   rows/default.php            ships empty
-  rows/{layout}.php           × 11
+  rows/{layout}.php           × 12
   rows/{layout}/item.php      × 4  (columned_content, icon_list, stats, testimonials)
 
 src/
@@ -225,7 +237,11 @@ src/
   css/rows/{layout}.scss      per-row sheets, discovered by glob
   js/rows.js                  the row runtime: action bus + row announcement (§14)
   js/rows/{layout}.js         per-row scripts, discovered by the same glob
-  svg/*.svg                   button icons, copied to assets/svg by the build (§12)
+  svg/*.svg                   copied to assets/svg by the build. Button icons (§12) AND
+                              row chrome that is masked rather than inlined: the
+                              accordion chevrons and the Sticky CTA close glyph. Only a
+                              key listed in Button_Icons::ICONS is reachable as a button
+                              icon, so a file here is not automatically a choice
 
 assets/                       BUILT, except where noted
   css/rows-bootstrap.css      generated
@@ -425,7 +441,7 @@ so the renderer needs no check of its own. `acbs/row/show` layers on top of that
 
 ## 06 — Field subsystem
 
-### The 11 layouts
+### The 12 layouts
 
 Rebuilt 31/08/2026 from a supplied field list, generated by `tools/fields/build-layouts.js`
 into the array literal in `page-content.php` (1,030 lines, down from 1,724).
@@ -442,10 +458,11 @@ into the array literal in `page-content.php` (1,030 lines, down from 1,724).
 | `image_gallery` | gallery field | columns 1–8, default 7. Plus `aspect_ratio` (text, **required**, default `1.42:1`) on the Content tab. A Swiper carousel with a PhotoSwipe lightbox; carries JS |
 | `logo_gallery` | gallery field | columns 1–8, default 7 |
 | `stats` | `stats` repeater | full set + cards |
-| `testimonials` | `testimonials` repeater | full set + cards |
+| `testimonials` | `testimonials` repeater | full set + cards. With cards ON the grid becomes a Swiper carousel below 992px, at the row's own `-sm` / `-xs` counts plus a 0.1 peek. Carries JS |
+| `sticky_cta` | | **`layout_columns_alignment` only** - a bar has no grid of items and no card to sit in, it IS a floating box. New 03/09/2026: a bar that slides in over the page on a trigger. Carries JS, and is the ONE layout with no Intro (§06) |
 
 Item partials exist for `columned_content`, `icon_list`, `stats`, `testimonials`. Templates
-written: all eleven. `image_gallery` was the last stub and was written 02/09/2026; nothing
+written: all twelve. `image_gallery` was the last stub and was written 02/09/2026; nothing
 in `templates/rows/` prints a layout label any more.
 
 **`icon_leaders` was removed on 01/09/2026**, layout, template, item partial and stylesheet.
@@ -467,7 +484,7 @@ location and never shown on an edit screen itself.
 | Component | Contributes | Notes |
 |---|---|---|
 | `Buttons` | the `buttons` repeater: `button_text`, `button_link`, `button_style`, `button_outline`, plus the icon trio `button_icon`, `button_icon_position`, `button_icon_svg` (§12) | A real ACF field type, not a Clone, because ACF's field group editor permanently flattens a seamless clone resolving to a single field. Layouts take it as a **clone** of the component's field |
-| `Intro` | `section_content` | Injected into every layout. Suppression via `acbs_disable_layout_intro` is kept but **suppresses nothing by default**, on purpose: it is there for theme-side use. `section_title` was removed 01/09/2026: the heading lives inside the wysiwyg now, so the editor picks its own level and marks a two-tone heading up with the toolbar's brand colour button instead of hand-typing a `<span>` into a text input |
+| `Intro` | `section_content` | Injected into every layout **except `sticky_cta`** - see `Common_Fields::intro_exclusions()`, which since 03/09/2026 registers that one name by default. It was "suppresses nothing by default" until then, so a note claiming the plugin registers no exclusions is out of date rather than wrong-headed. `section_title` was removed 01/09/2026: the heading lives inside the wysiwyg now, so the editor picks its own level and marks a two-tone heading up with the toolbar's brand colour button instead of hand-typing a `<span>` into a text input |
 | `Other_Settings` | the "Other Settings" tab: `section_bg`, `section_container_id`, `vertical_padding`, `vertical_padding_xs` | `vertical_padding_mobile` was renamed `vertical_padding_xs` for consistency with the `-sm`/`-xs` grid steps |
 | `Grid_Display` | the "Grid & Display" tab: `layout_columns`, `layout_columns_sm`, `layout_columns_xs`, `layout_columns_alignment`, `layout_display`, `layout_display_bg`, `layout_display_bg_colour` | New 31/08/2026. Group key `group_6a9620d1a4c37` |
 
@@ -525,7 +542,7 @@ and the plugin merges its fields elsewhere.
 
 ```
 Page_Content::get_current_layouts()
-  1. get_base_layouts()                  the 11 layouts, hardcoded
+  1. get_base_layouts()                  the 12 layouts, hardcoded
   2. remove_disabled_layouts()           settings checkbox list
   3. Site_Layouts::merge()               groups tagged "= Page Content"
   4. apply_filters('acbs/flexible_layout/layouts')
@@ -1028,17 +1045,53 @@ Added 01–02/09/2026, each one caught by measuring output rather than by a buil
   was 3694. `curl -s <url> | wc -c` against the same file on disk settles in one command
   what an hour of reading CSS cannot.
 
+Added 03/09/2026, all five found by measuring output:
+
+- **`requestAnimationFrame` DOES NOT FIRE in a hidden or background tab.** Measured on
+  `sticky_cta`: `rafFired: false` after 600ms with `document.visibilityState === 'hidden'`.
+  The bar's reveal needs a resolved before-state before its `translateY(0)` class lands, or
+  it appears with no slide, and the obvious way to wait a frame is a double rAF - which
+  silently never runs for a visitor who opens the page in a background tab, leaving
+  `fl-sticky-active` applied and the bar parked off-screen. Reading `offsetHeight` forces
+  style and layout SYNCHRONOUSLY and works whether or not the browser is painting. This is
+  the same blind spot as the `transitionend` above, reached from the other direction:
+  **anything that drives a state change off a frame or an animation event has to have a path
+  that does not depend on the compositor advancing.**
+- **`have_rows()` used as a truth test leaves its loop on the stack, so every
+  `get_sub_field()` after it resolves against the REPEATER.** §05.2 says this; here is what
+  it costs in practice. `templates/rows/testimonials.php` read `layout_display` - a section
+  field - below its `if(!have_rows('testimonials'))` guard, so it resolved against the
+  nested loop, returned false exactly as it does for a field that does not exist, and the
+  carousel wrapper never rendered on a row that plainly had cards on. **Read every section
+  field BEFORE the guard.** Found by grepping the served markup for the wrapper element.
+- **A flex item only stretches to its tallest sibling while its cross size is `auto`.**
+  Swiper's own `.swiper-slide` ships `height: 100%`, and transcribing that faithfully is what
+  broke equal-height testimonial cards: the percentage resolves against a wrapper whose
+  height is indefinite, so each card sized itself - measured 166 / 367 / 223 on three quotes
+  of different lengths, where `height: auto` gives 367 for all three. `align-items: stretch`
+  is not enough on its own and reads as though it should be.
+- **A JS pass that measures the tallest child and writes a pixel height is worse than
+  flexbox, twice over.** It has to be re-run for every web font that finishes, image that
+  decodes and device that rotates; and the height it writes is an INLINE style, which
+  `destroy(true, true)` strips wholesale on the way back to desktop.
+- **`box-sizing` changes Swiper's slide arithmetic, not just the gutters.** At `content-box`
+  a card's padding sits outside the width Swiper computes, so 2.3 slides per view rendered
+  about 1.9 and the second slide's edge fell past the container. The scoped Bootstrap ships
+  **no** `box-sizing` reset (see the accepted item in §10), so a verification harness that
+  does not supply one measures a box model the real site does not use - which is exactly
+  how the first testimonials measurement came out wrong.
+
 ---
 
 ## 10 — What is left
 
 ### Row templates
 
-All eleven are real as of 02/09/2026, and every docblock now describes what its file actually
-does. `full_width_image` was the last one still calling itself a stub; it now explains the
-thing about that row that is genuinely non-obvious, which is that the image is a background on
-the section and the overlay is a pseudo-element, so the template has nothing to print but the
-content sitting on top.
+All twelve are real, and every docblock describes what its file actually does.
+`full_width_image` was the last one still calling itself a stub; it now explains the thing
+about that row that is genuinely non-obvious, which is that the image is a background on the
+section and the overlay is a pseudo-element, so the template has nothing to print but the
+content sitting on top. `sticky_cta` joined the set on 03/09/2026.
 
 ### Row stylesheets
 
@@ -1046,8 +1099,93 @@ Every layout except `contact_page_form` has one.
 
 ### Row scripts
 
-`accordions`, `columned_content` and `image_gallery`. Everything else needs no behaviour and
-costs nothing for it: `Assets` registers a script handle only when the built file exists.
+`accordions`, `columned_content`, `image_gallery`, `testimonials` and `sticky_cta`. Everything
+else needs no behaviour and costs nothing for it: `Assets` registers a script handle only when
+the built file exists.
+
+### Decisions taken on sticky_cta, 03/09/2026
+
+References: Figma "Untitled", nodes 45:7186 (desktop) and 45:7234 (up to 992px). The frames
+are named First / Second / Third and match by field values, which is worth keeping in mind if
+they are ever renamed again - the mobile file was in order and the desktop file was not.
+
+- **The SECTION is the bar.** `fl-bg-*` paints it, the vertical padding step sizes it,
+  `.fl-container` sets the content width. So the floating belongs to the section, which is
+  why the position and breakpoint classes come from `Module::layout_wrapper_classes()`: a row
+  template only ever renders INSIDE the container and cannot reach the element that has to be
+  positioned. The trigger configuration is the opposite case and lives in the template as
+  data attributes, the same arrangement `image_gallery` uses for its column counts.
+- **No padding CSS at all.** `fl-p-sm` already resolves to 32px / 24px / 20px across the three
+  breakpoints, which is exactly what the reference draws, so `vertical_padding` does the work
+  and the sheet does not compete with it. Worth checking before writing a padding rule for
+  any new row.
+- **`vertical_position = top` is `position: fixed`, not sticky.** `sticky; top: 0` only engages
+  once the page has scrolled PAST the row's own position, so a top bar would be invisible
+  until the visitor reached wherever the row happens to sit in the document. The consequence
+  is that a spent top bar has nowhere to fall back to, so it is hidden outright
+  (`fl-sticky-spent`) where a spent bottom bar simply renders in the flow.
+- **A bottom bar wants to be LAST on the page.** `sticky; bottom: 0` is clamped by its
+  containing block, which is the single `.fl-acbs` wrapper, so the sticky range runs from the
+  top of that wrapper down to the row's own position: a row at the end of the document floats
+  for the whole page and settles at the end, and a row near the top has almost no range.
+- **The hidden transform includes the close tab's height.** The tab hangs outside the section,
+  so translating by exactly 100% leaves a 24px coloured stub sitting on the screen before
+  anything has been triggered.
+- **`x_value` is one text field serving three kinds of value**, so the parsing lives in the
+  script: a bare number is pixels, `vh` and `%` read against the viewport height, and
+  `after_s` is seconds. An unparseable value DISABLES the row rather than treating `NaN` as
+  zero, which would show the bar immediately - the opposite of what a mistyped threshold
+  should do. `required` guarantees only that it is not empty.
+- **A `scroll_y` threshold beyond the row's own document offset disables it**, because by the
+  time the trigger could fire the row is already on screen or behind the visitor.
+- **A missing `on_el` selector disables the row** rather than waiting forever, which matters
+  because of decision 35: a row waiting on an element that is not on this page would block
+  every sticky CTA below it. `querySelector` THROWS on a syntax error rather than returning
+  null, so the call is wrapped - an editor types that value.
+- **An unknown `show_cta_on` value is treated as `load`**, not as a disable. A value the
+  script does not recognise means the field has grown a choice, and a bar that shows is a
+  better failure than one that silently never does.
+- **The close tab disappears once the bar SETTLES** (03/09/2026). `position: sticky` stops
+  floating on its own when the page reaches the row's own place in the document, at which
+  point the bar is an ordinary section and is not covering anything - so a close button there
+  offers to dismiss a section that is simply part of the page. `watchSettle()` toggles
+  `fl-sticky-settled` off the RENDERED BOX (stuck means the bottom edge sits on the viewport
+  bottom) rather than an offset remembered at init, so it survives anything above the row
+  reflowing. Only a bottom bar can settle; a top bar is fixed and never arrives anywhere. Two
+  details are load-bearing: `getBoundingClientRect()` includes transforms, so the watcher is
+  armed only after the bar is shown and its FIRST evaluation waits out the slide, or a page
+  short enough that the row never floats would keep its tab until the visitor scrolled.
+- **The close glyph is a CSS mask, not inline SVG**, the same as the accordion chevrons: it
+  follows the bar's text colour through `currentColor`, so it is white on a brand ground and
+  dark on a pale one with no second rule, and a theme can replace the pointer without
+  touching the template. The file came out of the Figma node rather than being hand-drawn.
+
+### Decisions taken on the testimonials carousel, 03/09/2026
+
+- **Swiper is pointed at the row's OWN class names** through `wrapperClass` and `slideClass`,
+  rather than `swiper-wrapper` and `swiper-slide` going into the markup. Two reasons, and the
+  second is the real one: the `<li>` comes from `rows/testimonials/item.php`, which cannot
+  know whether cards are on - `layout_display` is a section field and does not resolve from
+  inside the repeater loop - and with the vendor class names absent, swiper.css has nothing
+  to match, so it is not imported and the row sheet states the dozen layout declarations it
+  actually needs. That is what keeps the grid a grid at desktop without a specificity fight,
+  and it keeps a second copy of swiper.css off a page that also has a gallery.
+- **Those declarations are transcribed from swiper.css at 14.2.0**, `.swiper` (26-36),
+  `.swiper-wrapper` (39-48) and `.swiper-slide` (62-69), minus the vertical, RTL, 3D, css-mode
+  and auto-height variants. **A Swiper major bump means re-diffing those three rules**, and
+  there is nothing else of theirs in play.
+- **Everything is gated on `.swiper-initialized`**, which Swiper adds on init and removes on
+  destroy. So desktop keeps the grid because the media query does not apply, JavaScript off
+  keeps the grid at every width because the class never lands, and the carousel wins on
+  specificity (four classes against `.acbs .fl-grid`'s two) rather than on load order.
+- **The gap crosses from CSS to JS as a computed `column-gap`**, read off the grid before the
+  carousel exists. Swiper does its own width arithmetic and needs a number; taking it from
+  `column-gap` rather than a custom property means it follows whatever `--fl-grid-gap`
+  resolves to, including a theme's value, with no second token to keep in step. The sheet
+  zeroes the CSS gap while the carousel is live, so the spacing is Swiper's alone and never
+  both - left alone they stack and every gap comes out double.
+- **The peek is 0.1**, against the gallery's 0.4. A quote is text: a sliver reads as an edge
+  where a substantial fraction of a card reads as a sentence cut off mid-word.
 
 ### Decisions taken on image_gallery, 02/09/2026
 
@@ -1170,7 +1308,7 @@ answers were, because three of them were decisions rather than fixes:
 | `overlay_colour` returned an array into a `string`-typed `str_to_rgba()`, a fatal TypeError | **Fixed.** The field is `return_format => 'string'` now, which is the form `str_to_rgba()` is written for. That also settles the `rgba(0, 0, 0, .7)` default, whose spaces ACF's own `string_to_array()` regex would not match |
 | `bin/release.js` could not read a pre-release version, so `npm run release` failed on `1.0.0-alpha` | **Fixed.** One `VERSION` pattern constant, `\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?`, used by `currentVersion()`, `nextVersion()` and `setVersion()`; a bump drops the suffix |
 
-### Open defects, 02/09/2026
+### Open defects, to 03/09/2026
 
 Found by reading, not by running - staging and local were both reported working, so treat
 these as "the next person will hit it" rather than "it is broken now".
@@ -1181,6 +1319,9 @@ these as "the next person will hit it" rather than "it is broken now".
 | `page-content.php` → `column_accordion_title` | `required => 0` on a field the template refuses to render an accordion without. An editor can tick Enable Accordion, save, and get plain content back with no explanation |
 | `image_gallery` slides | The thumbnail uses `image-720x324`, a **2.22:1 hard crop**, inside a slide whose default ratio is 1.42:1 - so the image is cropped twice and loses more of its subject than the design intends. There is no plain `image-720` on the site; `image-1024x768` is much nearer 1.42. Used as asked, flagged as a choice rather than changed |
 | `package.json` | `swiper` and `photoswipe` sit in `dependencies`. They are compiled into a built asset and no runtime resolves them from `node_modules`, so `devDependencies` is arguably where they belong. `mengram-ai` is in there too and nothing in the plugin imports it - it looks like it was installed into the wrong `package.json` |
+| `sticky_cta` storage key | Falls back to the page path plus the row's ordinal among the sticky CTAs on the page, because there is nothing stable to key on when an editor has not set `section_container_id`. Deliberately NOT the ACF row index (§05.4), but the ordinal moves if the page is re-ordered too. The cost of it moving is one extra appearance, which is why it is acceptable here and would not be for an anchor target - setting a container id is the way to pin it |
+| `sticky_cta` + `display_on` | The breakpoint test reads the section's COMPUTED display rather than re-deriving `display_on`, so the stylesheet stays the single answer. That means a theme hiding the section for its own reasons also stops it counting and coordinating, which is arguably right and is definitely undocumented anywhere an integrator would look |
+| `tools/fixture/build.js` | No `sticky_cta` section. The fixture runs no JS, so it can only show that row's in-flow fallback - which IS worth having in front of us, since it is what a no-JS visitor sees, and it is the one shape of the row nothing else exercises |
 
 ### Open questions
 
@@ -1188,10 +1329,21 @@ these as "the next person will hit it" rather than "it is broken now".
   `default`. Probably wants aligning.
 - **Secondary and tertiary buttons rest on black text.** Bootstrap's contrast choice; only hover
   was changed. If black at rest and white on hover is wrong, it is one line each.
-- **PhotoSwipe's open and close ANIMATIONS have never been watched to completion.** The
-  verification browser reports `document.hidden`, which freezes transitions, so every check
-  on this row measured end state rather than motion. The same blind spot is what surfaced the
-  `transitionend` bug in `accordions` (§09), so it is worth thirty seconds in a real browser.
+- **PhotoSwipe's open and close ANIMATIONS have never been watched to completion**, and
+  neither has the Sticky CTA's slide or the testimonials carousel's drag. The verification
+  browser reports `document.hidden`, which freezes transitions and starves
+  `requestAnimationFrame`, so every check on those rows measured END STATE rather than motion.
+  The same blind spot surfaced the `transitionend` bug in `accordions` and the rAF bug in
+  `sticky_cta` (§09), which is twice now - **treat "the motion has not been watched" as a
+  standing gap on any row that animates**, and spend the thirty seconds in a real browser.
+- **The Sticky CTA ordering rule blocks on a WAITING row, not just a shown one** (decision
+  35). That is the brief read literally and it is deterministic, but "a bar on `after_s 30`
+  holds the floor for thirty seconds" is the kind of thing that gets reported as a bug. The
+  alternative - a waiting row yields to a ready one - is a one-line change to `settle()`.
+- **`layout_columns_alignment` defaults to `center` group-wide**, which is why `sticky_cta`
+  takes the field with its label and instructions overridden but its default untouched:
+  choosing differently for one layout would settle the group-wide question by accident. Still
+  the same open question, now with one more layout depending on the answer.
 
 ### Carried-over defects
 
@@ -1209,9 +1361,12 @@ AJAX capability checks were fixed on 27/08/2026: all three handlers go through
 - **`vendor/` is in `.gitignore` and also COMMITTED** - 128 tracked files, because git ignores
   nothing it is already tracking. That is the arrangement that works, and it is worth knowing
   it is deliberate rather than a mistake: `bin/release.js` lists `vendor` in `SHIP_DIRS` and
-  fails hard without it, and there is still **no `composer.json` in the repo**, so a fresh
-  clone could not rebuild the directory if it were absent. Adding `composer.json` back is what
-  would let the ignore rule mean what it says.
+  fails hard without it. **`composer.json` and `composer.lock` exist as of 03/09/2026**, so a
+  fresh clone COULD now rebuild the directory - which means the ignore rule could finally be
+  made to mean what it says. It has deliberately not been: untracking `vendor/` would make
+  `composer install` a prerequisite of cutting a release, and that is a change to whoever cuts
+  releases rather than a tidy-up. The manifest reproduces the committed tree exactly, which is
+  the part that was actually missing.
 - `.claude/launch.json` is tracked; nothing else under `.claude/` is. `bin/deploy.sh` and
   `bin/release.js` both exclude the directory either way.
 - No `.DS_Store` is tracked any more, and `.gitignore` covers them.
@@ -1332,7 +1487,7 @@ proportions share one footprint and a row of buttons keeps one baseline.
 | Skill | When |
 |---|---|
 | `wp-plugin-development` | Architecture, hooks, activation, security, release packaging |
-| `wp-phpstan` | Highest value here, now that Elementor's untyped surface is gone |
+| `wp-phpstan` | Installed and clean as of 03/09/2026 (§16). Still the highest-value skill here for widening the ruleset or working the baseline down |
 | `sass-scss` | The structure/Bootstrap/row sheet split |
 | `wp-performance` | Row hydration cost, autoloaded options |
 | `wp-wpcli-and-ops` | Safe WP-CLI, db export/import |
@@ -1369,10 +1524,43 @@ same three are the fastest route next time:
   the documented surface does not say that `doAction` never replays, and that is the whole
   reason `onRowReady()` exists.
 
+#### What the verification browser cannot do, measured 03/09/2026
+
+This cost more time than any actual bug today, so it is worth having written down. The preview
+pane runs with `document.hidden`, and that is not just "transitions are frozen":
+
+| | |
+|---|---|
+| `requestAnimationFrame` | **never fires.** `rafFired: false` after 600ms |
+| `resize` events | **never fire**, including for the pane's own viewport emulation |
+| `matchMedia` change events | **never fire** - `mqChanges: 0` across a 375 → 768 change |
+| `scroll` events | **never fire**, including for a programmatic `window.scrollTo()` |
+| transitions | do not advance, so a mid-flight measurement reads the end state |
+
+So **anything event-driven has to be verified by invoking the listener**, and anything
+breakpoint-driven by a FRESH LOAD at each width rather than by resizing. Both are honest
+checks - they prove the logic - but neither proves the browser will call you, so say which one
+was used. A Swiper that reported the wrong `slidesPerView` after a resize, and a
+`fl-sticky-settled` class that never appeared after a scroll, were both this and not bugs.
+
+Chrome (`claude-in-chrome`) fires real events and is the way to check anything that depends on
+them, with two limits of its own: its window would not resize off a maximised display, so a
+narrow viewport is not available there, and a freshly opened background tab sometimes reports
+zero geometry until it has been painted.
+
+**A harness must supply `* { box-sizing: border-box }`.** The scoped Bootstrap ships no reset
+and the child theme's own Bootstrap provides it on the real site, so a harness without it
+measures a box model the site does not use. See §09.
+
 Three checks worth re-running after any change in their area:
 
 ```bash
-# 1. Everything parses.
+# 0. Static analysis. The one that catches things reading cannot - run it first now that
+#    it exists, and expect NO errors: the 13 pre-existing ones are baselined (§16).
+composer phpstan
+
+# 1. Everything parses. Still worth it: phpstan analyses `paths`, so a syntax error in
+#    something it does not look at - a tools script, the shell - gets past it.
 find . -name '*.php' -not -path './node_modules/*' -not -path './vendor/*' -exec php -l {} \;
 for f in tools/*/*.js webpack.config.js bin/release.js assets/js/*.js; do node --check "$f"; done
 bash -n bin/deploy.sh
@@ -1511,18 +1699,23 @@ Proved against WordPress's real `WP_Dependencies` rather than a stand-in:
 That second row is not hypothetical: `video_player` is a layout the Golden Rise child theme
 registers itself.
 
-### The three scripted layouts
+### The five scripted layouts
 
 | Layout | Does |
 |---|---|
 | `accordions` | A GROUP: opening one panel closes its siblings |
 | `columned_content` | Independent per-column toggles, no group behaviour. A separate file on purpose (decision 26) |
-| `image_gallery` | Swiper carousel plus a PhotoSwipe lightbox. The only row with npm dependencies compiled into it |
+| `image_gallery` | Swiper carousel plus a PhotoSwipe lightbox. ~145KB, the only row with two npm dependencies |
+| `testimonials` | Turns the card grid into a Swiper carousel below 992px and destroys it again above. ~67KB, Swiper core only. Decisions 30-32 |
+| `sticky_cta` | Slides the section in over the page on a trigger, counts its appearances, and coordinates with every other sticky CTA on the page. No dependencies. Decisions 33-36. Four classes are its whole interface with the sheet: `fl-sticky-active` (floating), `fl-sticky-in` (translated home), `fl-sticky-settled` (arrived, so the close tab goes) and `fl-sticky-spent` (a top bar out of appearances) |
 
 Rows announce themselves through the runtime, and may announce their own internals on top of
 it. `image_gallery` fires `image_gallery/init` (the Swiper instance) and
 `image_gallery/lightbox` (the lightbox, the Swiper and the element) through `acbs.doAction`,
 so a theme can reach either without re-querying the DOM or re-initialising anything.
+`testimonials` fires `testimonials/slider` and `testimonials/slider_destroyed` - both, because
+that row's Swiper comes and goes with the breakpoint - and `sticky_cta` fires
+`sticky_cta/shown` and `sticky_cta/closed`.
 
 ### babel-loader
 
@@ -1611,4 +1804,86 @@ Files: `modules/flexible-layout-template/fields/layout-title.php`, plus the hand
 `assets/images/acbs-layout-edit.svg` - none of the three are in the webpack pipeline.
 
 
-*ACF Components Block System · v1.2.0 · forked from ERDC 1.0.36 · Five Creative · 02/09/2026*
+---
+
+## 16 — Composer and static analysis
+
+Added 03/09/2026, the first half of phase 06.
+
+### composer.json describes what is already shipped
+
+`vendor/` was a real Composer install all along - `autoload.php`, `composer/`,
+`yahnis-elsts/plugin-update-checker` - with only the manifest missing from the repo. So the
+manifest was reconstructed from Composer's own record (`vendor/composer/installed.json` and
+`installed.php`) rather than guessed, and `composer install` now reports **"Nothing to install,
+update or remove"** against the committed tree. That is the check that it is honest.
+
+**The update checker is pinned `5.6.*`, and that is not fussiness.** Left at `^5.6` the lock
+resolved to **v5.7**, so adding a manifest would have silently upgraded the one component with
+a history of deleting this plugin (§09, trap 10). Upgrading it is its own change with its own
+testing, not a side effect of writing down what is installed. The lock's reference
+`a2db6871deec` matches the committed package exactly.
+
+Two other things the manifest settles:
+
+- **`config.platform.php` is `8.0`**, so resolution matches the plugin header rather than
+  whatever PHP the developer happens to run (8.5 on this machine). Without it a dev can lock a
+  dependency version that will not run on the plugin's own declared minimum.
+- **`platform_check.php` now enforces PHP 8.0** instead of the dependency's own 5.6.20, which
+  is what it had said since there was no root `php` requirement to derive it from. A PHP 7
+  site would previously have loaded the autoloader without complaint.
+
+There is deliberately **no `autoload` section**. `Plugin::autoload()` is path-derived and
+load-bearing (§04); a Composer autoloader for `ACBS\` would be a second mechanism answering
+the same question.
+
+### The analyser lives outside the shipped vendor/
+
+`tools/phpstan/` is its own Composer project with its own gitignored `vendor/`, currently
+**55MB** of PHPStan plus the WordPress and ACF Pro stubs.
+
+**It is not in `require-dev`, and that is the whole point.** The plugin's `vendor/` is
+committed AND listed in `bin/release.js` `SHIP_DIRS`, so an ordinary `composer install` would
+have added those 55MB to every release and to every site on the multisite. Checked both
+shipping paths: `release.js` and `deploy.sh` each use `SHIP_DIRS`/`SHIP_FILES` as an
+ALLOWLIST - release.js copies them, deploy.sh passes them to rsync as its sources - so
+`tools/`, `composer.json`, `composer.lock` and `phpstan.neon` are all excluded by
+construction. `deploy.sh`'s `EXCLUDES` only apply within those directories, which is worth
+knowing before adding anything at the repo root and assuming a denylist will catch it.
+
+```bash
+composer phpstan:install     # once, installs tools/phpstan/vendor
+composer phpstan             # level 5, clean
+composer phpstan:baseline    # regenerate deliberately
+```
+
+**A 1G memory limit is not optional**, hence the scripts. At the default 128M the parallel
+worker crashes and the run reports one error that is not about the code at all.
+
+### What the first run actually found
+
+48 errors at level 5, and **only one at level 0** - a healthier starting point than the
+"thousands of errors" a first run usually implies. Two thirds of them were configuration:
+
+| Was | Turned out to be |
+|---|---|
+| 30 × `constant.notFound` on `ACBS_PATH` / `ACBS_URL` | PHPStan evaluates a `define()` whose value it can work out - `ACBS_VERSION` (a literal) and `ACBS__FILE__` resolve on their own - and refuses `plugin_dir_path()`. Declared in `tools/phpstan/constants.php`, analysis-only |
+| 1 × "Negated boolean expression is always false" on the updater guard | **A false positive caused by trusting a literal.** PHPStan read `ACBS_UPDATE_REPO`'s value out of the main file, where it is a real URL. A site may define it EMPTY in `wp-config.php`, which loads first, so `define()` never runs and the guard is live. Fixed by listing the environment-dependent constants under `dynamicConstantNames` - which is the real lesson: **a constant a site can override must be declared dynamic, or PHPStan will prove your guards dead** |
+| 4 × `add_field_filter() expects string, array given` | **A wrong stub, not a wrong call.** ACF's own docblock types `$function_to_add` as `string` while its implementation passes it to `add_filter()`, which takes any callable - and the sibling `add_field_action()` calls `is_callable()` on it. Verified against ACF's source. A standing `ignoreErrors` PATTERN rather than a baseline entry, because a baseline is bound to a file and the next field type would reintroduce it |
+
+### The 13 in the baseline
+
+The baseline is a record of a decision, not a place to hide things, so here they are. None is
+a live bug; two were already on the §10 list and PHPStan found them independently.
+
+| Where | What | Worth fixing? |
+|---|---|---|
+| `core/module-base.php` ×2 | `new static()` unsafe, and `instance()` returns `self` where it promises `static` | Annotation, not behaviour. `@phpstan-consistent-constructor` or make the singletons final |
+| `module.php` `str_to_rgba()` ×2 | `@param $colorString` names a parameter that does not exist, and `@return array` contradicts the native `?string` | **Yes, and cheaply** - already listed in §10 as a docblock that lies. Docblock only; the behaviour is accepted |
+| `module.php` | `?? ` on an offset that always exists | Dead defensive code |
+| `wrapper.php` | `isset(acf()->loop)` where the stub says the property is never null | Defensive and correct: the property genuinely is unset early in a request, before ACF initialises. The stub is absolute where ACF is not |
+| `plugin.php` | `$updateChecker` is typed `PucFactory` but holds an `UpdateChecker` | **Yes** - the property docblock names the factory rather than the thing it built, which is actively misleading |
+| `ajax.php` | `WP_Term::$children` is not a real property | Worth a look: a dynamic property on a core object, and **PHP 8.2 deprecates those**. Sits with the N+1 term walk already flagged in §10 |
+| `image_gallery.php` ×5 | `esc_attr()` given an int | Harmless - `esc_attr` casts internally - but five `(string)` casts would clear them |
+
+*ACF Components Block System · v1.2.0 · forked from ERDC 1.0.36 · Five Creative · 03/09/2026*

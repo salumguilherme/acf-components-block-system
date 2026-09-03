@@ -1,22 +1,29 @@
 # ACBS training video transcripts
 
-Prepared: 02/09/2026. Seventeen short transcripts (2 to 3 minutes each) for videos showing the
-Golden Rise team how to build pages with the ACF Components Block System (ACBS) plugin. Written
-for a WordPress-comfortable, non-developer editor, except the last video, which is for our own
-dev team.
+Prepared: 02/09/2026, updated 03/09/2026 (Sticky CTA added, row layouts tightened). Eighteen
+short transcripts for videos showing the Golden Rise team how to build pages with the ACF
+Components Block System (ACBS) plugin. Written for a WordPress-comfortable, non-developer
+editor, except the last video, which is for our own dev team.
+
+**This is the scaled-back set**: row layout videos run 0:30 to 1:30, the intro, tabs and
+developer videos run 1:15 to 2:00. A fuller, more explanatory version of every transcript lives
+in `docs/transcripts-extended/acf-components-block-system-main/docs/training-transcripts/`
+(2 to 3 minutes each), kept for reference or for anyone who wants more context on camera.
 
 Each transcript is a self-contained script: a brief summary of its scope at the top, then the
-spoken script with light `[ON SCREEN: ...]` cues for where to click. Content in the scripts is
-drawn from real, already-published copy on the Golden Rise Bendigo site, trimmed for a short
-example. Field labels and colour names match this site's own relabelled ACF choices exactly
-(for example "Green" for the primary colour, "Angle >" for the chevron icon).
+spoken script with light `[ON SCREEN: ...]` cues for where to click, and no enumerated examples
+that the viewer can already see on screen. Content in the scripts is drawn from real,
+already-published copy on the Golden Rise Bendigo site, trimmed for a short example. Field
+labels and colour names match this site's own relabelled ACF choices exactly (for example
+"Green" for the primary colour, "Angle >" for the chevron icon).
 
 ## Example pages
 
-Sixteen example pages were created on `goldenrisebendigo.mercyhealthstg.mercy.local`, one per
+Seventeen example pages were created on `goldenrisebendigo.mercyhealthstg.mercy.local`, one per
 editor-facing transcript, all on the Page Builder template, all left as **drafts** (not linked
 in navigation, not publicly indexed, viewable in wp-admin by anyone logged in). The developer
-video has no dedicated page, it references the existing `/test/` sample page instead.
+video has no dedicated page, it references the existing `/test/` sample page instead. The
+scaled-back and extended transcripts for the same topic share one example page.
 
 | # | Transcript | Example page | Slug |
 |---|---|---|---|
@@ -36,7 +43,8 @@ video has no dedicated page, it references the existing `/test/` sample page ins
 | 14 | Row: Logo Gallery | Training: Logo Gallery | `training-logo-gallery` |
 | 15 | Row: Stats | Training: Stats | `training-stats` |
 | 16 | Row: Testimonials | Training: Testimonials | `training-testimonials` |
-| 17 | For Developers | (uses the existing `/test/` sample page) | n/a |
+| 17 | Row: Sticky CTA | Training: Sticky CTA | `training-sticky-cta` |
+| 18 | For Developers | (uses the existing `/test/` sample page) | n/a |
 
 ## Once the videos are recorded
 

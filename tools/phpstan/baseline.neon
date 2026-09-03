@@ -1,0 +1,61 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Method ACBS\\Core\\Module_Base\:\:instance\(\) should return static\(ACBS\\Core\\Module_Base\) but returns ACBS\\Core\\Module_Base\.$#'
+			identifier: return.type
+			count: 1
+			path: ../../core/module-base.php
+
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 1
+			path: ../../core/module-base.php
+
+		-
+			message: '#^Access to an undefined property WP_Term\:\:\$children\.$#'
+			identifier: property.notFound
+			count: 1
+			path: ../../modules/dynamic-taxonomy-fields/ajax.php
+
+		-
+			message: '#^Offset 0 on array\{list\<string\>, list\<''''\|''%%''\>\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: ../../modules/flexible-layout-template/module.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$colorString$#'
+			identifier: parameter.notFound
+			count: 1
+			path: ../../modules/flexible-layout-template/module.php
+
+		-
+			message: '#^PHPDoc tag @return with type array is incompatible with native type string\|null\.$#'
+			identifier: return.phpDocType
+			count: 1
+			path: ../../modules/flexible-layout-template/module.php
+
+		-
+			message: '#^Property ACF\:\:\$loop \(acf_loop\) in isset\(\) is not nullable\.$#'
+			identifier: isset.property
+			count: 1
+			path: ../../modules/flexible-layout-template/rows/wrapper.php
+
+		-
+			message: '#^Property ACBS\\Plugin\:\:\$updateChecker \(YahnisElsts\\PluginUpdateChecker\\v5\\PucFactory\) does not accept YahnisElsts\\PluginUpdateChecker\\v5p6\\Plugin\\UpdateChecker\|YahnisElsts\\PluginUpdateChecker\\v5p6\\Theme\\UpdateChecker\|YahnisElsts\\PluginUpdateChecker\\v5p6\\Vcs\\BaseChecker\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: ../../plugin.php
+
+		-
+			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
+			identifier: argument.type
+			count: 2
+			path: ../../templates/rows/image_gallery.php
+
+		-
+			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<1, max\> given\.$#'
+			identifier: argument.type
+			count: 3
+			path: ../../templates/rows/image_gallery.php

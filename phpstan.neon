@@ -1,0 +1,79 @@
+# PHPStan for ACBS.
+#
+# WHY THE TOOLING LIVES IN tools/phpstan AND NOT IN require-dev. The plugin's own
+# vendor/ is COMMITTED and is listed in bin/release.js SHIP_DIRS, so anything installed
+# into it is published to every site on the multisite. A `composer install` that pulled
+# PHPStan and the WordPress stubs in would quietly add several thousand files to the
+# shipped package. So the analyser gets its own Composer project, its vendor/ is
+# gitignored, and the plugin's own composer.json stays production-only.
+#
+#   composer install -d tools/phpstan     # once
+#   composer phpstan                      # or: tools/phpstan/vendor/bin/phpstan analyse
+#
+# WHAT THE STUBS ARE FOR. Nothing here is analysable without them: every WordPress and
+# ACF function is undefined otherwise, and ACF is most of this plugin's surface. The
+# WordPress ones arrive with szepeviktor/phpstan-wordpress, which the include below
+# wires up; the ACF Pro ones are a separate package and are named explicitly.
+
+includes:
+	- tools/phpstan/vendor/szepeviktor/phpstan-wordpress/extension.neon
+	# 13 pre-existing errors, so a clean run means "nothing NEW is broken". Every entry is
+	# listed in CLAUDE.md 10 with what it is and whether it is worth fixing - the baseline
+	# is a record of a decision, not a place to hide things. Regenerate deliberately:
+	#   tools/phpstan/vendor/bin/phpstan analyse --generate-baseline=tools/phpstan/baseline.neon
+	- tools/phpstan/baseline.neon
+
+parameters:
+	level: 5
+
+	paths:
+		- core
+		- modules
+		- templates
+		- plugin.php
+		- elementor-repeater-and-dynamic-conditions-addon.php
+
+	# ACF Pro is a hard dependency and is not in this repo, so its API is declared rather
+	# than analysed. scanFiles, not bootstrapFiles: these are declarations to read, not
+	# code to run.
+	scanFiles:
+		- tools/phpstan/vendor/php-stubs/acf-pro-stubs/acf-pro-stubs.php
+		- tools/phpstan/constants.php
+
+	# Constants whose value depends on the installation, so PHPStan must not reason from
+	# whatever literal it can see. ACBS_UPDATE_REPO is the one that matters: a site may
+	# define it in wp-config.php, which loads first, so the main file's `define()` never
+	# runs and the shipped literal is not the value. Without this, the guard that checks
+	# for an empty repo is reported as dead code.
+	dynamicConstantNames:
+		- ACBS_PATH
+		- ACBS_URL
+		- ACBS_UPDATE_REPO
+		- ACBS_UPDATER_TOKEN
+
+	# vendor/ is third-party and shipped as-is; docs/ carries verbatim copies of earlier
+	# versions of this plugin's own files, which would otherwise be analysed twice and
+	# report duplicate-class errors against the live ones.
+	excludePaths:
+		- vendor
+		- node_modules
+		- dist
+		- docs
+
+	# ONE STANDING IGNORE, and it is a wrong stub rather than a wrong call.
+	#
+	# `acf_field::add_field_filter()` documents $function_to_add as a `string`, and
+	# php-stubs/acf-pro-stubs reproduces that faithfully. ACF's own implementation passes
+	# the argument straight to `$this->add_filter()` and on to WordPress's `add_filter()`,
+	# which takes any callable - and the sibling `add_field_action()` even calls
+	# `is_callable()` on it, which would be pointless if only strings were allowed. So
+	# `[$this, 'method']` is correct and ACF's docblock is not.
+	#
+	# A pattern rather than a baseline entry on purpose: a baseline is bound to a file and
+	# a count, so the next field type this plugin registers would reintroduce the error.
+	ignoreErrors:
+		-
+			identifier: argument.type
+			message: '#^Parameter \#2 \$function_to_add of method acf_field\:\:add_field_filter\(\) expects string, array#'
+
+	treatPhpDocTypesAsCertain: false

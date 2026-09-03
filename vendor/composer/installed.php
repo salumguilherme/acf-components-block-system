@@ -1,20 +1,20 @@
 <?php return array(
     'root' => array(
-        'name' => '__root__',
+        'name' => 'fivecreative/acf-components-block-system',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '6e95645f2ec75a9a2d8e19b9b3e710db13d5bc06',
-        'type' => 'library',
+        'reference' => 'f11f97541bfe65801dde03c6278dd5b66824103e',
+        'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'dev' => true,
+        'dev' => false,
     ),
     'versions' => array(
-        '__root__' => array(
+        'fivecreative/acf-components-block-system' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '6e95645f2ec75a9a2d8e19b9b3e710db13d5bc06',
-            'type' => 'library',
+            'reference' => 'f11f97541bfe65801dde03c6278dd5b66824103e',
+            'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
             'dev_requirement' => false,

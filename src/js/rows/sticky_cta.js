@@ -407,18 +407,96 @@
 		// page in a background tab gets `fl-sticky-active` from the timer, no
 		// `fl-sticky-in`, and a bar parked off-screen until the tab is looked at.
 		//
-		// Reading offsetHeight forces style and layout synchronously, so the before-state
-		// exists on the very next line whether or not the browser is painting frames. Same
-		// blind spot as the transitionend in accordions, reached from the other direction.
+		// Reading offsetHeight forces style and layout synchronously, so the before-state is
+		// resolved whether or not the browser is painting frames. Same blind spot as the
+		// transitionend in accordions, reached from the other direction.
+		//
+		// The class then lands on a timer rather than immediately, which gives the bar a
+		// beat before it starts moving. setTimeout is the right primitive for that and rAF
+		// would not be: a background tab throttles a timer to a second or so, but it still
+		// fires, where rAF simply does not run at all.
+		void this.section.offsetHeight;
 		const self = this;
 		setTimeout(() => {
-			void this.section.offsetHeight;
-				setTimeout(() => {
-					self.section.classList.add( 'fl-sticky-in' );
-				}, 100);
-		});
+			self.section.classList.add( 'fl-sticky-in' );
+		}, 50);
+
+		this.watchSettle();
 
 		acbs.doAction( 'sticky_cta/shown', this.section, this );
+	};
+
+	/**
+	 * Hides the close tab once the bar has settled into its own place in the document.
+	 *
+	 * `position: sticky` stops floating on its own once the page has scrolled to where the
+	 * row actually lives: it resolves to its natural position and the bar becomes an
+	 * ordinary section at the end of the page. At that point it is not covering anything, so
+	 * a close button has nothing to close - leaving it there offers to dismiss a section that
+	 * is simply part of the page.
+	 *
+	 * ONLY A BOTTOM BAR CAN SETTLE. A top bar is `position: fixed`, permanently over the
+	 * content with no in-flow position to arrive at, so its tab stays for as long as it is
+	 * shown and this does nothing.
+	 *
+	 * THE TEST IS THE RENDERED BOX, not an offset computed at init. While the bar is stuck
+	 * its bottom edge sits on the viewport bottom; once it settles, that edge rises above it.
+	 * Reading the real box is immune to anything above the row reflowing - a web font
+	 * landing, an image decoding, an accordion opening - where a remembered document offset
+	 * silently goes stale. It also covers a page short enough that the row never floats at
+	 * all, where the tab should be hidden from the moment it shows.
+	 *
+	 * `getBoundingClientRect()` INCLUDES TRANSFORMS, which is why this is armed only after
+	 * the bar is shown: while it is still translated out it measures as floating whatever the
+	 * scroll position, so arming it earlier would latch the wrong answer.
+	 */
+	Row.prototype.watchSettle = function () {
+		var self = this;
+
+		if ( 'bottom' !== this.position ) {
+			return;
+		}
+
+		var settled = null;
+
+		this.onSettle = function () {
+			var now = self.section.getBoundingClientRect().bottom < window.innerHeight - 1;
+
+			// Only touch the class list when the answer actually changes. The read is one
+			// element's box, which is cheap; a write on every scroll event is what turns a
+			// cheap listener into layout thrash.
+			if ( now === settled ) {
+				return;
+			}
+
+			settled = now;
+			self.section.classList.toggle( 'fl-sticky-settled', now );
+		};
+
+		window.addEventListener( 'scroll', this.onSettle, { passive: true } );
+		window.addEventListener( 'resize', this.onSettle, { passive: true } );
+
+		// THE FIRST EVALUATION HAS TO WAIT FOR THE SLIDE, and this is the reason it is a
+		// timer rather than a straight call. watchSettle() runs from show(), while the bar
+		// is still translated out of view - and getBoundingClientRect() includes that
+		// transform, so measuring now latches "floating" whatever the scroll position.
+		//
+		// Scrolling would correct it, so this only matters when the visitor never scrolls:
+		// a page short enough that the row is already at its own place, where the tab
+		// should be hidden from the start and would otherwise sit there until the first
+		// scroll event. Derived from the element's own duration so it follows the token.
+		window.setTimeout( this.onSettle, duration( this.section ) + 120 );
+	};
+
+	Row.prototype.releaseSettle = function () {
+		if ( ! this.onSettle ) {
+			return;
+		}
+
+		window.removeEventListener( 'scroll', this.onSettle );
+		window.removeEventListener( 'resize', this.onSettle );
+		this.onSettle = null;
+		this.section.classList.remove( 'fl-sticky-settled' );
 	};
 
 	Row.prototype.close = function () {
@@ -446,6 +524,7 @@
 			// Back into the flow. A spent top bar is hidden by the sheet instead, which its
 			// fl-sticky-spent class already says.
 			self.section.classList.remove( 'fl-sticky-active' );
+			self.releaseSettle();
 
 			acbs.doAction( 'sticky_cta/closed', self.section, self );
 

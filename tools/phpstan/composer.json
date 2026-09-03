@@ -1,0 +1,16 @@
+{
+	"name": "fivecreative/acbs-phpstan",
+	"description": "Static analysis tooling for ACBS, kept in its own Composer project.",
+	"license": "GPL-2.0-or-later",
+	"require": {
+		"php": ">=8.1",
+		"phpstan/phpstan": "^2.1",
+		"szepeviktor/phpstan-wordpress": "^2.0",
+		"php-stubs/acf-pro-stubs": "^6.3"
+	},
+	"config": {
+		"allow-plugins": false,
+		"sort-packages": true
+	},
+	"prefer-stable": true
+}

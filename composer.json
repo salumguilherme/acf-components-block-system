@@ -1,0 +1,28 @@
+{
+	"name": "fivecreative/acf-components-block-system",
+	"description": "Renders ACF Flexible Content rows as PHP template parts, overridable from a theme.",
+	"type": "wordpress-plugin",
+	"license": "GPL-2.0-or-later",
+	"homepage": "https://github.com/salumguilherme/acf-components-block-system",
+	"require": {
+		"php": ">=8.0",
+		"ext-json": "*",
+		"yahnis-elsts/plugin-update-checker": "5.6.*"
+	},
+	"config": {
+		"allow-plugins": false,
+		"platform": {
+			"php": "8.0"
+		},
+		"sort-packages": true
+	},
+	"prefer-stable": true,
+	"scripts": {
+		"phpstan": "tools/phpstan/vendor/bin/phpstan analyse --memory-limit=1G",
+		"phpstan:baseline": "tools/phpstan/vendor/bin/phpstan analyse --memory-limit=1G --generate-baseline=tools/phpstan/baseline.neon",
+		"phpstan:install": "composer install -d tools/phpstan"
+	},
+	"scripts-descriptions": {
+		"phpstan": "Static analysis. Run composer phpstan:install once first."
+	}
+}
