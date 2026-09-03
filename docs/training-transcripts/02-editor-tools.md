@@ -7,36 +7,25 @@ draft, four varied rows: a hero, a stats row, a columned content row, and a call
 
 ---
 
-In the last video we covered adding a row. This one is about living with a page that has a lot
-of them, because a real page might have fifteen or twenty rows, and finding your way around
-matters.
+This one's about managing a page once it has a lot of rows.
 
-I've set up Training: Editor Tools with four rows so you can see all of this in context.
+I've set up Training: Editor Tools with four rows so you can see this in context.
 
-First, reordering. Every row has a handle, drag it up or down to reorder. Nothing else changes,
-your content and settings move with it. It's the fastest way to try a different page flow without
-rebuilding anything.
+Reordering: every row has a handle, drag it up or down, your content moves with it.
 
-Next, renaming. By default every row is labelled with its layout name, so a page with six
-Columned Content rows just shows "Columned Content" six times, not very useful. Open a row's
-menu, the three dots, and you'll see a Rename option, or use the small pencil icon we've added
-right on the row handle for a faster path. Give it a label like "Amenities Intro" and that's what
-you'll see when the row is collapsed, much easier to scan.
+Renaming: every row defaults to its layout name, not very useful once you've got six of the same
+one. Open the row menu, or use the pencil icon on the handle, and give it a label like "Amenities
+Intro."
 
 [ON SCREEN: click the pencil icon on a row handle]
 
-One thing worth knowing: if you type a heading into a row's content and leave the label alone,
-the row picks up that heading as its label automatically. Renaming is really for when you want
-something different from what's written on the page.
+One thing worth knowing: if a row's content starts with a heading, it picks that up as its label
+automatically, renaming is for when you want something different.
 
-Then there's collapsing. Click a row's handle and it folds up to just its label, click again to
-expand. On a long page, collapse everything except what you're editing, it keeps you oriented and
-the page loads faster in the browser too.
+Collapsing: click the handle to fold a row to just its label, click again to expand. Collapse
+everything except what you're editing on a long page.
 
-Last one, and it's small but saves a lot of hunting: whenever you're writing in a content box,
-headings or body text, you'll see a colour swatch button in the toolbar. Highlight a word, click
-it, and pick a brand colour, that's how we get the two-tone headings you'll see across the site,
-rather than typing colours in by hand.
+Last one: the colour swatch button in any content box's toolbar, highlight text, click it, pick a
+brand colour, that's how we get two-tone headings without typing hex codes in by hand.
 
-That's the toolkit: reorder, rename, collapse, and the colour button, four small habits that make
-a big page manageable.
+Reorder, rename, collapse, and the colour button, that's the toolkit.

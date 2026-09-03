@@ -1,0 +1,126 @@
+//
+// Row: Accordions
+//
+// Enqueued only on a page that has an accordions row. Loads after structure.scss.
+//
+// Markup: templates/rows/accordions.php, and the behaviour is src/js/rows/accordions.js.
+// This sheet owns two things the script deliberately does not touch: the chevron, and the
+// transition it animates along.
+//
+// Reference: Figma "Untitled", node 32:890.
+//
+// THE CHEVRON IS A MASK, not a background-image and not inline SVG. Painting it with
+// `background-color: currentColor` through a mask is what makes it follow the title's
+// colour - the design turns an open item's title brand green and the chevron with it - so
+// there is exactly one colour rule for both, and the open/closed swap is a single
+// mask-image declaration keyed on aria-expanded. The script never touches the icon.
+//
+// The paths are relative to the BUILT sheet at assets/css/rows/accordions.css, and
+// css-loader runs with `url: false`, so they are emitted verbatim rather than resolved
+// and inlined.
+//
+
+@import "../tokens";
+
+.acbs .fl-type-accordions {
+
+	// Design: the list is inset 16px from the section's container.
+	.fl-accordions {
+		padding-inline: var(--fl-accordion-inset, 1rem);
+	}
+
+	// The design's #E5E7EB, as a literal rather than a new token. There is no neutral
+	// scale in _tokens.scss and one hairline does not justify starting one - a token
+	// nothing else reads is just a literal with an extra hop. Restate the custom property
+	// from a theme if the rule needs to move.
+	.fl-accordion-item {
+		border-bottom: 1px solid var(--fl-accordion-rule, #E5E7EB);
+	}
+
+	.fl-accordion-heading {
+		margin: 0;
+		// The heading exists for document outline, not for size: the design draws the
+		// title at the body's own scale, and letting the theme's h3 through would make an
+		// FAQ read as four sub-headings.
+		font: inherit;
+
+		&:hover button {
+			color: var(--fl-accordion-open-colour, var(--primary, #{$brand-primary}));
+		}
+	}
+
+	// A real <button>, so keyboard and screen-reader behaviour comes for free. Everything
+	// here is undoing what a button looks like by default.
+	.fl-accordion-trigger {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--fl-accordion-gap, 0.75rem);
+		width: 100%;
+		padding: var(--fl-accordion-space, 1rem);
+		border: 0;
+		background: none;
+		font: inherit;
+		color: inherit;
+		text-align: left;
+		cursor: pointer;
+	}
+
+	.fl-accordion-title {
+		font-size: var(--fl-accordion-title-size, 1.125rem);
+		line-height: 1.556;
+	}
+
+	// Open: the title takes the brand colour, and the chevron follows it through
+	// currentColor without a rule of its own.
+	.fl-accordion-trigger[aria-expanded="true"] {
+		color: var(--fl-accordion-open-colour, var(--primary, #{$brand-primary}));
+	}
+
+	.fl-accordion-icon {
+		flex: 0 0 var(--fl-accordion-icon-size, 20px);
+		width: var(--fl-accordion-icon-size, 20px);
+		height: var(--fl-accordion-icon-size, 20px);
+		background-color: currentColor;
+		-webkit-mask: url("../../svg/chevron-down.svg") no-repeat center / contain;
+		mask: url("../../svg/chevron-down.svg") no-repeat center / contain;
+	}
+
+	.fl-accordion-trigger[aria-expanded="true"] .fl-accordion-icon {
+		-webkit-mask-image: url("../../svg/chevron-up.svg");
+		mask-image: url("../../svg/chevron-up.svg");
+	}
+
+	// The panel is animated on height by the script, so it must not have padding of its
+	// own: padding is not part of the height being animated to 0, so an item would
+	// collapse to a 32px sliver rather than to nothing. The inset lives on the body.
+	.fl-accordion-panel {
+		overflow: hidden;
+		transition: height var(--fl-accordion-speed, 250ms) ease;
+	}
+
+	// `hidden` is an attribute the script toggles, and the scoped Bootstrap's reboot does
+	// not carry a rule strong enough to survive `display: flex` or similar arriving from
+	// a theme. Stated explicitly so a closed panel is closed whatever else is loaded.
+	.fl-accordion-panel[hidden] {
+		display: none;
+	}
+
+	.fl-accordion-body {
+		padding: 0 var(--fl-accordion-space, 1rem) var(--fl-accordion-space, 1rem);
+		// Design: 12px between the title row and the answer.
+		padding-top: var(--fl-accordion-body-gap, 0.75rem);
+		font-size: var(--fl-accordion-body-size, 1rem);
+		line-height: 1.5;
+	}
+
+	.fl-accordion-body > :first-child { margin-top: 0; }
+	.fl-accordion-body > :last-child  { margin-bottom: 0; }
+
+	@media (prefers-reduced-motion: reduce) {
+		.fl-accordion-panel {
+			transition: none;
+		}
+	}
+
+}

@@ -79,19 +79,7 @@
 				}
 			}
 
-			// Intro goes into EVERY layout by default - the plugin registers no exclusions of
-			// its own. The filter is the seam, kept for a theme that wants to suppress Intro on
-			// a particular layout:
-			//
-			//   add_filter('acbs_disable_layout_intro', function($disabled) {
-			//       $disabled[] = 'full_width_image';
-			//       return $disabled;
-			//   });
-			//
-			// Anything added here is also read by should_add_intro(), which is what
-			// Layout_Row_Type::supports() and the flexible-layout-tabs script both go through, so
-			// one callback is enough to keep the whole plugin consistent about it.
-			$disabled = apply_filters('acbs_disable_layout_intro', []);
+			$disabled = self::intro_exclusions();
 
 			// Adds the common fields to each layout
 			foreach($field['layouts'] as $parent_index => &$layout) {
@@ -218,7 +206,49 @@
 		 * @return bool
 		 */
 		public static function should_add_intro($layout_name) {
-			return !in_array($layout_name, apply_filters('acbs_disable_layout_intro', []), true);
+			return !in_array($layout_name, self::intro_exclusions(), true);
+		}
+
+		/**
+		 * intro_exclusions function
+		 *
+		 * Layout names that do NOT get the Intro component's fields.
+		 *
+		 * ONE DEFINITION, TWO CALLERS, and that is the point of the method. The filter used
+		 * to be applied separately in inject_common_fields() and in should_add_intro(), and
+		 * those two have to agree: the first decides whether the FIELDS exist on a layout,
+		 * the second is what Layout_Row_Type::supports() and the flexible-layout-tabs script
+		 * read. Disagree and a layout grows an Intro tab that the tab script does not know
+		 * about, or loses fields it still claims to support.
+		 *
+		 * `sticky_cta` IS EXCLUDED BY DEFAULT, and it is the first exclusion the plugin has
+		 * ever registered - every other layout gets Intro whether it wants it or not. The
+		 * reason is that a sticky bar has nowhere to put a section heading: its own heading
+		 * is `written_content`, inside the bar, and an Intro block would render above the bar
+		 * and slide in with it. Leaving the field there would have been an editor control
+		 * that silently did nothing, which is the failure this codebase keeps finding.
+		 *
+		 * The filter still layers on top, so a theme can add to this or clear it:
+		 *
+		 *   add_filter('acbs_disable_layout_intro', function($disabled) {
+		 *       $disabled[] = 'full_width_image';
+		 *       return $disabled;
+		 *   });
+		 *
+		 * @version 1.0.0
+		 * @since   1.0.0
+		 *
+		 * @return array
+		 */
+		public static function intro_exclusions() {
+
+			/**
+			 * Filters the layouts that get no Intro fields.
+			 *
+			 * @param array $disabled Layout names.
+			 */
+			return (array) apply_filters('acbs_disable_layout_intro', ['sticky_cta']);
+
 		}
 
 		/**

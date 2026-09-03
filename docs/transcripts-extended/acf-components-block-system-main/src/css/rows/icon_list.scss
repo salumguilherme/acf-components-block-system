@@ -1,0 +1,168 @@
+//
+// Row: Icon List
+//
+// Enqueued as `acbs-row-icon_list`, only on pages with such a row. Loads after
+// structure.scss, so it can override the shared grid.
+//
+// Markup: templates/rows/icon_list.php and rows/icon_list/item.php.
+// Reference: Figma "Golden Rise Bendigo Design System", node 9044:16075.
+//
+// Type is the theme's. The icon is sized in `em`, so it tracks whatever font-size the
+// theme gives the list rather than pinning to a pixel value this sheet would have to know.
+//
+
+.acbs .fl-type-icon_list {
+
+	// --------------------------------------------------------------------------------
+	// Columns
+	//
+	// CSS MULTI-COLUMN, not the shared grid and not several <ul>s built in PHP. The brief
+	// was "first half in one list, second half in the next", and multi-column is the way
+	// to get exactly that without the costs of either alternative:
+	//
+	//   * The shared `.fl-grid` is `display: grid`, which fills ACROSS - items 1 and 2 on
+	//     the first row, 3 and 4 on the second. That is why the live row read as a
+	//     scrambled list rather than two columns of one.
+	//   * Splitting into two <ul>s in PHP would fill down correctly, but it turns one list
+	//     into several: a screen reader announces "list, 5 items" and then "list, 4 items"
+	//     for what is one list of nine. It also means the template has to know the column
+	//     count, and re-derive it at every breakpoint.
+	//
+	// Multi-column fills column one, then column two, balances the height itself, and
+	// leaves the markup as a single <ul>. The count comes from `--fl-columns`, which
+	// structure.scss already sets from fl-loop-grid-columns-{n} and its -sm / -xs steps,
+	// so the responsive behaviour is inherited rather than restated.
+	//
+	// `break-inside: avoid` is not optional: without it an item can be split across the
+	// column boundary, icon in one column and its text in the next.
+	// --------------------------------------------------------------------------------
+	.fl-icon-list {
+		display: block;
+		columns: var(--fl-columns, 1);
+		column-gap: var(--fl-icon-list-column-gap, 3rem);
+	}
+
+	.fl-icon-list-item {
+		break-inside: avoid;
+		// The row gap. A margin rather than `row-gap`, because a multi-column container
+		// uses only the column axis of `gap` and ignores the rest.
+		margin-bottom: var(--fl-icon-list-row-gap, 0.75rem);
+
+		display: flex;
+		// Top, not centre. Centre is what put the icon halfway down a two-line item, and
+		// it is the "list items are center aligned" the design does not want. See the
+		// alignment block below for the one case that legitimately centres.
+		align-items: flex-start;
+		gap: var(--fl-icon-list-gap, 1rem);
+	}
+
+	.fl-icon-list-item:last-child {
+		margin-bottom: 0;
+	}
+
+	// The icon.
+	//
+	// Sized by HEIGHT with `width: auto`, so an icon drawn 24x18 keeps its proportions
+	// instead of being squashed into a square box. That is a change from the fixed 2rem
+	// box this sheet used to force, and it is why the item template deliberately leaves
+	// the intrinsic width and height on the <img>: the browser needs the real ratio.
+	//
+	// `em`, so the icon tracks the theme's font-size for the list.
+	// The box has a FIXED WIDTH even though the icon inside it does not, and that is the
+	// part worth keeping. `width: auto` on the icon means a 24x18 glyph is wider than a
+	// 24x24 one at the same height, so without a box the text after each icon starts at a
+	// different x and the list has a ragged left edge - measured at 204px and 211px on the
+	// live set, which is visible. A fixed box makes every text column start in the same
+	// place while still letting each icon keep its own proportions, which is what the
+	// design does with its 28px icon frame.
+	.fl-icon-list-media {
+		flex: 0 0 auto;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: var(--fl-icon-list-box, 1.75em);
+		// Nudges the icon down onto the optical centre of the FIRST line of text. The
+		// icon is shorter than the line box, so top-aligning it alone leaves it sitting
+		// high. One custom property, because the right figure depends on the theme's
+		// line-height and this sheet does not know it.
+		margin-top: var(--fl-icon-list-nudge, 0.15em);
+	}
+
+	.fl-icon-list-icon {
+		display: block;
+		height: var(--fl-icon-list-size, 1.2em);
+		width: auto;
+		max-width: 100%;
+	}
+
+	.fl-icon-list-content {
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
+	// --------------------------------------------------------------------------------
+	// layout_columns_alignment
+	//
+	// `default` DEFERS and has no block here, per the project-wide rule: with no rule the
+	// item inherits the theme's alignment, which is left in every child theme we ship
+	// against, and which is what the design draws.
+	//
+	// `center` is a different layout rather than a different text-align: the icon moves
+	// ABOVE the content, so the item becomes a column. The icon grows to 1.5em there,
+	// because on its own line it is a heading-ish mark rather than a bullet.
+	// --------------------------------------------------------------------------------
+	&.fl-loop-grid-columns-align-center {
+
+		.fl-icon-list-item {
+			flex-direction: column;
+			align-items: center;
+			text-align: center;
+		}
+
+		// No nudge: the icon is on its own line, so there is no first line to sit against.
+		// The box width goes too - it exists to line up text that starts BESIDE the icon,
+		// and centred items have none.
+		.fl-icon-list-media {
+			margin-top: 0;
+			width: auto;
+		}
+
+		.fl-icon-list-icon {
+			height: var(--fl-icon-list-size-center, 1.5em);
+		}
+
+	}
+
+	&.fl-loop-grid-columns-align-right {
+
+		.fl-icon-list-item {
+			flex-direction: row-reverse;
+			text-align: right;
+		}
+
+	}
+
+	// --------------------------------------------------------------------------------
+	// Tablet and mobile
+	//
+	// Column and row gaps only. The column COUNT is not touched: structure.scss already
+	// steps it down from fl-loop-grid-columns-sm-* and -xs-*, and `--fl-columns` carries
+	// that through to `columns` above.
+	// --------------------------------------------------------------------------------
+	@media (max-width: 991.98px) {
+		.fl-icon-list {
+			column-gap: var(--fl-icon-list-column-gap-sm, 2rem);
+		}
+	}
+
+	@media (max-width: 767.98px) {
+		.fl-icon-list {
+			column-gap: var(--fl-icon-list-column-gap-xs, 1.5rem);
+		}
+
+		.fl-icon-list-item {
+			margin-bottom: var(--fl-icon-list-row-gap-xs, 0.5rem);
+		}
+	}
+
+}

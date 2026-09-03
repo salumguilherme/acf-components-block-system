@@ -1,0 +1,372 @@
+//
+// Row: Sticky CTA
+//
+// Reference: Figma "Untitled", nodes 45:7186 (desktop) and 45:7234 (up to 992px).
+//
+// A bar that floats over the page and slides in when its trigger fires. THE SECTION IS THE
+// BAR - `fl-bg-*` paints it, the vertical padding step sizes it, `.fl-container` sets the
+// content width - so everything about the floating lives on `.fl-section` here rather than
+// on anything the template renders.
+//
+// NOTHING FLOATS UNTIL THE SCRIPT SAYS SO. Every rule that positions the section is gated
+// on `fl-sticky-active`, which src/js/rows/sticky_cta.js adds. With JavaScript off, or a
+// trigger that can never fire, or the display count spent, the row is an ordinary in-flow
+// section: full width, its own background, its content laid out exactly as below. That is
+// the deliberate fallback rather than an oversight, and it is also what the row degrades
+// to when a visitor closes it - the brief is explicit that closing must not remove the row.
+//
+// THE PADDING IS NOT SET HERE. `fl-p-sm` already resolves to 32px / 24px / 20px across the
+// three breakpoints, which is exactly what the reference draws, so the editor's
+// vertical_padding field does the work and this sheet does not compete with it.
+//
+// THE TYPE SCALE IS set here, because a bar's heading is not a section heading: the
+// reference is 32px on desktop and 18px below 992, both on a 24px line, where the theme's
+// h2 is far larger. Colour is untouched - `fl-bg-primary` already carries
+// --heading-colour-dark for headings and white for body text, and the two-tone heading is
+// a `.text-tertiary` span written by the editor colour button.
+//
+
+@import "../tokens";
+
+.acbs .fl-type-sticky_cta {
+
+	// 40px between content and buttons when they sit side by side, 16px when stacked, 10px
+	// between an image and the content. All three come off the reference.
+	--fl-sticky-gap: 1rem;
+	--fl-sticky-gap-split: 2.5rem;
+	--fl-sticky-gap-media: 0.625rem;
+
+	// The close tab, drawn 30x24 with a 10px glyph.
+	--fl-sticky-close-w: 30px;
+	--fl-sticky-close-h: 24px;
+	--fl-sticky-close-icon: 10px;
+
+	--fl-sticky-image-max: 180px;
+
+	// Both named in the brief. The curve is a decelerating ease-out - it leaves at speed and
+	// settles slowly - which is what makes the bar read as arriving rather than appearing,
+	// and 400ms is long enough for that settle to be visible.
+	//
+	// The script does not repeat either value: the timer that finishes the slide-out reads
+	// the element's own computed transition-duration, so it follows this token and the
+	// reduced-motion override below without a second copy to keep in step.
+	--fl-sticky-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+	--fl-sticky-duration: 400ms;
+
+	// The rail that carries the close button is positioned against the SECTION, because the
+	// tab has to clear the section's vertical padding. `.fl-container` is `position:
+	// relative` in structure.scss, so it would otherwise be the containing block and the tab
+	// would land inside the padding, on the same colour as itself, invisible.
+	.fl-container {
+		position: static;
+	}
+
+	// ----------------------------------------------------------------------------------
+	// display_on
+	//
+	// The section carries fl-sticky-on-{desktop,tablet,mobile} for each box an editor
+	// CHECKED, so a breakpoint is hidden by the absence of its class. Written as :not()
+	// against the positive rather than as a `fl-sticky-off-*` class because a row saved
+	// before the field existed carries no classes at all, and the honest reading of that
+	// is "not configured", not "show everywhere".
+	// ----------------------------------------------------------------------------------
+
+	@media (min-width: 992px) {
+		&:not(.fl-sticky-on-desktop) { display: none; }
+	}
+
+	@media (min-width: 768px) and (max-width: 991.98px) {
+		&:not(.fl-sticky-on-tablet) { display: none; }
+	}
+
+	@media (max-width: 767.98px) {
+		&:not(.fl-sticky-on-mobile) { display: none; }
+	}
+
+	// ----------------------------------------------------------------------------------
+	// The floating states
+	// ----------------------------------------------------------------------------------
+
+	&.fl-sticky-active {
+		z-index: 30;
+		transition: transform var(--fl-sticky-duration) var(--fl-sticky-ease);
+
+		// THE HIDDEN OFFSET INCLUDES THE CLOSE TAB'S HEIGHT, which is the one measurement
+		// here that is not obvious. The tab hangs outside the section, so translating the
+		// section by exactly 100% leaves the tab standing 24px inside the viewport edge -
+		// a small coloured stub sitting on the screen before anything has been triggered.
+		&.fl-sticky-pos-bottom {
+			position: sticky;
+			bottom: 0;
+			transform: translateY(calc(100% + var(--fl-sticky-close-h)));
+		}
+
+		// Fixed rather than sticky, because `position: sticky; top: 0` only engages once the
+		// page has scrolled PAST the row's own position, so a top bar would be invisible
+		// until the visitor had scrolled to wherever the row happens to sit in the document.
+		&.fl-sticky-pos-top {
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			transform: translateY(calc(-100% - var(--fl-sticky-close-h)));
+		}
+
+		opacity: 0;
+
+		&.fl-sticky-in {
+			transform: translateY(0);
+			opacity: 1;
+		}
+
+		.fl-sticky-cta-close-rail {
+			display: flex;
+		}
+	}
+
+	// A top bar whose display count is spent cannot degrade the way a bottom one does: it is
+	// `position: fixed`, so there is no in-flow position to fall back to, and letting it
+	// render inline would drop a bar into the middle of the page. The script marks it and it
+	// goes away entirely.
+	&.fl-sticky-spent.fl-sticky-pos-top {
+		display: none;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		&.fl-sticky-active {
+			transition-duration: 1ms;
+		}
+	}
+
+	// ----------------------------------------------------------------------------------
+	// The bar
+	// ----------------------------------------------------------------------------------
+
+	.fl-sticky-cta {
+		display: flex;
+		align-items: center;
+		gap: var(--fl-sticky-gap-media);
+	}
+
+	// The body holds the content and the buttons. Side by side by default, which is the
+	// reference for an unaligned or right-aligned bar, with the content taking the slack.
+	.fl-sticky-cta-body {
+		display: flex;
+		flex: 1 1 auto;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--fl-sticky-gap-split);
+		min-width: 0;
+	}
+
+	.fl-sticky-cta-content {
+		min-width: 0;
+
+		// The bar's own type scale. `> :first-child` rather than a heading selector because
+		// the field is a wysiwyg and the editor picks the level - which is the whole reason
+		// section_title was removed from Intro.
+		> * {
+			margin-top: 0;
+			margin-bottom: 0;
+		}
+
+		h1, h2, h3, h4, h5, h6 {
+			font-size: 2rem;
+			line-height: 1.5rem;
+			letter-spacing: -0.02em;
+		}
+	}
+
+	.fl-buttons {
+		flex: 0 0 auto;
+		margin: 0;
+	}
+
+	// Centred: content over buttons, both centred. text-align comes from the section's own
+	// fl-loop-grid-columns-align-center, and .fl-buttons is centred by structure.scss for
+	// the same class, so neither is restated here.
+	&.fl-loop-grid-columns-align-center {
+
+		.fl-sticky-cta {
+			justify-content: center;
+		}
+
+		.fl-sticky-cta-body {
+			flex-flow: column nowrap;
+			align-items: center;
+			gap: var(--fl-sticky-gap);
+		}
+
+	}
+
+	// Right: the buttons swap to the other side of the content. Reversing the flex direction
+	// rather than reordering the markup keeps the close button first in the tab order and
+	// the heading before the button for a screen reader, whichever side they draw on.
+	&.fl-loop-grid-columns-align-right .fl-sticky-cta-body {
+		flex-direction: row-reverse;
+	}
+
+	// ----------------------------------------------------------------------------------
+	// With an image
+	//
+	// The image sits beside the content, and the content becomes a left-aligned column with
+	// its buttons underneath - which is what BOTH references draw, at every alignment. The
+	// two alignment-qualified selectors are spelled out so this wins on specificity rather
+	// than on load order against the centred and right rules above; the bare selector covers
+	// the default alignment. See CLAUDE.md 09 on the card rule: a tie decided by enqueue
+	// order is not a guarantee.
+	// ----------------------------------------------------------------------------------
+
+	.fl-sticky-cta-media {
+		flex: 0 0 auto;
+		line-height: 0;
+	}
+
+	.fl-sticky-cta-image {
+		display: block;
+		width: auto;
+		max-width: 100%;
+		max-height: var(--fl-sticky-image-max);
+	}
+
+	&.fl-loop-grid-columns-align-center .fl-sticky-cta-media ~ .fl-sticky-cta-body,
+	&.fl-loop-grid-columns-align-right .fl-sticky-cta-media ~ .fl-sticky-cta-body,
+	.fl-sticky-cta-media ~ .fl-sticky-cta-body {
+		flex-flow: column nowrap;
+		align-items: flex-start;
+		justify-content: center;
+		gap: var(--fl-sticky-gap);
+		// The brief is explicit that the text stays left-aligned beside an image even when
+		// the row is centred or right-aligned. Set on the body, so it simply overrides the
+		// value inherited from the section's alignment class - no specificity contest.
+		text-align: left;
+	}
+
+	// Centred with an image centres the PAIR, not the text.
+	&.fl-loop-grid-columns-align-center .fl-sticky-cta:has(.fl-sticky-cta-media) {
+		justify-content: center;
+	}
+
+	// Right with an image puts the image on the far side of the content. row-reverse also
+	// packs the pair against the right edge, which is what the alignment asks for.
+	&.fl-loop-grid-columns-align-right .fl-sticky-cta:has(.fl-sticky-cta-media) {
+		flex-direction: row-reverse;
+		justify-content: flex-start;
+	}
+
+	// ----------------------------------------------------------------------------------
+	// The close tab
+	//
+	// Drawn wholly outside the bar: above a bottom bar, below a top one, and on the far
+	// horizontal side in each case - right for bottom, left for top. That diagonal is what
+	// both reference files draw.
+	//
+	// The rail spans the container and only exists to give the tab the container's
+	// horizontal geometry while being positioned against the section. `bottom: 100%` and
+	// `top: 100%` are measured against the section, so the tab clears whatever vertical
+	// padding step the editor chose without this sheet knowing which one that is.
+	// ----------------------------------------------------------------------------------
+
+	.fl-sticky-cta-close-rail {
+		display: none;
+		position: absolute;
+		left: 0;
+		right: 0;
+		// The rail is as wide as the container, so it would otherwise swallow clicks on the
+		// page behind it for its full width and 24px of height.
+		pointer-events: none;
+	}
+
+	&.fl-sticky-pos-bottom .fl-sticky-cta-close-rail {
+		bottom: 100%;
+		justify-content: flex-end;
+	}
+
+	&.fl-sticky-pos-top .fl-sticky-cta-close-rail {
+		top: 100%;
+		justify-content: flex-start;
+	}
+
+	.fl-sticky-cta-close {
+		pointer-events: auto;
+		appearance: none;
+		border: 0;
+		cursor: pointer;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: var(--fl-sticky-close-w);
+		height: var(--fl-sticky-close-h);
+		padding: 0;
+		// Published by every fl-bg-* rule in structure.scss so the tab looks like part of
+		// the bar whatever section_bg an editor picks. The fallback is transparent, which is
+		// what `fl-bg-default` actually is.
+		background-color: var(--fl-section-bg, transparent);
+		color: inherit;
+		// Flush with the container's outer edge, as drawn, by cancelling the gutter the
+		// container puts on its own content. Bootstrap's own property, so it tracks a theme
+		// that retunes the gutter.
+		margin-inline: calc(var(--bs-gutter-x, 1.5rem) * -0.5);
+	}
+
+	&.fl-sticky-pos-bottom .fl-sticky-cta-close {
+		border-radius: 2px 2px 0 0;
+	}
+
+	&.fl-sticky-pos-top .fl-sticky-cta-close {
+		border-radius: 0 0 2px 2px;
+	}
+
+	// currentColor through a mask, the same arrangement as the accordions chevrons: the
+	// glyph follows the bar's text colour, so it is white on a brand ground and dark on a
+	// pale one with no second rule. The file's own `fill` is irrelevant inside a mask.
+	.fl-sticky-cta-close-icon {
+		display: block;
+		width: var(--fl-sticky-close-icon);
+		height: var(--fl-sticky-close-icon);
+		background-color: currentColor;
+		-webkit-mask: url("../../svg/close.svg") no-repeat center / contain;
+		mask: url("../../svg/close.svg") no-repeat center / contain;
+	}
+
+	// ----------------------------------------------------------------------------------
+	// Below desktop
+	//
+	// One block for tablet and mobile, which is how the reference is drawn - a single
+	// "Mobile (up to 992px)" frame - and how the max-width cascade here works. Only the
+	// image cap steps twice, so it gets the extra breakpoint of its own below.
+	// ----------------------------------------------------------------------------------
+
+	@media (max-width: 991.98px) {
+
+		--fl-sticky-gap: 0.75rem;
+		--fl-sticky-gap-split: 1.25rem;
+		--fl-sticky-gap-media: 0.875rem;
+		--fl-sticky-image-max: 115px;
+
+		.fl-sticky-cta-content h1,
+		.fl-sticky-cta-content h2,
+		.fl-sticky-cta-content h3,
+		.fl-sticky-cta-content h4,
+		.fl-sticky-cta-content h5,
+		.fl-sticky-cta-content h6 {
+			font-size: 1.125rem;
+		}
+
+		// The centred bar's button goes full width below desktop, which the reference draws
+		// and which stops a long label wrapping into a two-line button on a narrow screen.
+		&.fl-loop-grid-columns-align-center .fl-sticky-cta-body .fl-buttons {
+			width: 100%;
+
+			> .btn {
+				width: 100%;
+			}
+		}
+
+	}
+
+	@media (max-width: 767.98px) {
+		--fl-sticky-image-max: 75px;
+	}
+
+}

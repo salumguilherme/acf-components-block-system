@@ -513,12 +513,41 @@
 			// Full Width Image
 			if(get_row_layout() == 'full_width_image') {
 				$classes[] = 'fl-loop-grid-columns-align-center';
-				
+
 				if(!empty(get_sub_field('overlay'))) {
 					$classes[] = 'fl-full-width-image-overlay';
 				}
 			}
-			
+
+			// Sticky CTA.
+			//
+			// THESE HAVE TO BE EMITTED HERE AND NOT IN THE TEMPLATE, because they describe
+			// the SECTION and the section is the element that floats: `position: sticky` for
+			// a bottom bar, `position: fixed` for a top one. A row template only ever renders
+			// inside `.fl-container`, so it cannot reach the element it needs to position.
+			// The row's trigger configuration is the opposite case and does live in the
+			// template, as data attributes on `.fl-sticky-cta` - see that file.
+			if(get_row_layout() == 'sticky_cta') {
+
+				$position = get_sub_field('vertical_position');
+				$classes[] = 'fl-sticky-pos-'.($position ? $position : 'bottom');
+
+				// display_on is a checkbox list, so the class says which breakpoints the row
+				// IS wanted at and the stylesheet hides it at the others. Emitting the
+				// positive is what makes an unchecked box mean something: a missing class is
+				// a hidden row, where a `fl-sticky-off-tablet` would have to be emitted
+				// correctly to have any effect, and a row saved before the field existed
+				// would silently show everywhere.
+				$display_on = get_sub_field('display_on');
+
+				foreach((array) $display_on as $breakpoint) {
+					if(in_array($breakpoint, ['desktop', 'tablet', 'mobile'], true)) {
+						$classes[] = 'fl-sticky-on-'.$breakpoint;
+					}
+				}
+
+			}
+
 			return $classes;
 			
 		}

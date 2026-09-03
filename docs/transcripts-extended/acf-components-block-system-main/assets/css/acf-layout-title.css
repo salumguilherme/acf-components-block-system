@@ -1,0 +1,124 @@
+/**
+ * Inline layout rename for page_sections.
+ *
+ * HAND-WRITTEN, not part of the webpack pipeline - assets/css/ holds generated files
+ * except this one and mce-text-colour.css, both of which are admin-only and edited here.
+ *
+ * Reference: Figma "Untitled", node 38:1166 - two 19px states, default and hover.
+ *
+ * THE ARTWORK IS A MASK. The design's two states differ only in colour: a grey border
+ * with a near-black pencil, and WordPress admin blue on a pale blue ground. Shipping two
+ * SVGs to change two colours means two files to keep in step, so only the pencil ships
+ * and the square, its border and every state colour are declared here. Same technique as
+ * the editor colour button's toolbar icon.
+ *
+ * Scoped by `.acbs-fc`, a class the script puts on the page_sections field wrapper, so
+ * none of this can reach another flexible content field on the same screen.
+ */
+
+.acbs-layout-rename {
+	/* Hidden rather than absent: it occupies its space at all times, so revealing it on
+	   hover does not shift the title beside it. */
+	visibility: hidden;
+	opacity: 0;
+
+	flex: 0 0 19px;
+	width: 19px;
+	height: 19px;
+	margin-inline-start: 6px;
+	padding: 0;
+	vertical-align: middle;
+
+	border: 1px solid #ccd0d4;
+	border-radius: 2px;
+	background-color: transparent;
+	cursor: pointer;
+
+	transition: opacity .12s ease, border-color .12s ease, background-color .12s ease;
+}
+
+.acbs-layout-rename::before {
+	content: "";
+	display: block;
+	width: 100%;
+	height: 100%;
+
+	/* currentColor through a mask, so the pencil follows the button's own colour and each
+	   state rule below needs one declaration rather than a second icon file.
+
+	   The url is relative to THIS file at assets/css/, so it resolves to assets/images/
+	   without PHP having to hand a URL in. */
+	background-color: currentColor;
+	-webkit-mask: url("../images/acbs-layout-edit.svg") no-repeat center / 19px 19px;
+	mask: url("../images/acbs-layout-edit.svg") no-repeat center / 19px 19px;
+}
+
+.acbs-layout-rename {
+	color: #2f2f2f;
+}
+
+/* Revealed on hover of the whole handle, and on keyboard focus - without the focus half
+   the control is unreachable without a mouse, which for a rename is not acceptable.
+
+   Collapsed rows included, deliberately. This started out gated on `:not(.-collapsed)`,
+   which had it backwards: a folded-up row is exactly when an editor is scanning a long
+   page trying to tell one Accordions from another, so it is the case that most needs
+   renaming. Nothing about a collapsed row makes the edit unsafe either - ACF only
+   refreshes a title when a row is BEING collapsed, so a rename typed into an
+   already-folded row has nothing racing it. */
+.acbs-fc .acf-fc-layout-actions-wrap:hover .acbs-layout-rename,
+.acbs-fc .acbs-layout-rename:focus-visible {
+	visibility: visible;
+	opacity: 1;
+}
+
+.acbs-fc .acbs-layout-rename:hover,
+.acbs-fc .acbs-layout-rename:focus-visible {
+	color: #3858e9;
+	border-color: #3858e9;
+	background-color: #ebefff;
+}
+
+.acbs-fc .acbs-layout-rename:focus-visible {
+	outline: 2px solid #3858e9;
+	outline-offset: 1px;
+}
+
+/* While renaming, the input stands in for the title. Swapped in the flow rather than
+   positioned over it: the handle is a flex row whose widths come from its contents, and
+   an absolutely positioned overlay would have to re-measure them on every resize to stay
+   aligned. */
+.acbs-fc .layout.acbs-is-renaming .acf-fc-layout-title,
+.acbs-fc .layout.acbs-is-renaming .acf-fc-layout-original-title,
+.acbs-fc .layout.acbs-is-renaming .acbs-layout-rename {
+	display: none;
+}
+
+.acbs-layout-rename-input {
+	flex: 1 1 auto;
+	min-width: 0;
+	max-width: 32rem;
+	margin: 0;
+	padding: 2px 6px;
+
+	font: inherit;
+	line-height: 1.4;
+
+	border: 1px solid #3858e9;
+	border-radius: 2px;
+	background: #fff;
+	box-shadow: none;
+}
+
+.acbs-layout-rename-input:focus {
+	outline: 2px solid #3858e9;
+	outline-offset: 1px;
+	border-color: #3858e9;
+	box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.acbs-layout-rename {
+		transition: none;
+	}
+}

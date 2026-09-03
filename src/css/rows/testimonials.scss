@@ -72,3 +72,114 @@
 		text-align: left;
 	}
 }
+
+// --------------------------------------------------------------------------------------
+// The tablet/mobile carousel
+//
+// With Content Box set to Card, templates/rows/testimonials.php wraps the list in
+// `.fl-testimonials-slider` and src/js/rows/testimonials.js makes it a Swiper below 992px.
+// Everything here is gated on BOTH the media query and `.swiper-initialized`, which Swiper
+// adds on init and removes on destroy, so:
+//
+//   - desktop keeps the CSS grid, because the media query does not apply;
+//   - JavaScript off keeps the CSS grid at every width, because the class never lands;
+//   - and nothing here has to out-specify the shared grid rules by accident. It does out-
+//     specify them - `.acbs .fl-testimonials-slider.swiper-initialized .fl-testimonials`
+//     is four classes against `.acbs .fl-grid`'s two - so the carousel wins on specificity
+//     rather than on load order. See CLAUDE.md 09, the card/flex-flow entry: a rule that
+//     must not lose does not rely on the enqueue order to win.
+//
+// WHY SWIPER'S OWN STYLESHEET IS NOT IMPORTED. The row points Swiper at `fl-testimonials`
+// and `fl-testimonial` through wrapperClass/slideClass rather than adding `swiper-wrapper`
+// and `swiper-slide` to the markup - see the script for why - so swiper.css would have
+// nothing to match. What follows is the layout half of it, transcribed from
+// node_modules/swiper/swiper.css at SWIPER 14.2.0: `.swiper` (lines 26-36),
+// `.swiper-wrapper` (39-48) and `.swiper-slide` (62-69), minus the vertical, RTL, 3D,
+// css-mode and auto-height variants this row does not use. A Swiper major bump means
+// re-diffing those three rules; there is nothing else of theirs in play.
+//
+// It also keeps a second copy of swiper.css off a page that has an image_gallery too,
+// which does import it - the per-row pipeline gives each row its own bundle, so shared
+// vendor CSS is duplicated rather than shared.
+// --------------------------------------------------------------------------------------
+
+@media (max-width: 991.98px) {
+
+	.acbs .fl-testimonials-slider.swiper-initialized {
+
+		// .swiper. `overflow: hidden` is what makes the peek a peek: the next card is
+		// clipped at the container's edge. Deliberately NOT image_gallery's
+		// `overflow: visible` - that row runs its strip out past the container to the
+		// window edge on purpose, and this one sits inside its section.
+		margin-left: auto;
+		margin-right: auto;
+		position: relative;
+		overflow: hidden;
+		list-style: none;
+		padding: 0;
+		z-index: 1;
+		display: block;
+
+		// .swiper-wrapper.
+		//
+		// `gap: 0` is the one line here that is ours rather than Swiper's, and it is
+		// load-bearing: the list is still `.fl-grid`, so it still carries
+		// `gap: var(--fl-grid-gap)`, and Swiper adds its own spacing as a margin on each
+		// slide. Left alone the two stack and every gap comes out double. The script reads
+		// the computed `column-gap` off this element BEFORE init, which is why the value
+		// is zeroed here and not in the template.
+		// `align-items: stretch` is stated rather than left to the initial `normal`, which
+		// already behaves as stretch on a flex container. It is here so that a theme
+		// setting `align-items` on `.fl-grid` - a plausible thing to do to a grid - cannot
+		// quietly take the equal heights away, since equal cards are the whole reason the
+		// slide below is `height: auto`.
+		.fl-testimonials {
+			position: relative;
+			width: 100%;
+			height: 100%;
+			z-index: 1;
+			display: flex;
+			align-items: stretch;
+			gap: 0;
+			transition-property: transform;
+			transition-timing-function: var(--swiper-wrapper-transition-timing-function, initial);
+			box-sizing: content-box;
+			transform: translate3d(0, 0, 0);
+		}
+
+		// .swiper-slide, with ONE DELIBERATE DEPARTURE from swiper.css: `height: auto`
+		// where it ships `height: 100%`.
+		//
+		// THAT ONE WORD IS WHAT MAKES THE CARDS EQUAL HEIGHT. A flex item only stretches to
+		// the tallest of its siblings while its cross size is `auto`; give it any other
+		// height and `align-items: stretch` no longer applies to it. Swiper's `100%` is a
+		// percentage of a wrapper whose own height is indefinite, so it resolves to the
+		// content height and each card ends up its own height - measured 166 / 367 / 223 on
+		// three quotes of different lengths. With `auto`, all three come out 367.
+		//
+		// It also has to be `auto` rather than a JS pass that measures the tallest card and
+		// writes a pixel height onto the others. Flexbox re-equalises on its own whenever
+		// anything changes the content height - a web font finishing, an image decoding, the
+		// device rotating - where a measured height is only correct until the next one of
+		// those. And a written height would be an inline style, which the destroy in
+		// deactivate() strips wholesale on the way back to desktop.
+		//
+		// The `figure` rule at the top of this sheet depends on this too: its `height: 100%`
+		// is what lets `figcaption`'s auto margin pin the attribution to the bottom, and a
+		// percentage needs a definite parent height. A stretched flex item has one; a
+		// content-height one does not. Verified - the three attributions land on one line.
+		//
+		// The inline `width` Swiper writes per slide overrides the 100% here; that is kept
+		// because it is what a slide falls back to between the class landing and Swiper's
+		// first updateSlides().
+		.fl-testimonial {
+			flex-shrink: 0;
+			width: 100%;
+			height: auto;
+			position: relative;
+			transition-property: transform;
+		}
+
+	}
+
+}

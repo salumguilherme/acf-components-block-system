@@ -1,0 +1,49 @@
+//
+// Row: Full Width Image
+//
+// Enqueued as `acbs-row-full_width_image`, only on pages with such a row.
+// Markup: templates/rows/full_width_image.php
+//
+
+.acbs .fl-type-full_width_image {
+
+	&:first-child {
+
+		padding-top: calc(var(--fl-space-y-lg) + 60px);
+	}
+
+	&.fl-full-width-image-overlay {
+		position: relative;
+
+		--heading-colour: var(--white);
+		--text-colour: var(--white);
+		color: var(--text-colour);
+
+		.container {
+			position: relative;
+			z-index: 2;
+		}
+
+		// A PSEUDO-ELEMENT, not a <div>. The gradient arrives as --fl-overlay-bg, an inline
+		// custom property on the section, emitted by Module::layout_wrapper_style().
+		//
+		// It was briefly a real element rendered from an action in templates/wrapper.php.
+		// That worked and was fragile for a reason that has nothing to do with CSS: a theme
+		// REPLACES the wrapper template, so a theme carrying its own copy fired no such
+		// action and the overlay simply vanished. Nothing here can be removed by a template.
+		//
+		// The fallback in the var() is the design's own gradient, so a section that somehow
+		// carries the class without the property still darkens rather than showing the image
+		// at full strength under white text.
+		&:after {
+			content: '';
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			left: 0;
+			top: 0;
+			z-index: 1;
+			background: var(--fl-overlay-bg, linear-gradient(0deg, rgba(0, 0, 0, 0) 11.93%, rgba(0, 0, 0, 0.7) 100%));
+		}
+	}
+}

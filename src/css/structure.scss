@@ -115,6 +115,7 @@ html {
 			$value: $size * .625;
 			--fl-section-space-y-#{$label}: clamp(1rem, #{$value}, #{$value});
 		}
+		--fl-content-image-stack-height: 340px;
 	}
 
 	@media (min-width: 992px) {
@@ -201,12 +202,20 @@ html {
 // --------------------------------------------------------------------------------------
 
 .acbs {
+	// Every ground also publishes itself as --fl-section-bg, alongside painting itself.
+	// Row chrome that has to match the ground it sits on - the Sticky CTA's close tab hangs
+	// outside the section and has to look like part of it - cannot read a background-color
+	// back out of the cascade, and `background-color: inherit` gives it whatever its own
+	// parent painted, which is nothing. This is the same arrangement as --fl-card-box-bg.
+	//
+	// `fl-bg-default` sets neither, so anything reading the property must carry its own
+	// fallback and get transparency, which is what a default section actually is.
 	// Pale grounds keep the body text colour.
-	.fl-bg-white    { background-color: var(--white, #{$white});       color: var(--text-colour, #{$text-colour}); }
-	.fl-bg-light    { background-color: var(--light, #{$light});       color: var(--text-colour, #{$text-colour}); }
-	.fl-bg-lighter  { background-color: var(--lighter, #{$lighter});   color: var(--text-colour, #{$text-colour}); }
-	.fl-bg-accent-1 { background-color: var(--accent-1, #{$accent-1}); color: var(--text-colour, #{$text-colour}); }
-	.fl-bg-accent-2 { background-color: var(--accent-2, #{$accent-2}); color: var(--text-colour, #{$text-colour}); }
+	.fl-bg-white    { --fl-section-bg: var(--white, #{$white}); background-color: var(--fl-section-bg);       color: var(--text-colour, #{$text-colour}); }
+	.fl-bg-light    { --fl-section-bg: var(--light, #{$light}); background-color: var(--fl-section-bg);       color: var(--text-colour, #{$text-colour}); }
+	.fl-bg-lighter  { --fl-section-bg: var(--lighter, #{$lighter}); background-color: var(--fl-section-bg);   color: var(--text-colour, #{$text-colour}); }
+	.fl-bg-accent-1 { --fl-section-bg: var(--accent-1, #{$accent-1}); background-color: var(--fl-section-bg); color: var(--text-colour, #{$text-colour}); }
+	.fl-bg-accent-2 { --fl-section-bg: var(--accent-2, #{$accent-2}); background-color: var(--fl-section-bg); color: var(--text-colour, #{$text-colour}); }
 
 	// Brand grounds. The foreground comes from the two SEMANTIC text tokens rather than
 	// each brand's own --brand-*-text, so there is one pair of values to retune instead of
@@ -214,15 +223,15 @@ html {
 	//
 	// --text-colour-dark reads "text for a dark ground", not "a dark text colour": it is
 	// white. Primary, secondary, dark and darker are all dark enough to take it.
-	.fl-bg-dark      { background-color: var(--dark, #{$dark});                 color: var(--text-colour-dark, #{$text-colour-dark}); }
-	.fl-bg-darker    { background-color: var(--darker, #{$darker});             color: var(--text-colour-dark, #{$text-colour-dark}); }
-	.fl-bg-primary   { background-color: var(--primary, #{$brand-primary});     color: var(--text-colour-dark, #{$text-colour-dark}); }
-	.fl-bg-secondary { background-color: var(--secondary, #{$brand-secondary}); color: var(--text-colour-dark, #{$text-colour-dark}); }
+	.fl-bg-dark      { --fl-section-bg: var(--dark, #{$dark}); background-color: var(--fl-section-bg);                 color: var(--text-colour-dark, #{$text-colour-dark}); }
+	.fl-bg-darker    { --fl-section-bg: var(--darker, #{$darker}); background-color: var(--fl-section-bg);             color: var(--text-colour-dark, #{$text-colour-dark}); }
+	.fl-bg-primary   { --fl-section-bg: var(--primary, #{$brand-primary}); background-color: var(--fl-section-bg);     color: var(--text-colour-dark, #{$text-colour-dark}); }
+	.fl-bg-secondary { --fl-section-bg: var(--secondary, #{$brand-secondary}); background-color: var(--fl-section-bg); color: var(--text-colour-dark, #{$text-colour-dark}); }
 
 	// Tertiary is the exception: a light yellow, so it is a PALE ground and takes the same
 	// dark body colour as white and lighter do. It is deliberately absent from the inverted
 	// block below, which is what leaves its headings on --heading-colour.
-	.fl-bg-tertiary  { background-color: var(--tertiary, #{$brand-tertiary});   color: var(--text-colour, #{$text-colour}); }
+	.fl-bg-tertiary  { --fl-section-bg: var(--tertiary, #{$brand-tertiary}); background-color: var(--fl-section-bg);   color: var(--text-colour, #{$text-colour}); }
 
 	// Standard headings colours as per tokens
 	h1, h2, h3, h4, h5, h6 { color: var(--heading-colour, #{$heading-colour}); }

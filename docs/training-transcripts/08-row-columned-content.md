@@ -7,29 +7,23 @@ four columns each set up as an independent accordion, one with a custom uploaded
 
 ---
 
-Columned Content is one of our most flexible layouts, a set of columns, and each one can carry an
-icon, some text, and buttons.
+Columned Content is one of our most flexible layouts, a set of columns, each one can carry an
+icon, text, and buttons.
 
 [ON SCREEN: open Training: Columned Content]
 
-In the Content tab, add one row to the Content Columns repeater per column you want. Each column
-gets an optional Icon, a Content box, a Content Alignment, and its own Buttons repeater, so
-columns don't have to match each other.
+Add one row per column. Each gets an optional Icon, Content, alignment, and its own Buttons.
 
-Now the feature that makes this layout stand out: Enable Accordion, a toggle at the top of each
-column. Switch it on and two more fields appear, Status on Page Load, open or closed, and
-Accordion Title, and that column's content becomes a toggle on the front end rather than
-always-visible text. On the training example, all four columns have this switched on, so what
-you're looking at is four independent toggles, click one open and the others stay exactly as they
-are, that's different to the Accordions layout we covered earlier, where opening one closes the
-rest. Here, each column does its own thing.
+The standout feature: Enable Accordion, per column. Switch it on and that column's content
+becomes its own toggle. On the training page all four columns do this independently, opening one
+doesn't close the others, that's different to the Accordions layout, which is a group.
 
-Have a look at the third column, its button uses a custom uploaded icon rather than one of the
-bundled ones, that's the Icon SVG field from the Buttons video in action.
+[ON SCREEN: open the third column]
 
-Grid & Display gets the full set here: columns for desktop, tablet, mobile, alignment, and
-Content Box. On the training page it's two columns on desktop, dropping to one on tablet and
-mobile, inside a white card.
+The third column's button uses a custom uploaded icon, that's the Icon SVG field from the Buttons
+video.
 
-Icon, accordion, buttons, all optional, all per column, that's what makes this layout worth
-reaching for on almost any page.
+Grid & Display gets the full set here, on this example it's two columns dropping to one, inside a
+white card.
+
+Icon, accordion, buttons, all optional, all per column.

@@ -6,25 +6,15 @@ alignment, and its full Grid & Display tab. **Example page:** Training: Testimon
 
 ---
 
-Testimonials does exactly what it sounds like, a set of quotes from residents, clients, or
-customers, each with a name and their role or context underneath.
+Testimonials, a set of quotes from residents or clients, each with a name and role underneath.
 
 [ON SCREEN: open Training: Testimonials]
 
-In Content, the Testimonials repeater, one row per quote. Testimonial Content is the quote itself
-in a wysiwyg box, Author is their name, and Author Position, Role, Context is a flexible field
-for however you want to credit them, a job title, or in our case here, something like "Golden
-Rise resident." Content Alignment sets how each quote lines up in its own card, Left, Center,
-Right, or Inherit, which follows whatever the row's overall Grid Alignment is set to.
+One repeater: the quote itself, Author, and their role, then alignment per quote.
 
-On the training page there are three testimonials, from Susan, Peter and David, each a resident
-quote.
+On the training page there are three, from Susan, Peter and David.
 
-Grid & Display gets the full set, columns for desktop, tablet, mobile, alignment, and Content
-Box. On the training example it's three columns on desktop, dropping to one on mobile, inside a
-white card, which is the combination you'll use most often for this layout, testimonials tend to
-read best boxed individually rather than sitting loose on the page.
+Grid & Display gets the full set, here it's three columns dropping to one, inside a white card,
+the combination you'll use most for this layout.
 
-Keep the quotes short if you can, this layout is built for a punchy line or two, not a long
-story, if someone's given you a longer quote, consider trimming it for the page and keeping the
-full version somewhere else.
+Keep the quotes short, this is built for a punchy line or two, trim a longer one if you need to.

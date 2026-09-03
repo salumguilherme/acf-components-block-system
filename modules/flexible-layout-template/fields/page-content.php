@@ -855,6 +855,201 @@
 						],
 					],
 				],
+				'layout_fd3c71fe85d77' => [
+					'key' => 'layout_fd3c71fe85d77',
+					'label' => 'Sticky CTA',
+					'name' => 'sticky_cta',
+					'display' => 'row',
+					'min' => '',
+					'max' => '',
+					'sub_fields' => [
+						[
+							'key' => 'field_987209770d03a',
+							'label' => 'Content',
+							'name' => 'written_content',
+							'type' => 'wysiwyg',
+							'required' => 1,
+							'default_value' => '',
+							'tabs' => 'all',
+							'toolbar' => 'basic',
+							'media_upload' => 0,
+							'delay' => 1,
+						],
+						[
+							'key' => 'field_eabff27f524f6',
+							'label' => 'Image',
+							'name' => 'image',
+							'type' => 'image',
+							'required' => 0,
+							'return_format' => 'array',
+							'library' => 'all',
+							'min_width' => '',
+							'min_height' => '',
+							'min_size' => '',
+							'max_width' => '',
+							'max_height' => '',
+							'max_size' => '',
+							'mime_types' => '',
+							'preview_size' => 'thumbnail',
+						],
+						[
+							'key' => 'field_0ea66c887b694',
+							'label' => 'Buttons',
+							'name' => 'buttons',
+							'type' => 'clone',
+							'clone' => [
+								'group_b99bcf0767134',
+							],
+							'display' => 'seamless',
+							'layout' => 'block',
+							'prefix_label' => 0,
+							'prefix_name' => 0,
+						],
+						[
+							'key' => 'field_946a5c02e6f74',
+							'label' => 'Display on:',
+							'name' => 'display_on',
+							'type' => 'checkbox',
+							'required' => 1,
+							'choices' => [
+								'desktop' => 'Desktop',
+								'tablet' => 'Tablet',
+								'mobile' => 'Mobile',
+							],
+							'default_value' => [
+								'desktop',
+								'tablet',
+								'mobile',
+							],
+							'return_format' => 'value',
+							'allow_custom' => 0,
+							'layout' => 'vertical',
+							'toggle' => 0,
+							'save_custom' => 0,
+							'custom_choice_button_text' => 'Add new choice',
+						],
+						[
+							'key' => 'field_25c54274b14aa',
+							'label' => 'Sticky on',
+							'name' => 'vertical_position',
+							'type' => 'button_group',
+							'required' => 1,
+							'choices' => [
+								'top' => 'Top',
+								'bottom' => 'Bottom',
+							],
+							'default_value' => 'bottom',
+							'return_format' => 'value',
+							'allow_null' => 0,
+							'layout' => 'horizontal',
+						],
+						[
+							'key' => 'field_7147cc895d9be',
+							'label' => 'Show Call to action on',
+							'name' => 'show_cta_on',
+							'type' => 'select',
+							'required' => 1,
+							'choices' => [
+								'load' => 'On Page load',
+								'scroll_y' => 'Once user scrolls X pixels',
+								'on_el' => 'When element is visible',
+								'after_s' => 'After X seconds',
+							],
+							'default_value' => 'load',
+							'return_format' => 'value',
+							'multiple' => 0,
+							'allow_null' => 0,
+							'ui' => 0,
+							'ajax' => 0,
+							'placeholder' => '',
+							'create_options' => 0,
+							'save_options' => 0,
+						],
+						[
+							'key' => 'field_2d522fe56ca8a',
+							'label' => 'Value of X',
+							'name' => 'x_value',
+							'type' => 'text',
+							'instructions' => 'For Element set the element CSS selector. For scroll set the value in pixels or else in seconds.',
+							'required' => 1,
+							// THE RULES TARGET show_cta_on BY ITS KEY, NOT BY ITS NAME. ACF resolves a
+							// conditional-logic rule by field key alone; a rule naming the field is not
+							// ignored, it never matches, and the dependent field is hidden permanently with
+							// no error anywhere. A hand-written ACF export gives you the name, because that
+							// is what the exported JSON for a sub field carries, so swapping it for the key
+							// is part of bringing one in.
+							//
+							// Three OR groups rather than one `!=` against `load`, because these three modes
+							// are the ones that need a value and a fourth mode added later should have to opt
+							// in rather than inherit the field by default. `==` on a select is a registered
+							// condition type, which the operator has to be: an unregistered one falls back to
+							// acf.Condition, whose match() returns false unconditionally.
+							'conditional_logic' => [
+								[
+									[
+										'field' => 'field_7147cc895d9be',
+										'operator' => '==',
+										'value' => 'scroll_y',
+									],
+								],
+								[
+									[
+										'field' => 'field_7147cc895d9be',
+										'operator' => '==',
+										'value' => 'on_el',
+									],
+								],
+								[
+									[
+										'field' => 'field_7147cc895d9be',
+										'operator' => '==',
+										'value' => 'after_s',
+									],
+								],
+							],
+							'default_value' => '',
+							'maxlength' => '',
+							'placeholder' => '',
+							'prepend' => '',
+							'append' => '',
+						],
+						[
+							'key' => 'field_81d9dfa7a105b',
+							'label' => 'Display count',
+							'name' => 'display_count',
+							'type' => 'number',
+							'instructions' => 'Select how often this call to action is shows to user. Setting 0 will always show while setting 1 will show CTA only once per (session/day). User will not see CTA until they close/open their browser or time has passed. Use it in conjunction with Display period',
+							'required' => 1,
+							'default_value' => 0,
+							'min' => 0,
+							'max' => 100,
+							'placeholder' => '',
+							'step' => 1,
+							'prepend' => '',
+							'append' => '',
+						],
+						[
+							'key' => 'field_b163790366aca',
+							'label' => 'Display period',
+							'name' => 'display_period',
+							'type' => 'select',
+							'required' => 1,
+							'choices' => [
+								'per_day' => 'Per day',
+								'per_session' => 'Per session',
+							],
+							'default_value' => 'per_session',
+							'return_format' => 'value',
+							'multiple' => 0,
+							'allow_null' => 0,
+							'ui' => 0,
+							'ajax' => 0,
+							'placeholder' => '',
+							'create_options' => 0,
+							'save_options' => 0,
+						],
+					],
+				],
 			];
 
 		}

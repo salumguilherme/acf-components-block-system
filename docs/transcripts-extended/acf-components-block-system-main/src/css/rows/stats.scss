@@ -1,0 +1,131 @@
+//
+// Row: Stats
+//
+// Enqueued only on a page that actually has a stats row - Rows\Assets registers this as
+// `acbs-row-stats` and enqueues it in the footer for the layouts that rendered. Loads after
+// structure.scss, so it can override the shared grid and alignment rules.
+//
+// Markup: templates/rows/stats.php and rows/stats/item.php.
+//
+// Reference: Figma "Golden Rise Bendigo Design System", node 9044:16069.
+//
+// Type is the theme's, not ours. The only font-size here is the stat's, which the design
+// pitches far outside any heading the theme would supply on its own. Family, weight and
+// letter-spacing are all left to the theme sheet and the scoped Bootstrap.
+//
+
+@import "../tokens";
+
+.acbs .fl-type-stats {
+
+	// Design: 32px between columns. Structure's default is 1.5rem.
+	.fl-stats {
+		--fl-grid-gap: 2rem;
+	}
+
+	// The item is a flex column so the three blocks can carry real gaps rather than a
+	// stack of margins that collapse differently depending on which fields the editor
+	// filled in. Design: 14px between the stat and the subtitle/content pair.
+	.fl-stat {
+		display: flex;
+		flex-direction: column;
+		gap: var(--fl-stat-gap, 0.875rem);
+	}
+
+	// 3.6rem is the design's 64px less the 10% asked for - 57.6px. As a custom property
+	// because a four-column row and a two-column row want different figures, and this is
+	// the one value in the layout anybody will actually want to retune.
+	//
+	// The colour is the design's: the stat is brand primary where the theme's h4 would be
+	// the heading colour.
+	//
+	// TWO THINGS ABOUT THIS SELECTOR. It carries a redundant-looking `.fl-stat` because
+	// structure.scss has `.fl-card-box .fl-card h4 { color: inherit }` at (0,3,1), which
+	// beats a plain `.fl-type-stats .fl-stat-value` at (0,3,0) - so with Content Box on,
+	// the stat silently lost its colour and came out body grey. The extra class makes this
+	// (0,4,0) and settles it on specificity rather than on which sheet happens to load
+	// second.
+	//
+	.fl-stat .fl-stat-value {
+		margin: 0;
+		font-size: var(--fl-stat-size, 3.6rem);
+		line-height: 1.1;
+		color: var(--fl-stat-colour, var(--primary, #{$brand-primary}));
+	}
+
+	// On a DARK card the stat gives up its brand colour, because brand green on a brand
+	// green card is invisible. Listed explicitly rather than keyed off --fl-card-colour:
+	// tertiary sets that variable too (it is a pale card needing dark text), so a
+	// var(--fl-card-colour, ...) fallback made the stat grey on tertiary where every other
+	// pale card leaves it green.
+	//
+	// The list matches the two in structure.scss - dark grounds only, tertiary excluded.
+	&.fl-card-bg-primary,
+	&.fl-card-bg-secondary,
+	&.fl-card-bg-dark,
+	&.fl-card-bg-darker {
+		.fl-stat .fl-stat-value {
+			color: var(--fl-stat-colour, var(--fl-card-colour, inherit));
+		}
+	}
+
+	// Design: 12px between subtitle and content, which is a different gap from the 14px
+	// above it - hence the second flex container rather than a margin on one child.
+	.fl-stat-body {
+		display: flex;
+		flex-direction: column;
+		gap: var(--fl-stat-body-gap, 0.75rem);
+	}
+
+	.fl-stat-subtitle {
+		margin: 0;
+	}
+
+	.fl-stat-content > :last-child {
+		margin-bottom: 0;
+	}
+
+	// column_alignment, per item.
+	//
+	// Only the buttons need a rule. The item is a flex COLUMN, so its children stretch to
+	// full width on the cross axis, and structure.scss's `text-align` on .fl-align-* then
+	// positions the text inside them normally. `.fl-buttons` is the exception: it is
+	// itself a flex row, so its children answer to justify-content, not text-align.
+	//
+	// There is deliberately no `.fl-align-default` block. Default DEFERS (see the note in
+	// structure.scss): with no rule here, a default item inside a centred row picks up
+	// structure's row-level `.fl-loop-grid-columns-align-center .fl-buttons`, and inside an
+	// unaligned row falls back to flex-start. Adding `justify-content: flex-start` for
+	// default would break exactly that.
+	//
+	// Written at .fl-type-stats depth (0,4,0) so an explicit per-item value beats
+	// structure's row-level rule (0,3,0). Per item is the more specific intent and should
+	// win; at equal specificity it would come down to sheet order, and this sheet loading
+	// second is a fact about the enqueue rather than something the CSS should rely on.
+	.fl-align-center .fl-buttons { justify-content: center; }
+	.fl-align-right  .fl-buttons { justify-content: flex-end; }
+
+	// A stat sitting alone in its item has nothing below it to space against.
+	.fl-stat > :last-child {
+		margin-bottom: 0;
+	}
+
+	// Buttons sit on the bottom edge of the item, not directly under the content.
+	//
+	// The grid stretches every item to the tallest in its row, so with buttons on, four
+	// items with four different content lengths put their buttons at four different
+	// heights - a ragged line across the row. `margin-top: auto` in a flex column absorbs
+	// the slack above them instead.
+	//
+	// This overrides structure.scss's `margin-top: var(--fl-buttons-space, 1.5rem)`, which
+	// is the right default for a block layout and the wrong one here. The 14px flex gap on
+	// .fl-stat still applies, so a full-height item keeps a real gap rather than butting
+	// the buttons against the text.
+	//
+	// The design has no buttons on this row, so this is a judgement call rather than
+	// something measured off it. One line to drop if a ragged edge is wanted.
+	.fl-stat .fl-buttons {
+		margin-top: auto;
+	}
+
+}

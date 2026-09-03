@@ -1,0 +1,20 @@
+{
+  "name": "design-system",
+  "title": "design-system",
+  "description": "",
+  "author": "FIVE Creative",
+  "version": "3.0",
+  "elementor_version": "4.2.2",
+  "created": "2026-08-12 21:56:10",
+  "thumbnail": false,
+  "site": "https://basicstartersite.kinsta.cloud",
+  "site-settings": {
+	"theme": false,
+	"classes": true,
+	"variables": true,
+	"classesCount": 22,
+	"variablesCount": 136
+  },
+  "custom-fonts": {},
+  "custom-code": {}
+}

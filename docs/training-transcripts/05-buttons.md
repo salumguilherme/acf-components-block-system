@@ -7,31 +7,26 @@ two contrasting buttons).
 
 ---
 
-Buttons show up on quite a few layouts, Call to Action, Content and Image, Full Width Image,
-Columned Content, and Stats, and they all use exactly the same set of fields, so once you know
-this one component, you know it everywhere.
+Buttons show up on several layouts, Call to Action, Content and Image, Full Width Image, Columned
+Content, Stats, and they all use the same fields, learn it once here.
 
-I've set up Training: Buttons with a Call to Action row carrying two buttons, so you can compare
-them side by side.
+I've set up Training: Buttons with two buttons side by side to compare.
 
-[ON SCREEN: open the Buttons repeater on the training page]
+[ON SCREEN: open the Buttons repeater]
 
-Every button starts with Button Text and Button Link, straightforward, that's your label and
-your destination: an internal page, an external URL, or an anchor like `#enquire` to jump down
-the same page.
+Button Text and Button Link are your label and destination.
 
-Button Style picks the colour, Green, Orange, Yellow, or White, our brand palette. Right next to
-it is Outline, a toggle: switched off gives you a solid button, switched on gives you an outlined
-one in the same colour. Have a look at the two buttons on the training page, the first is a solid
-Orange button, the second is an outlined Green one, same fields, different combination.
+Button Style picks the brand colour, and Outline next to it toggles solid or outlined. On the
+training page, the first button's solid Orange, the second's outlined Green, same fields,
+different combination.
 
-Then the icon fields, three of them, and they only appear once you need them. Icon picks from a
-bundled set, arrows, a phone, a chevron, an external link icon, a chat bubble, or None if you
-don't want one. Choose one and Icon Position appears, Before or After the text. If none of the
-bundled icons fit, choose Custom, and a third field appears, Icon SVG, where you upload your own.
-It needs to be an SVG file, and here's the one technical detail worth knowing: it has to use
-"currentColor" as its fill rather than a fixed colour, that's what lets your uploaded icon change
-colour automatically to match the button style and hover state, exactly like the bundled ones do.
+Then three icon fields, only shown once needed. Icon picks from the bundled set, as you can see,
+or None. Choose one and Icon Position appears, before or after the text. Choose Custom instead
+and you get Icon SVG, your own upload.
 
-That's the whole component: text, link, style, outline, and an optional icon. Learn it once here
-and you'll recognise it on every layout that offers buttons.
+[ON SCREEN: point to the icon fields]
+
+One technical detail: the SVG needs "currentColor" as its fill, that's what lets it change colour
+with the button automatically.
+
+And that's the whole component.

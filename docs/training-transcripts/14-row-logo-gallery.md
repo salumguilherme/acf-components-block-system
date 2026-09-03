@@ -6,20 +6,16 @@ Gallery (`training-logo-gallery`, draft, six sample logos).
 
 ---
 
-Logo Gallery is the simplest of our gallery layouts, a row of logos, usually partners,
-accreditations, or awards, no carousel, no lightbox, just a clean grid.
+Logo Gallery, the simplest of our gallery layouts, a row of logos, no carousel, no lightbox.
 
 [ON SCREEN: open Training: Logo Gallery]
 
-In Content, one field, Logos, another standard gallery field, upload as many as you need. That's
-genuinely the only field on the Content tab.
+One field, Logos, a standard gallery upload.
 
-Grid & Display, same as Image Gallery, columns only, desktop, tablet, mobile, no alignment or
-card. On the training page it's six columns on desktop, dropping to four on tablet and three on
-mobile, and I've left six logos in as an example, have a look at how evenly they sit.
+Grid & Display, columns only, same as Image Gallery. On the training page it's six columns
+dropping to three on mobile.
 
-A small tip worth passing on: logos usually look best uploaded with a transparent background, PNG
-or SVG, so they sit cleanly on whatever section colour you choose, rather than carrying their own
-white box around them.
+Tip: upload logos with a transparent background, PNG or SVG, so they sit cleanly on whatever
+colour you choose.
 
-That's it for this one, genuinely a two-minute layout to set up: images in, columns set, done.
+That's it, images in, columns set, done.

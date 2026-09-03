@@ -1,0 +1,238 @@
+//
+// Row: Content and Image - 2 Columns
+//
+// Enqueued as `acbs-row-content_left_image_right`, only on a page that has such a row.
+// Loads after structure.scss, so it can override the shared rules.
+//
+// Markup: templates/rows/content_left_image_right.php
+// Reference: Figma "Golden Rise Bendigo Design System", node 9144:6713 - two rows, the
+// first with content_alignment left and image_fit contain, the second with content
+// alignment right and image_fit cover.
+//
+// Type is the theme's. The design's 48px heading and 20px body come from the theme
+// stylesheet by way of the <h2> and <p> inside written_content, so there is not a single
+// font-size in this file.
+//
+// BREAKPOINTS. The project uses max-width queries, matching the site:
+//   desktop and up  above 991.98px      side by side
+//   tablet          max-width 991.98px  stacked, image on top
+//   mobile          max-width 767.98px  same stack, nothing further to change
+// So there is one breakpoint here, not two: tablet and mobile share a layout.
+//
+
+.acbs .fl-type-content_left_image_right {
+
+	// Two equal columns, and the separation between them is the content column's inner
+	// padding rather than a gap.
+	//
+	// The gap is 0 here ON PURPOSE, and it is what makes "50%" true: a flex row with a gap
+	// splits the space MINUS the gap, so two 50% columns with 32px between them are each
+	// 50% of the container less 16px, and the image column stops lining up with anything
+	// measured off the container. The stacked layout further down puts a real gap back,
+	// where it is a vertical rhythm rather than a column divider.
+	.fl-content-image {
+		display: flex;
+		align-items: center;
+		gap: var(--fl-content-image-gap, 0);
+	}
+
+	// Half each. THE BASIS HAS TO BE 50%, not 0: `flex: 1 1 0` distributes the free space
+	// equally, and free space is measured after every item's padding has been taken out,
+	// so equal shares produce equal CONTENT widths and the content column then adds its
+	// 10% inset on top. That came out 55/45, which looks like a rounding error and is not
+	// one. A 50% basis sizes the border box directly and the inset eats into the column
+	// instead of extending it.
+	//
+	// box-sizing is set explicitly for the same reason it cannot be assumed: the plugin's
+	// scoped Bootstrap build ships no `* { box-sizing: border-box }` rule, so on a theme
+	// that does not set one globally a percentage basis plus padding would overflow the
+	// row. Two declarations, and this row stops depending on what the theme happens to do.
+	//
+	// min-width: 0 stops a long unbroken word (a URL in the wysiwyg) from forcing the
+	// column past its half: a flex item's default min-width is auto, not zero.
+	//
+	// There is deliberately no max-width on the content column. It had one, from the
+	// design's 1008px measure, but a cap and a 50% column are the same rule stated twice
+	// and the cap wins first: past a ~2016px container the content would stop at 1008 and
+	// the columns would quietly stop being halves.
+	.fl-content-image-body {
+		box-sizing: border-box;
+		flex: 1 1 50%;
+		min-width: 0;
+	}
+
+	.fl-content-image-media {
+		box-sizing: border-box;
+		position: relative;
+		flex: 1 1 50%;
+		min-width: 0;
+	}
+
+	.fl-content-image-img {
+		display: block;
+		border-radius: var(--fl-border-radius-xl);
+	}
+
+	// The content is always FIRST in the DOM so the heading is read before the picture.
+	// content_alignment moves the image instead, which is why this is `order` rather than
+	// row-reverse: reversing would also reverse how the padding below resolves.
+	//
+	// The inset is on the content's INNER edge only - the side facing the image - so it
+	// flips with the field. A percentage, so the separation scales with the container
+	// rather than staying at a fixed figure that reads as a canyon at 1400px and as
+	// nothing at 1000px.
+	//
+	// WHAT THE 10% IS OF: a percentage padding resolves against the CONTAINING BLOCK's
+	// width, which for a flex item is the flex container - the whole row, not the column
+	// it sits on. So this is 10% of the row (about 114px in a 1140px container), not 10%
+	// of the 50% column. That is the intended reading; it is just not the one the property
+	// looks like it is making.
+	.fl-content-align-left .fl-content-image-body  { padding-inline-end: var(--fl-content-image-inset, 10%); }
+	.fl-content-align-right .fl-content-image-body { padding-inline-start: var(--fl-content-image-inset, 10%); }
+	.fl-content-align-right .fl-content-image-media { order: -1; }
+
+	.fl-content-image-text > :last-child { margin-bottom: 0; }
+
+	// --------------------------------------------------------------------------------
+	// image_fit: contain
+	//
+	// The image keeps its own proportions and fits inside the column, so the column needs
+	// a height of its own - an absolutely positioned image contributes none, and the row
+	// would collapse. aspect-ratio supplies it from the design's 607x450 box, which also
+	// means the box scales with the container instead of pinning to 450px.
+	//
+	// The image is then centred vertically and pushed to the OUTER edge horizontally:
+	// right when the image is on the right, left when content_alignment has moved it to
+	// the left. The design only shows the first case; mirroring is the reading that keeps
+	// the image against the container edge either way round rather than leaning it in
+	// towards the text. One custom property each if that is wrong.
+	// --------------------------------------------------------------------------------
+	&.fl-image-fit-contain {
+
+		.fl-content-image-media {
+			aspect-ratio: var(--fl-content-image-ratio, 607 / 450);
+		}
+
+		.fl-content-image-img {
+			position: absolute;
+			inset: 0;
+			width: auto;
+			height: auto;
+			max-width: 100%;
+			max-height: 100%;
+			// `auto` on the block axis centres; the inline pair is what places the image
+			// against one edge. Overriding one side to 0 would fight the `inset` above.
+			margin-block: auto;
+			margin-inline: var(--fl-content-image-lead, auto) var(--fl-content-image-trail, 0);
+		}
+
+		.fl-content-align-right .fl-content-image-img {
+			--fl-content-image-lead: 0;
+			--fl-content-image-trail: auto;
+		}
+
+	}
+
+	// --------------------------------------------------------------------------------
+	// image_fit: cover
+	//
+	// The image fills the column and is cropped to it, capped at the design's 450px.
+	//
+	// align-self: stretch gives the media column a definite height - the flex line's, so
+	// in practice the content column's - which is what the percentage height below needs
+	// to resolve against. min-height keeps a short content column from dragging the image
+	// down with it; the design's image is 450px tall against roughly 314px of text, so
+	// without it the row would come out a third too short.
+	//
+	// When the content DOES run past 450px the image caps there and sits at the top of
+	// its column, which is normal block flow - no rule needed, and object-position stays
+	// at its 50% 50% default so the crop itself is centred.
+	// --------------------------------------------------------------------------------
+	&.fl-image-fit-cover {
+
+		.fl-content-image-media {
+			align-self: stretch;
+			min-height: var(--fl-content-image-height, 450px);
+		}
+
+		.fl-content-image-img {
+			width: 100%;
+			// The 2rem is a deliberate overhang past the column. It only shows while the
+			// column is under the cap, which today it never is - min-height and max-height
+			// are the same 450px. Drop the min-height above and the image starts tracking
+			// the content's height with this bleed on the bottom.
+			height: calc(100% + 2rem);
+			max-height: var(--fl-content-image-height, 450px);
+			object-fit: cover;
+		}
+
+	}
+
+	// --------------------------------------------------------------------------------
+	// Tablet and mobile: stacked, image on top
+	// --------------------------------------------------------------------------------
+	@media (max-width: 991.98px) {
+
+		.fl-content-image {
+			display: flex;
+			flex-direction: column;
+			align-items: stretch;
+			// A real gap again. Stacked it separates the image from the content
+			// vertically, which is spacing rather than the column divider it would be
+			// side by side, so the desktop 0 does not apply.
+			gap: var(--fl-content-image-stack-gap, 2rem);
+		}
+
+		// Image first in both alignments. content_alignment is a left/right field and
+		// there is no left or right left to honour once the columns are stacked.
+		.fl-content-image-media {
+			order: -1;
+		}
+
+		// Every desktop rule that gave the columns their side-by-side shape is undone
+		// here rather than being written inside a min-width query, so the desktop block
+		// above reads as one piece.
+		.fl-content-align-left .fl-content-image-body,
+		.fl-content-align-right .fl-content-image-body {
+			flex: 0 0 auto;
+			padding-inline: 0;
+		}
+
+		// The media box goes back to being sized by its image: no ratio, no minimum, no
+		// stretching. `display: flex` is what lets the image be aligned inside it, since
+		// the image is no longer absolutely positioned in either fit mode.
+		//
+		// Resetting `flex` is not tidying, it is the fix for a real bug. flex-basis is
+		// measured along the MAIN axis, so the 607px basis that sets the column's width
+		// side by side sets its HEIGHT once the container turns vertical: the stacked box
+		// came out 607px tall around a 280px image, and the gap read as broken spacing.
+		&.fl-image-fit-contain .fl-content-image-media,
+		&.fl-image-fit-cover .fl-content-image-media {
+			display: flex;
+			flex: 0 0 auto;
+			align-self: auto;
+			aspect-ratio: auto;
+			min-height: 0;
+			// Same alignment as the content column, which sets none of its own and so
+			// reads left. One property to change if a design ever wants it centred.
+			justify-content: var(--fl-content-image-stack-align, flex-start);
+		}
+
+		// contain and cover converge: at this width there is no column height to fill, so
+		// cropping would only ever lose part of the picture. The image is sized by its own
+		// height and takes whatever width that implies.
+		&.fl-image-fit-contain .fl-content-image-img,
+		&.fl-image-fit-cover .fl-content-image-img {
+			position: static;
+			width: auto;
+			height: auto;
+			max-width: 100%;
+			max-height: var(--fl-content-image-stack-height, 280px);
+			object-fit: contain;
+			margin: 0;
+			border-radius: var(--fl-border-radius);
+		}
+
+	}
+
+}

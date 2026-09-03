@@ -1,0 +1,69 @@
+//
+// Row: Logo Gallery
+//
+// Enqueued only on a page that actually has a logo_gallery row - Rows\Assets registers this
+// as `acbs-row-logo_gallery` and enqueues it in the footer for the layouts that rendered.
+// Loads after structure.scss, so it can override the shared grid rules.
+//
+// Markup: templates/rows/logo_gallery.php.
+//
+// Reference: Figma "Golden Rise Bendigo Design System", node 9044:16068.
+//
+
+.acbs .fl-type-logo_gallery {
+
+	// The design's own gaps: 20px between logos across, 32px between rows. Wider vertically
+	// than horizontally on purpose - the cells are much wider than they are tall, so an
+	// equal gap reads as too tight between rows.
+	//
+	// Set on .fl-logos rather than on the section, so this is the only grid on the page it
+	// can reach. Everything else keeps structure.scss's 1.5rem.
+	.fl-logos {
+		--fl-grid-gap: 2rem 1.25rem;
+		align-items: center;
+	}
+
+	// The cell, not the logo. A fixed 177:72 box per the design, which is what keeps a row
+	// of logos optically level when the logos themselves are all different shapes - the
+	// current set runs from 296x80 (3.7:1) to 228x228 (1:1).
+	//
+	// Without it each cell would take its height from its own logo and the row would step
+	// up and down. This is the whole reason the design draws a frame around each one.
+	.fl-logo {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		aspect-ratio: var(--fl-logo-ratio, 177 / 72);
+		margin: 0;
+		padding: 0;
+	}
+
+	// Contain, never cover. `cover` would fill the cell by cropping, which on a wordmark
+	// cuts letters off - the one thing a logo cannot survive. So the logo is bounded by
+	// BOTH axes and keeps its own proportion:
+	//
+	//   max-width/max-height  cap it against the cell
+	//   width/height: auto    let the intrinsic ratio decide which cap binds first
+	//
+	// A wide logo is limited by the cell's width, a tall one by its height, and neither is
+	// distorted or trimmed. object-fit is set as well for the SVG branch in the template,
+	// where the <img> has no width/height attributes to reason from.
+	//
+	// The caps are 90% and 86%, not 100%, and those two numbers come straight off the
+	// design. Every logo in the Figma frame is placed at exactly 0.50 of its natural pixel
+	// size - they are 2x assets dropped in at half scale - so the design has no fit rule to
+	// copy, just six fixed sizes. Measured against the 177x72 cell, the widest logo lands at
+	// 90% of the width and the tallest at 86% of the height, and those upper bounds are the
+	// part that generalises: they reproduce the design's largest logos to the pixel and hold
+	// the rest to the same optical inset, without hardcoding a size per logo. A CMS gallery
+	// has to survive the seventh logo nobody has uploaded yet.
+	.fl-logo-image {
+		display: block;
+		width: auto;
+		height: auto;
+		max-width: var(--fl-logo-max-width, 90%);
+		max-height: var(--fl-logo-max-height, 86%);
+		object-fit: contain;
+	}
+
+}

@@ -6,25 +6,21 @@ and Image (`training-content-image`, draft).
 
 ---
 
-Content and Image is a straightforward two-column section, an image on one side, your message on
-the other, and it's probably the layout you'll use most often for general page content.
+Content and Image, an image on one side, your message on the other, probably your most-used
+layout.
 
 [ON SCREEN: open Training: Content and Image]
 
-Upload your Hero Image first, then choose Image fit, Cover or Contain. Cover fills the whole
-space and crops anything that doesn't fit, Contain shows the whole image at its own proportions
-inside the space. Cover is the safer default for photos, Contain is better for a logo or an image
-where cropping would cut something important off.
+Upload your Hero Image, then choose Image fit, Cover or Contain, Cover's the safer default for
+photos.
 
-Below that, Content is your wysiwyg box, and Content Alignment, Left or Right, is worth pausing
-on, because that's not text alignment, it's which side of the row the text column sits on, image
-on the other side. Set it to Right and the whole layout flips.
+Content Alignment, Left or Right, isn't text alignment, it's which side the text column sits on,
+flip it and the whole layout mirrors.
 
-Then Buttons, the same repeater as always, entirely optional.
+Then Buttons, entirely optional.
 
-There's no Grid & Display tab on this layout, it's always exactly two columns, so there's nothing
-to configure there. Other Settings is the usual: background, ID, padding.
+No Grid & Display here, it's always two columns. Other Settings as usual: background, ID,
+padding.
 
-On the training example, the image is set to Cover, the text is aligned Left, and there's no
-button, just a heading and two short paragraphs, about as simple as this layout gets, and that's
-honestly most of the time you'll use it.
+On the training example it's Cover, aligned Left, no button, just a heading and two paragraphs,
+about as simple as this layout gets.

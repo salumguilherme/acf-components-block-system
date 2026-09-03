@@ -337,7 +337,15 @@ function build() {
 		section(
 			{ layout: 'testimonials', bg: 'light', padding: 'sm', columns: 2, cardBg: 'default' },
 			intro( 'Testimonials', 'Card set to Transparent: padding and rounding, no fill.' ) +
-				grid( 'fl-testimonials', [ testimonialItem( 1 ), testimonialItem( 2, 'center' ) ] )
+				// The slider wrapper the template emits whenever Content Box is Card. It is
+				// inert here and drawn as a grid on purpose: every rule in the carousel half
+				// of the row sheet is gated on `swiper-initialized`, which Swiper adds on
+				// init, and the fixture runs no JS. So this section shows what a visitor with
+				// JavaScript off sees at every width, which is the fallback worth having in
+				// front of us - the carousel itself has to be checked in a browser.
+				'<div class="fl-testimonials-slider" data-columns-sm="2" data-columns-xs="1">' +
+				grid( 'fl-testimonials', [ testimonialItem( 1 ), testimonialItem( 2, 'center' ) ] ) +
+				'</div>'
 		)
 	);
 

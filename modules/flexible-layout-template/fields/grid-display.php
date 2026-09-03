@@ -72,6 +72,12 @@
 			'logo_gallery' => ['layout_columns', 'layout_columns_sm', 'layout_columns_xs'],
 			'stats' => ['layout_columns', 'layout_columns_sm', 'layout_columns_xs', 'layout_columns_alignment', 'layout_display', 'layout_display_bg', 'layout_display_bg_colour'],
 			'testimonials' => ['layout_columns', 'layout_columns_sm', 'layout_columns_xs', 'layout_columns_alignment', 'layout_display', 'layout_display_bg', 'layout_display_bg_colour'],
+
+			// Alignment alone. A sticky bar has one set of content rather than a grid of
+			// items, so there are no column counts to configure and no card to sit in - it
+			// is its own floating box already. See OVERRIDES: the canonical label and
+			// instructions both describe items this layout does not have.
+			'sticky_cta' => ['layout_columns_alignment'],
 		];
 
 		/**
@@ -97,6 +103,26 @@
 				'layout_columns' => ['label' => 'Columns', 'choices' => self::COLUMNS_8, 'default_value' => 7],
 				'layout_columns_sm' => ['label' => 'Columns - Tablet', 'choices' => self::COLUMNS_8, 'default_value' => ''],
 				'layout_columns_xs' => ['label' => 'Columns - Mobile', 'choices' => self::COLUMNS_8, 'default_value' => ''],
+			],
+
+			// The canonical field is called "Grid Alignment" and its instructions talk about
+			// "this section's items", which an editor can follow because every other layout
+			// taking it iterates a repeater. This one does not: there is one content block,
+			// one image and one set of buttons, so both strings would be describing a
+			// control that is not there. Relabelled rather than left alone because a field
+			// label that promises the wrong thing IS the defect - `column_alignment` shipped
+			// offering "Left (default)" for a value that means inherit, and got reported as
+			// broken behaviour when the behaviour was right.
+			//
+			// The choices and the default are untouched on purpose. `default_value` is
+			// `center` group-wide, which is the open question already recorded against this
+			// field - a row nobody has touched comes out centred - and picking a different
+			// answer for one layout would settle it by accident rather than on purpose.
+			'sticky_cta' => [
+				'layout_columns_alignment' => [
+					'label' => 'Content Alignment',
+					'instructions' => 'Text alignment inside the bar.',
+				],
 			],
 
 		];
